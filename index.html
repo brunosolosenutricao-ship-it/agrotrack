@@ -200,13 +200,48 @@ tr:hover td{background:var(--surface2)!important;}
 .nota-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nota-btn:hover{border-color:var(--accent);color:var(--accent);}
 .nota-btn.active{background:rgba(74,222,128,.2);border-color:var(--accent);color:var(--accent);font-weight:700;}
-/* RESPONSIVO */
-@media(max-width:900px){
+/* RESPONSIVO MOBILE */
+@media(max-width:768px){
+  .app{flex-direction:column;}
+  .sidebar{
+    width:100%;height:60px;flex-direction:row;
+    position:fixed;bottom:0;left:0;right:0;
+    padding:0;z-index:100;
+    border-right:none;border-top:1px solid var(--border2);
+    background:var(--surface);
+    display:flex;align-items:stretch;
+  }
+  .sidebar-logo,.sidebar-user,.sidebar-bottom{display:none!important;}
+  .nav-item{
+    flex:1;flex-direction:column;
+    padding:8px 4px 6px;gap:3px;
+    border-left:none!important;border-top:3px solid transparent;
+    justify-content:center;align-items:center;
+    font-size:10px;min-width:0;
+  }
+  .nav-item.active{border-top-color:var(--accent);background:var(--accent-light);}
+  .nav-item.nav-lucas.active{border-top-color:var(--lucas);background:var(--lucas-bg);}
+  .nav-item span{display:block;font-size:9px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .nav-icon{width:20px;height:20px;opacity:1;flex-shrink:0;}
+  .main{padding-bottom:72px;width:100%;}
+  .page{padding:16px;}
   .cards-grid.cols-4{grid-template-columns:repeat(2,1fr);}
+  .cards-grid.cols-2{grid-template-columns:1fr;}
   .kanban-wrap{grid-template-columns:1fr;}
-  .sidebar{width:64px;}
-  .sidebar-logo strong,.sidebar-user-name,.sidebar-user-role,.nav-item span{display:none;}
-  .nav-item{justify-content:center;padding:12px;}
+  .ranking-row{flex-wrap:wrap;gap:8px;}
+  .rank-score,.rank-clients{flex-basis:auto;}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:480px;}
+  .page-title{font-size:20px;}
+  .btn-save,.btn-sec,.btn-lucas,.btn-primary{padding:13px 20px;font-size:14px;}
+  .filtro-tab{padding:8px 14px;}
+  .clients-grid{grid-template-columns:repeat(2,1fr);}
+  .ativ-fill-row{flex-direction:column;align-items:flex-start;gap:8px;}
+  .ativ-fill-select{min-width:100%;width:100%;}
+  .modal-box{padding:24px 16px;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:90vh;max-width:100%;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .card-detalhe{padding:16px;}
+  .scope-scroll{max-height:160px;}
 }
 input[type=text],input[type=password],input[type=number],select,textarea{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border2)!important;border-radius:8px;outline:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;}
@@ -608,11 +643,20 @@ function renderApp(content){
       +'<span>Lucas</span></div>';
   }
 
+  // Item sair/sync para mobile bottom nav
+  var mobileExtra='<div class="nav-item" id="btn-sincronizar-nav" style="flex:1;flex-direction:column;padding:8px 4px 6px;gap:3px;justify-content:center;align-items:center;">'
+    +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5V1l3 2.5L8 6V4.5a3.5 3.5 0 1 0 3.5 3.5H13.5z"/></svg>'
+    +'<span>Sync</span></div>';
+  var mobileLogout='<div class="nav-item" id="btn-logout-nav" style="flex:1;flex-direction:column;padding:8px 4px 6px;gap:3px;justify-content:center;align-items:center;">'
+    +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M10 11l3-3-3-3M13 8H6"/></svg>'
+    +'<span>Sair</span></div>';
+
   return'<div class="app">'
     +'<div class="sidebar">'
     +'<div class="sidebar-logo">Sistema<strong>AgroTrack</strong></div>'
     +'<div class="sidebar-user"><div class="sidebar-user-name">'+u.nome+'</div><div class="sidebar-user-role">'+state.role+'</div></div>'
     +nav+lucasNavItem
+    +mobileExtra+mobileLogout
     +'<div class="sidebar-bottom">'
     +'<button class="btn-logout" id="btn-sincronizar">⟳ Sincronizar</button>'
     +'<button class="btn-logout" id="btn-config-api">⚙ Config API</button>'
@@ -1414,6 +1458,11 @@ function bindCommon(){
     state.tela='login';state.usuario=null;state.role=null;
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();
   };
+  // Mobile nav extras
+  var mbn=document.getElementById('btn-logout-nav');
+  if(mbn)mbn.onclick=function(){state.tela='login';state.usuario=null;state.role=null;_cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();};
+  var msn=document.getElementById('btn-sincronizar-nav');
+  if(msn)msn.onclick=async function(){await sincronizarDoSheets();render();};
   var ms=document.getElementById('mes-sel');
   if(ms)ms.onchange=async function(e){
     state.mesAtual=e.target.value;state.lucasCardAberto=null;
@@ -1501,12 +1550,8 @@ function bindLucas(){
 render();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js').then(function(reg){
-      console.log('SW registrado:', reg.scope);
-    }).catch(function(err){
-      console.log('SW erro:', err);
-    });
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(e){console.log('SW:',e);});
   });
 }
 </script>
