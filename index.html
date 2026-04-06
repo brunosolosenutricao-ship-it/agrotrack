@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroTrack</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgroTrack">
+<meta name="theme-color" content="#4ade80">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{background:#0f1117!important;color:#f0f2f8!important;}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222534;--surface3:#2a2e3f;
+  --accent:#4ade80;--accent2:#22c55e;--accent-light:rgba(74,222,128,.1);
+  --text:#f0f2f8;--text2:#8b90a8;--text3:#555a75;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --danger:#f87171;--warn:#fbbf24;--ok:#4ade80;
+  --lucas:#f472b6;--lucas-bg:rgba(244,114,182,.1);
+  --radius:12px;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.login-card{background:var(--surface);border-radius:20px;padding:48px 40px;width:360px;border:1px solid var(--border2);}
+.login-logo{font-size:10px;font-family:var(--mono);letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+.login-title{font-size:28px;font-weight:600;margin-bottom:32px;color:var(--text);}
+.login-title span{color:var(--accent);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-family:var(--mono);color:var(--text2);margin-bottom:6px;letter-spacing:1px;}
+.field input,.field select{width:100%;padding:12px 14px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:14px;background:var(--surface2);color:var(--text);outline:none;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field select option{background:var(--surface2);}
+.btn-primary{width:100%;padding:14px;background:var(--accent);color:#0a1a0f;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
+.btn-primary:hover{background:var(--accent2);}
+.error-msg{color:var(--danger);font-size:12px;margin-top:10px;text-align:center;font-family:var(--mono);}
+/* APP LAYOUT */
+.app{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--surface);padding:24px 0;display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid var(--border);}
+.sidebar-logo{font-size:10px;font-family:var(--mono);letter-spacing:3px;color:var(--text3);padding:0 20px 24px;border-bottom:1px solid var(--border);}
+.sidebar-logo strong{display:block;font-family:var(--sans);font-size:18px;font-weight:600;color:var(--accent);letter-spacing:0;margin-top:2px;}
+.sidebar-user{padding:16px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.sidebar-user-name{font-size:13px;font-weight:500;}
+.sidebar-user-role{font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:2px;}
+.nav-item{padding:10px 20px;color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);}
+.nav-item.nav-lucas{color:var(--lucas);}
+.nav-item.nav-lucas:hover{background:var(--lucas-bg);}
+.nav-item.nav-lucas.active{color:var(--lucas);background:var(--lucas-bg);border-left-color:var(--lucas);}
+.nav-icon{width:16px;height:16px;opacity:.5;flex-shrink:0;}
+.nav-item.active .nav-icon,.nav-item:hover .nav-icon{opacity:1;}
+.sidebar-bottom{margin-top:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;}
+.btn-logout{width:100%;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;}
+.btn-logout:hover{background:var(--surface3);color:var(--text);}
+.main{flex:1;overflow-y:auto;}
+.page{padding:32px;max-width:1200px;}
+.page-header{margin-bottom:28px;}
+.page-title{font-size:22px;font-weight:600;}
+.page-sub{font-size:13px;color:var(--text3);margin-top:4px;font-family:var(--mono);}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;}
+.cards-grid{display:grid;gap:16px;}
+.cards-grid.cols-4{grid-template-columns:repeat(4,1fr);}
+.cards-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.metric-label{font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;margin-bottom:8px;}
+.metric-value{font-size:28px;font-weight:600;}
+.metric-sub{font-size:12px;color:var(--text2);margin-top:4px;}
+.month-bar{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.month-bar select{padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;}
+.ranking-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.ranking-row:last-child{border-bottom:none;}
+.rank-num{font-size:11px;font-family:var(--mono);color:var(--text3);width:20px;}
+.rank-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.rank-name{font-size:14px;font-weight:500;flex:1;}
+.rank-clients{font-size:12px;font-family:var(--mono);color:var(--text3);}
+.rank-score{font-size:16px;font-weight:600;font-family:var(--mono);}
+.progress-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:5px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;transition:width .4s;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:10px 12px;font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border);font-weight:400;}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2)!important;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);font-weight:500;}
+.badge-ok{background:rgba(74,222,128,.12);color:#4ade80;}
+.badge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.badge-info{background:rgba(96,165,250,.12);color:#60a5fa;}
+.badge-warn{background:rgba(251,191,36,.12);color:#fbbf24;}
+.badge-danger{background:rgba(248,113,113,.12);color:#f87171;}
+.badge-lucas{background:var(--lucas-bg);color:var(--lucas);}
+.ativ-fill-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ativ-fill-row:last-child{border-bottom:none;}
+.ativ-fill-name{flex:1;font-size:13px;}
+.ativ-fill-select{padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:12px;background:var(--surface2);color:var(--text);cursor:pointer;min-width:210px;font-weight:500;transition:all .15s;}
+.ativ-fill-select:focus{outline:none;border-color:var(--accent);}
+.ativ-fill-select option{background:var(--surface2);}
+.ativ-fill-select.cod-10{background:#14532d;color:#4ade80;border-color:#166534;}
+.ativ-fill-select.cod-nao{background:#422006;color:#fbbf24;border-color:#854d0e;}
+.ativ-fill-select.cod-0{background:#450a0a;color:#f87171;border-color:#7f1d1d;}
+.ativ-fill-select.cod-5{background:#431407;color:#fb923c;border-color:#9a3412;}
+.ativ-fill-select.cod-cotacao{background:#3b0764;color:#c084fc;border-color:#6b21a8;}
+.ativ-fill-select.cod-ind{background:#0c2044;color:#60a5fa;border-color:#1e40af;}
+.ativ-fill-select.cod-cliente{background:#042f2e;color:#2dd4bf;border-color:#0f766e;}
+.ativ-fill-select.cod-timing{background:#4a044e;color:#f0abfc;border-color:#86198f;}
+.ativ-fill-select.cod-semresp{background:#450a0a;color:#fca5a5;border-color:#991b1b;}
+.ativ-nota{font-size:12px;font-family:var(--mono);color:var(--text3);min-width:30px;text-align:right;}
+.btn-save{padding:10px 24px;background:var(--accent);color:#0a1a0f;border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-save:hover{background:var(--accent2);}
+.btn-save:disabled{opacity:.4;cursor:not-allowed;}
+.btn-sec{padding:10px 18px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;cursor:pointer;}
+.btn-sec:hover{border-color:var(--accent);color:var(--accent);}
+.btn-lucas{padding:10px 20px;background:var(--lucas);color:#1a0010;border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-lucas:hover{background:#e879f9;}
+.scope-group{margin-bottom:10px;}
+.scope-group-label{font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;margin-bottom:6px;}
+.check-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;}
+.check-item:hover{background:var(--surface3);}
+.check-item input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.scope-scroll{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px;background:var(--surface2);}
+.filtro-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.filtro-tab{padding:6px 16px;border-radius:20px;border:1px solid var(--border2);background:transparent;font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--text2);}
+.filtro-tab:hover{border-color:var(--accent);color:var(--accent);}
+.filtro-tab.active{background:var(--accent);color:#0a1a0f;border-color:var(--accent);font-weight:600;}
+.section-title{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;font-family:var(--mono);letter-spacing:1.5px;}
+.nota-zero{background:rgba(248,113,113,.06)!important;border-left:3px solid #f87171;}
+.nota-cinco{background:rgba(251,191,36,.06)!important;border-left:3px solid #fbbf24;}
+.nota-dez{background:rgba(74,222,128,.06)!important;border-left:3px solid #4ade80;}
+.nota-zero td,.nota-cinco td,.nota-dez td{background:transparent!important;}
+.client-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;cursor:pointer;transition:all .15s;}
+.client-card:hover{border-color:var(--accent);}
+.client-card.selected{border-color:var(--accent);background:var(--accent-light);}
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;font-family:var(--mono);opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:9999;}
+.toast.show{opacity:1;transform:translateY(0);}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:20px;color:var(--text);}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;margin-bottom:6px;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);outline:none;resize:vertical;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--lucas);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+/* KANBAN */
+.kanban-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+.kanban-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.kanban-col-header{padding:14px 16px;font-size:11px;font-family:var(--mono);letter-spacing:2px;font-weight:500;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.kanban-col-header.aberto{color:#60a5fa;background:rgba(96,165,250,.08);}
+.kanban-col-header.em_andamento{color:#fbbf24;background:rgba(251,191,36,.08);}
+.kanban-col-header.feito{color:#4ade80;background:rgba(74,222,128,.08);}
+.kanban-col-body{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:80px;}
+.kanban-card{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;}
+.kanban-card:hover{border-color:var(--lucas);transform:translateY(-1px);}
+.kanban-card-title{font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.4;}
+.kanban-card-meta{font-size:11px;font-family:var(--mono);color:var(--text3);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.kanban-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.kanban-card-autor{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:4px;font-weight:500;}
+.kanban-card-nota{font-size:12px;font-family:var(--mono);font-weight:600;}
+.prioridade-badge{font-size:10px;font-family:var(--mono);font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:.5px;}
+.prioridade-alta{background:rgba(248,113,113,.18);color:#f87171;border:1px solid rgba(248,113,113,.4);}
+.prioridade-media{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.35);}
+.prioridade-baixa{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.35);}
+.prazo-badge{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:4px;}
+.prazo-ok{color:#4ade80;background:rgba(74,222,128,.1);}
+.prazo-warn{color:#fbbf24;background:rgba(251,191,36,.12);}
+.prazo-late{color:#f87171;background:rgba(248,113,113,.15);}
+/* CARD DETALHE */
+.card-detalhe{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;margin-top:20px;}
+.card-detalhe-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;}
+.card-detalhe-title{font-size:18px;font-weight:600;line-height:1.3;}
+.card-detalhe-meta{font-size:12px;font-family:var(--mono);color:var(--text3);margin-top:4px;}
+.card-detalhe-section{margin-bottom:20px;}
+.card-detalhe-section-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:2px;margin-bottom:8px;}
+/* ANEXOS */
+.anexos-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.anexo-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;}
+.anexo-icon{font-size:16px;flex-shrink:0;}
+.anexo-nome{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.anexo-size{font-size:10px;font-family:var(--mono);color:var(--text3);}
+.anexo-link{font-size:11px;color:#60a5fa;text-decoration:none;font-family:var(--mono);}
+.anexo-link:hover{text-decoration:underline;}
+.upload-area{border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-top:8px;}
+.upload-area:hover,.upload-area.drag{border-color:var(--lucas);background:var(--lucas-bg);}
+.upload-area input{display:none;}
+.upload-area-text{font-size:12px;font-family:var(--mono);color:var(--text3);}
+/* STATUS BUTTONS */
+.status-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.status-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;font-family:var(--mono);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s;}
+.status-btn:hover{border-color:var(--text2);}
+.status-btn.aberto.active{background:rgba(96,165,250,.15);border-color:#60a5fa;color:#60a5fa;}
+.status-btn.em_andamento.active{background:rgba(251,191,36,.15);border-color:#fbbf24;color:#fbbf24;}
+.status-btn.feito.active{background:rgba(74,222,128,.15);border-color:#4ade80;color:#4ade80;}
+/* NOTA STARS */
+.nota-input-wrap{display:flex;gap:6px;align-items:center;}
+.nota-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.nota-btn:hover{border-color:var(--accent);color:var(--accent);}
+.nota-btn.active{background:rgba(74,222,128,.2);border-color:var(--accent);color:var(--accent);font-weight:700;}
+/* RESPONSIVO */
+@media(max-width:900px){
+  .cards-grid.cols-4{grid-template-columns:repeat(2,1fr);}
+  .kanban-wrap{grid-template-columns:1fr;}
+  .sidebar{width:64px;}
+  .sidebar-logo strong,.sidebar-user-name,.sidebar-user-role,.nav-item span{display:none;}
+  .nav-item{justify-content:center;padding:12px;}
+}
+input[type=text],input[type=password],input[type=number],select,textarea{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border2)!important;border-radius:8px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DADOS ESTÁTICOS
+// ============================================================
+var USUARIOS={
+  'gestor':{senha:'gestor123',role:'gestor',  nome:'Gestor',cor:'#4ade80',corBg:'rgba(74,222,128,.15)'},
+  'igor':  {senha:'igor123',  role:'consultor',nome:'Igor',  cor:'#4ade80',corBg:'rgba(74,222,128,.15)'},
+  'felipe':{senha:'felipe123',role:'consultor',nome:'Felipe',cor:'#60a5fa',corBg:'rgba(96,165,250,.15)'},
+  'paula': {senha:'paula123', role:'consultor',nome:'Paula', cor:'#c084fc',corBg:'rgba(192,132,252,.15)'},
+  'ramon': {senha:'ramon123', role:'consultor',nome:'Ramon', cor:'#fb923c',corBg:'rgba(251,146,60,.15)'},
+  'lucas': {senha:'lucas123', role:'lucas',    nome:'Lucas', cor:'#f472b6',corBg:'rgba(244,114,182,.15)'},
+};
+var CLIENTES={
+  igor:[
+    {id:'i1',nome:'Fábio',regiao:'MS',area:3133},{id:'i2',nome:'Cerro',regiao:'MS',area:3689.85},
+    {id:'i3',nome:'Grimm',regiao:'MS',area:2071},{id:'i4',nome:'Eduardo',regiao:'MS, PY',area:9510},
+    {id:'i5',nome:'Murillo',regiao:'MS, PY',area:1900},{id:'i6',nome:'Fries',regiao:'GO',area:8995.70},
+    {id:'i7',nome:'Augusto',regiao:'GO, MT',area:3130},{id:'i8',nome:'Duarte BJ',regiao:'MS, GO',area:4569.60},
+    {id:'i9',nome:'Duarte SUC',regiao:'MT',area:1172},{id:'i10',nome:'Sandri',regiao:'GO/MT',area:3762},
+  ],
+  felipe:[
+    {id:'f1',nome:'Patrícia',regiao:'PI',area:2000},
+    {id:'f2',nome:'Insolo',regiao:'MA, PI, TO',area:195000},
+    {id:'f3',nome:'Gees',regiao:'PI, MA',area:50000},
+  ],
+  paula:[
+    {id:'p1',nome:'Camilla',regiao:'GO',area:1898},{id:'p2',nome:'Volpp',regiao:'GO',area:4810},
+    {id:'p3',nome:'Miro',regiao:'GO, MG',area:4250.60},{id:'p4',nome:'Flávio Vigolo',regiao:'MT',area:1700},
+    {id:'p5',nome:'Hemerson',regiao:'MG',area:550},{id:'p6',nome:'Califórnia',regiao:'GO',area:7237},
+    {id:'p7',nome:'Lourenzzo',regiao:'MG',area:481},{id:'p8',nome:'Bonato',regiao:'GO',area:2450},
+    {id:'p9',nome:'Brunetta',regiao:'MT',area:4487.12},{id:'p10',nome:'Tiago',regiao:'MA',area:1700},
+    {id:'p11',nome:'Eduardo Rissate',regiao:'MA',area:1700},
+  ],
+  ramon:[
+    {id:'r1',nome:'Vale Verde',regiao:'GO',area:15032.83},{id:'r2',nome:'Maraney',regiao:'GO/MT',area:13119.69},
+    {id:'r3',nome:'Usina',regiao:'MT',area:5674.50},{id:'r4',nome:'Edson',regiao:'MT',area:1407.60},
+    {id:'r5',nome:'Decisão',regiao:'BA',area:10994},{id:'r6',nome:'Giusti',regiao:'MT',area:19940},
+    {id:'r7',nome:'Dal Bello',regiao:'GO, DF',area:3203},{id:'r8',nome:'Sto. Expedito',regiao:'MG',area:7526.95},
+    {id:'r9',nome:'Produtiva',regiao:'GO/TO/DF/MG/BA',area:30199.14},
+  ]
+};
+var TODOS_CLIENTES_FLAT = Object.entries(CLIENTES).reduce(function(acc,e){
+  e[1].forEach(function(cl){acc.push(Object.assign({},cl,{consultor:e[0]}));});return acc;
+},[]);
+
+var CODIGOS=[
+  {codigo:'10',              descricao:'Atividade finalizada',            nota:10,cls:'cod-10'},
+  {codigo:'Não se aplica',  descricao:'Não se aplica ao cliente',         nota:10,cls:'cod-nao'},
+  {codigo:'0',               descricao:'Não realizado',                   nota:0, cls:'cod-0'},
+  {codigo:'5-',              descricao:'Realizado parcial',               nota:5, cls:'cod-5'},
+  {codigo:'Enviado para cotação',descricao:'Planilha de cotação enviada', nota:5, cls:'cod-cotacao'},
+  {codigo:'IND',             descricao:'Sem informação',                  nota:10,cls:'cod-ind'},
+  {codigo:'Cliente não executou',descricao:'Sem informação no cliente',   nota:10,cls:'cod-cliente'},
+  {codigo:'Fora de timing',  descricao:'Fora de timing',                  nota:10,cls:'cod-timing'},
+  {codigo:'Sem Resposta',    descricao:'Sem resposta do cliente',         nota:10,cls:'cod-semresp'},
+];
+var MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+var MES_ATUAL='2026-03';
+var APPS_SCRIPT_URL_DEFAULT='https://script.google.com/macros/s/AKfycbzBMRVIGYqGPq1qfS3LC5vNGkvSgv-T9702igCHZoEdLEIhlncNEfUJI6SG8LVwe2B0mg/exec';
+var APPS_SCRIPT_URL=localStorage.getItem('agro_api_url')||APPS_SCRIPT_URL_DEFAULT;
+
+// ============================================================
+// STATE
+// ============================================================
+var state={
+  tela:'login',usuario:null,role:null,
+  paginaGestor:'dashboard',
+  clienteSelecionado:null,clienteExpandido:null,
+  mesAtual:MES_ATUAL,anoAtual:'2026',
+  pendenciaFiltro:'todos',
+  novaAtivEscopo:{geral:true},
+  kpiAbaixo50Idx:0,
+  // Lucas
+  lucasCardAberto:null,       // id do card expandido
+  lucasModal:false,           // modal novo card aberto
+  lucasModalData:{},          // dados do form
+  lucasEditModal:false,       // modal edição
+  lucasEditData:{},
+  lucasFiltroStatus:'todos',  // filtro kanban
+  lucasFiltroConsultor:'todos',
+  lucasCardAnexos:{},         // cache de anexos por cardId
+  lucasUploadQueue:[],        // arquivos selecionados antes de salvar
+};
+
+// ============================================================
+// STORAGE / API
+// ============================================================
+var _cacheAtividades=null,_cacheRegistros=null,_cacheCards=null,_sincronizando=false;
+var _bufferRegistros={},_bufferTimer=null,_indicadorTimer=null;
+
+function getStore(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function setStore(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+async function apiCall(p){
+  if(!APPS_SCRIPT_URL)return null;
+  try{
+    var r=await fetch(APPS_SCRIPT_URL+'?'+new URLSearchParams(p).toString(),{redirect:'follow'});
+    return JSON.parse(await r.text());
+  }catch(e){console.warn('API:',e);return null;}
+}
+
+async function apiPost(body){
+  if(!APPS_SCRIPT_URL)return null;
+  try{
+    var r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow'});
+    return JSON.parse(await r.text());
+  }catch(e){console.warn('API POST:',e);return null;}
+}
+
+async function sincronizarDoSheets(){
+  if(!APPS_SCRIPT_URL)return false;
+  if(_sincronizando)return false;
+  _sincronizando=true;
+  try{
+    showToast('Carregando...');
+    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
+    var res=await Promise.all([apiCall({action:'getAtividades'}),apiCall({action:'getRegistros'}),apiCall({action:'getCards',mesAno:state.mesAtual})]);
+    var aR=res[0],rR=res[1],cR=res[2],ok=false;
+    if(aR&&!aR.erro&&Array.isArray(aR)&&aR.length>0){
+      var n=aR.map(function(a){return Object.assign({},a,{ativo:a.ativo===true||String(a.ativo).toUpperCase()==='TRUE'});});
+      setStore('atividades',n);_cacheAtividades=n;ok=true;
+    }
+    if(rR&&!rR.erro&&Array.isArray(rR)&&rR.length>0){
+      var nr=rR.map(function(r){return Object.assign({},r,{nota:Number(r.nota)});});
+      setStore('registros',nr);_cacheRegistros=nr;ok=true;
+    }
+    if(cR&&!cR.erro&&Array.isArray(cR)){
+      setStore('cards',cR);_cacheCards=cR;ok=true;
+    }
+    showToast(ok?'✓ Atualizado!':'⚠ Sem dados');return ok;
+  }catch(e){showToast('Erro ao sincronizar');return false;}
+  finally{_sincronizando=false;}
+}
+
+function getAtividades(){
+  if(_cacheAtividades)return _cacheAtividades;
+  var s=getStore('atividades',null);if(s&&s.length>0){_cacheAtividades=s;return s;}return[];
+}
+function getRegistros(){
+  if(_cacheRegistros)return _cacheRegistros;
+  var s=getStore('registros',[]);_cacheRegistros=s;return s;
+}
+function getCards(){
+  if(_cacheCards)return _cacheCards;
+  var s=getStore('cards',[]);_cacheCards=s;return s;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function notaColor(n){return n>=80?'#4ade80':n>=50?'#fbbf24':'#f87171';}
+function notaRowClass(n){return n===10?'nota-dez':n===5?'nota-cinco':'nota-zero';}
+function codigoCls(c){var x=CODIGOS.find(function(cd){return cd.codigo===c;});return x?x.cls:'';}
+function atualizarCorSelect(sel){CODIGOS.forEach(function(c){sel.classList.remove(c.cls);});if(sel.value)sel.classList.add(codigoCls(sel.value));}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+function prioridadeLabel(p){return p==='alta'?'ALTA':p==='media'?'MÉDIA':'BAIXA';}
+function prioridadeCls(p){return p==='alta'?'prioridade-alta':p==='media'?'prioridade-media':'prioridade-baixa';}
+function calcPrazo(dataEntrega){
+  if(!dataEntrega||dataEntrega==='null'||dataEntrega==='')return null;
+  var hoje=new Date();hoje.setHours(0,0,0,0);
+  var d=new Date(dataEntrega+'T00:00:00');
+  var diff=Math.round((d-hoje)/(1000*60*60*24));
+  return diff;
+}
+function prazoHTML(dataEntrega){
+  var diff=calcPrazo(dataEntrega);
+  if(diff===null)return'';
+  if(diff<0)return'<span class="prazo-badge prazo-late">'+Math.abs(diff)+'d atrasado</span>';
+  if(diff===0)return'<span class="prazo-badge prazo-warn">vence hoje</span>';
+  if(diff<=3)return'<span class="prazo-badge prazo-warn">'+diff+'d restantes</span>';
+  return'<span class="prazo-badge prazo-ok">'+diff+'d restantes</span>';
+}
+function fmtBytes(b){if(!b)return'';b=Number(b);if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+function fileIcon(tipo){
+  if(!tipo)return'📄';
+  if(tipo.includes('excel')||tipo.includes('spreadsheet')||tipo.includes('xlsx')||tipo.includes('xls'))return'📊';
+  if(tipo.includes('word')||tipo.includes('doc'))return'📝';
+  if(tipo.includes('pdf'))return'📕';
+  if(tipo.includes('presentation')||tipo.includes('pptx')||tipo.includes('ppt'))return'📊';
+  if(tipo.includes('image'))return'🖼️';
+  return'📎';
+}
+function statusLabel(s){return s==='aberto'?'Aberto':s==='em_andamento'?'Em andamento':'Feito';}
+function statusBadgeCls(s){return s==='aberto'?'badge-info':s==='em_andamento'?'badge-warn':'badge-ok';}
+
+function escopoInclui(escopo,clienteId){
+  if(!escopo)return false;if(escopo==='geral')return true;
+  var e=escopo;if(typeof e==='string'){try{e=JSON.parse(e);}catch(x){}}
+  if(Array.isArray(e))return e.indexOf(clienteId)>=0;
+  return String(e)===String(clienteId);
+}
+function calcNota(consultor,clienteId,mesAno){
+  var ativs=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo&&escopoInclui(a.escopo,clienteId);});
+  if(!ativs.length)return null;
+  var regs=getRegistros().filter(function(r){return r.consultor===consultor&&r.clienteId===clienteId&&r.mesAno===mesAno;});
+  var soma=0,total=0;
+  ativs.forEach(function(a){total+=10;var r=regs.find(function(r){return r.atividadeId===a.id;});if(r)soma+=r.nota;});
+  return total>0?Math.round((soma/total)*100):0;
+}
+function calcNotaConsultor(consultor,mesAno){
+  var cls=CLIENTES[consultor]||[];if(!cls.length)return 0;
+  var sum=0,cnt=0;
+  cls.forEach(function(c){var n=calcNota(consultor,c.id,mesAno);if(n!==null){sum+=n;cnt++;}});
+  return cnt>0?Math.round(sum/cnt):0;
+}
+function calcNotaLucas(mesAno){
+  var cards=getCards().filter(function(c){return c.mesAno===mesAno&&c.status==='feito'&&c.nota!==null&&c.nota!==''&&!isNaN(Number(c.nota));});
+  if(!cards.length)return null;
+  var soma=cards.reduce(function(s,c){return s+Number(c.nota)*10;},0);
+  return Math.round(soma/cards.length);
+}
+function progresso(consultor,mesAno){
+  var cls=CLIENTES[consultor]||[];
+  var ativs=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
+  var total=0,feito=0;
+  cls.forEach(function(cl){
+    var a=ativs.filter(function(a){return escopoInclui(a.escopo,cl.id);});
+    total+=a.length;
+    feito+=getRegistros().filter(function(r){return r.consultor===consultor&&r.clienteId===cl.id&&r.mesAno===mesAno;}).length;
+  });
+  return total>0?Math.round((feito/total)*100):0;
+}
+function calcPendencias(mesAno){
+  var ativs=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
+  var total=0;
+  ['igor','felipe','paula','ramon'].forEach(function(c){
+    CLIENTES[c].forEach(function(cl){
+      var ac=ativs.filter(function(a){return escopoInclui(a.escopo,cl.id);});
+      var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===mesAno;});
+      ac.forEach(function(a){if(!regs.find(function(r){return r.atividadeId===a.id;}))total++;});
+    });
+  });
+  return total;
+}
+function calcClientesAbaixo50(mesAno){
+  var lista=[];
+  ['igor','felipe','paula','ramon'].forEach(function(c){
+    CLIENTES[c].forEach(function(cl){
+      var n=calcNota(c,cl.id,mesAno);
+      if(n!==null&&n<50)lista.push({consultor:c,nome:cl.nome,nota:n,regiao:cl.regiao});
+    });
+  });
+  lista.sort(function(a,b){return a.nota-b.nota;});return lista;
+}
+
+function gerarMeses(){
+  var todos=[
+    ['2026-12','Dez/2026'],['2026-11','Nov/2026'],['2026-10','Out/2026'],
+    ['2026-09','Set/2026'],['2026-08','Ago/2026'],['2026-07','Jul/2026'],
+    ['2026-06','Jun/2026'],['2026-05','Mai/2026'],['2026-04','Abr/2026'],
+    ['2026-03','Mar/2026'],['2026-02','Fev/2026'],['2026-01','Jan/2026'],
+    ['2025-12','Dez/2025'],['2025-11','Nov/2025'],['2025-10','Out/2025'],
+  ];
+  var extras=getStore('meses_extras',[]);
+  extras.forEach(function(m){if(!todos.find(function(t){return t[0]===m.valor;}))todos.unshift([m.valor,m.label]);});
+  return todos.map(function(m){return'<option value="'+m[0]+'"'+(m[0]===state.mesAtual?' selected':'')+'>'+m[1]+'</option>';}).join('');
+}
+function gerarAnos(){
+  return['2024','2025','2026','2027'].map(function(a){
+    return'<option value="'+a+'"'+(a===state.anoAtual?' selected':'')+'>'+a+'</option>';
+  }).join('');
+}
+function toggleExpand(id){state.clienteExpandido=state.clienteExpandido===id?null:id;render();}
+function toggleEscopoCheck(key){
+  var todos=Object.values(CLIENTES).flat();
+  if(key==='geral'){var v=!state.novaAtivEscopo['geral'];state.novaAtivEscopo={geral:v};todos.forEach(function(cl){state.novaAtivEscopo[cl.id]=v;});}
+  else{state.novaAtivEscopo[key]=!state.novaAtivEscopo[key];state.novaAtivEscopo['geral']=todos.every(function(cl){return state.novaAtivEscopo[cl.id];});}
+  render();
+}
+
+// ============================================================
+// BUFFER REGISTROS
+// ============================================================
+function adicionarAoBuffer(reg){
+  var key=reg.consultor+'|'+reg.clienteId+'|'+reg.atividadeId+'|'+reg.mesAno;
+  _bufferRegistros[key]=reg;
+  if(_bufferTimer)clearTimeout(_bufferTimer);
+  _bufferTimer=setTimeout(function(){despejarBuffer();},1500);
+}
+async function despejarBuffer(){
+  var lote=Object.values(_bufferRegistros);
+  if(!lote.length)return;
+  _bufferRegistros={};_bufferTimer=null;
+  if(!APPS_SCRIPT_URL)return;
+  try{
+    var t=new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},15000);});
+    await Promise.race([apiCall({action:'salvarRegistros',registros:JSON.stringify(lote)}),t]);
+  }catch(e){
+    lote.forEach(function(r){var k=r.consultor+'|'+r.clienteId+'|'+r.atividadeId+'|'+r.mesAno;_bufferRegistros[k]=r;});
+    _bufferTimer=setTimeout(function(){despejarBuffer();},5000);
+  }
+}
+async function salvarRegistrosLote(lote){
+  if(!APPS_SCRIPT_URL||!lote.length)return;
+  try{
+    var t=new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},15000);});
+    await Promise.race([apiCall({action:'salvarRegistros',registros:JSON.stringify(lote)}),t]);
+  }catch(e){console.warn('Erro lote:',e);}
+}
+function salvarRegistro(consultor,clienteId,atividadeId,codigo,mesAno){
+  var regs=getRegistros();
+  var idx=regs.findIndex(function(r){return r.consultor===consultor&&r.clienteId===clienteId&&r.atividadeId===atividadeId&&r.mesAno===mesAno;});
+  var c=CODIGOS.find(function(c){return c.codigo===codigo;});var nota=c?c.nota:0;
+  var reg={consultor:consultor,clienteId:clienteId,atividadeId:atividadeId,codigo:codigo,nota:nota,mesAno:mesAno,ts:Date.now()};
+  if(idx>=0)regs[idx]=reg;else regs.push(reg);
+  setStore('registros',regs);_cacheRegistros=regs;adicionarAoBuffer(reg);return reg;
+}
+function mostrarIndicador(){
+  var ind=document.getElementById('indicador-salvando');if(!ind)return;
+  ind.style.opacity='1';
+  if(_indicadorTimer)clearTimeout(_indicadorTimer);
+  _indicadorTimer=setTimeout(function(){ind.style.opacity='0';},3000);
+}
+
+// ============================================================
+// RENDER PRINCIPAL
+// ============================================================
+function render(){
+  var root=document.getElementById('root');
+  if(state.tela==='login'){root.innerHTML=renderLogin();bindLogin();return;}
+  if(state.role==='gestor'){root.innerHTML=renderApp(renderGestor());bindGestor();}
+  else if(state.role==='lucas'){root.innerHTML=renderApp(renderLucas());bindLucas();}
+  else{root.innerHTML=renderApp(renderConsultor());bindConsultor();}
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function renderLogin(){
+  return'<div class="login-wrap"><div class="login-card">'
+    +'<div class="login-logo">Sistema</div>'
+    +'<div class="login-title">Agro<span>Track</span></div>'
+    +'<div class="field"><label>USUÁRIO</label>'
+    +'<select id="l-user"><option value="">— selecione —</option>'
+    +Object.keys(USUARIOS).map(function(k){return'<option value="'+k+'">'+USUARIOS[k].nome+'</option>';}).join('')
+    +'</select></div>'
+    +'<div class="field"><label>SENHA</label><input type="password" id="l-senha" placeholder="••••••••"></div>'
+    +'<button class="btn-primary" id="l-btn">Entrar</button>'
+    +'<div class="error-msg" id="l-err"></div>'
+    +'<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">'
+    +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">lucas→lucas123</div>'
+    +'<div style="margin-top:10px;font-size:11px;font-family:var(--mono);padding:8px;border-radius:6px;background:var(--surface2);color:'+(APPS_SCRIPT_URL?'var(--ok)':'var(--text3)')+'">'+( APPS_SCRIPT_URL?'● API configurada':'● Modo offline')+'</div>'
+    +'</div></div></div>';
+}
+function bindLogin(){
+  document.getElementById('l-btn').onclick=async function(){
+    var u=document.getElementById('l-user').value;
+    var s=document.getElementById('l-senha').value;
+    var d=USUARIOS[u];
+    if(!d||d.senha!==s){document.getElementById('l-err').textContent='Usuário ou senha incorretos.';return;}
+    state.usuario=u;state.role=d.role;state.tela='app';state.clienteSelecionado=null;
+    state.paginaGestor=d.role==='gestor'?'dashboard':d.role==='lucas'?'lucas':'clientes';
+    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
+    localStorage.removeItem('atividades');localStorage.removeItem('registros');localStorage.removeItem('cards');
+    document.getElementById('root').innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px"><div style="font-size:18px;font-weight:600;color:#4ade80">AgroTrack</div><div style="font-size:13px;font-family:monospace;color:#555a75">Carregando...</div></div>';
+    await sincronizarDoSheets();render();
+  };
+  document.getElementById('l-senha').onkeydown=function(e){if(e.key==='Enter')document.getElementById('l-btn').click();};
+}
+
+// ============================================================
+// APP SHELL
+// ============================================================
+function renderApp(content){
+  var u=USUARIOS[state.usuario];
+  var pages;
+  if(state.role==='gestor'){
+    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências']];
+  }else if(state.role==='lucas'){
+    pages=[['lucas','Demandas']];
+  }else{
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso']];
+  }
+
+  var nav=pages.map(function(p){
+    var isActive=state.paginaGestor===p[0];
+    var isLucas=p[0]==='lucas';
+    return'<div class="nav-item'+(isActive?' active':'')+(isLucas?' nav-lucas':'')+'" data-page="'+p[0]+'">'
+      +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>'
+      +'<span>'+p[1]+'</span></div>';
+  }).join('');
+
+  // Item Lucas para gestor e consultores (sempre visível)
+  var lucasNavItem='';
+  if(state.role!=='lucas'){
+    var isLucasActive=state.paginaGestor==='lucas';
+    lucasNavItem='<div style="margin:8px 12px;height:1px;background:var(--border)"></div>'
+      +'<div class="nav-item nav-lucas'+(isLucasActive?' active':'')+'" data-page="lucas">'
+      +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="3"/><path d="M2 13c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>'
+      +'<span>Lucas</span></div>';
+  }
+
+  return'<div class="app">'
+    +'<div class="sidebar">'
+    +'<div class="sidebar-logo">Sistema<strong>AgroTrack</strong></div>'
+    +'<div class="sidebar-user"><div class="sidebar-user-name">'+u.nome+'</div><div class="sidebar-user-role">'+state.role+'</div></div>'
+    +nav+lucasNavItem
+    +'<div class="sidebar-bottom">'
+    +'<button class="btn-logout" id="btn-sincronizar">⟳ Sincronizar</button>'
+    +'<button class="btn-logout" id="btn-config-api">⚙ Config API</button>'
+    +'<button class="btn-logout" id="btn-logout">Sair</button>'
+    +'</div></div>'
+    +'<div class="main">'+content+'</div></div>';
+}
+
+// ============================================================
+// GESTOR
+// ============================================================
+function renderGestor(){
+  if(state.paginaGestor==='dashboard')  return renderDashboard();
+  if(state.paginaGestor==='consultores')return renderConsultoresPage();
+  if(state.paginaGestor==='atividades') return renderAtividadesPage();
+  if(state.paginaGestor==='pendencias') return renderPendenciasPage();
+  if(state.paginaGestor==='lucas')      return renderLucasPage();
+  return'';
+}
+
+function renderDashboard(){
+  var m=state.mesAtual;
+  var cs=['igor','felipe','paula','ramon'];
+  var notas=cs.map(function(c){return{c:c,n:calcNotaConsultor(c,m),p:progresso(c,m),isLucas:false};});
+  notas.sort(function(a,b){return b.n-a.n;});
+
+  // Lucas no ranking
+  var notaLucas=calcNotaLucas(m);
+  var cardsFeitos=getCards().filter(function(c){return c.mesAno===m&&c.status==='feito';}).length;
+  var lucasRankItem={c:'lucas',n:notaLucas!==null?notaLucas:0,p:0,isLucas:true,cardsFeitos:cardsFeitos};
+  var rankAll=[lucasRankItem].concat(notas).sort(function(a,b){return b.n-a.n;});
+
+  var mg=Math.round(notas.reduce(function(s,x){return s+x.n;},0)/notas.length);
+  var tc=Object.values(CLIENTES).flat().length;
+  var ta=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo;}).length;
+  var pend=calcPendencias(m);
+  var ab=calcClientesAbaixo50(m);
+  var idx=Math.min(state.kpiAbaixo50Idx,Math.max(0,ab.length-1));
+
+  var rankHTML=rankAll.map(function(x,i){
+    var u=USUARIOS[x.c];
+    var sub=x.isLucas?'<div class="rank-clients" style="text-align:right">'+x.cardsFeitos+' cards feitos</div>'
+      :'<div class="rank-clients" style="text-align:right">'+CLIENTES[x.c].length+' clientes</div>';
+    var score=x.isLucas&&notaLucas===null?'<div class="rank-score" style="color:var(--text3)">—</div>':'<div class="rank-score" style="color:'+notaColor(x.n)+'">'+x.n+'%</div>';
+    return'<div class="ranking-row">'
+      +'<div class="rank-num">'+(i+1)+'</div>'
+      +'<div class="rank-avatar" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome[0]+'</div>'
+      +'<div style="flex:1"><div class="rank-name">'+u.nome+(x.isLucas?' <span style="font-size:10px;font-family:var(--mono);color:var(--lucas)">lucas</span>':'')+'</div>'
+      +'<div class="progress-bar" style="width:140px"><div class="progress-fill" style="width:'+x.n+'%;background:'+(x.isLucas?'var(--lucas)':notaColor(x.n))+'"></div></div></div>'
+      +'<div>'+score+sub+'</div>'
+      +'</div>';
+  }).join('');
+
+  var kpiHTML='';
+  if(ab.length===0){
+    kpiHTML='<div style="text-align:center;padding:20px;color:var(--ok);font-family:var(--mono);font-size:12px">✓ Nenhum cliente abaixo de 50%</div>';
+  }else{
+    var item=ab[idx];
+    kpiHTML='<div style="display:flex;align-items:center;gap:10px;padding:8px 0">'
+      +'<button onclick="state.kpiAbaixo50Idx=Math.max(0,state.kpiAbaixo50Idx-1);render()" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);cursor:pointer;font-size:14px;color:var(--text2);'+(idx===0?'opacity:.3':'')+'">‹</button>'
+      +'<div style="flex:1;text-align:center">'
+      +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:4px">'+item.consultor.toUpperCase()+' — '+item.regiao+'</div>'
+      +'<div style="font-size:17px;font-weight:500;">'+item.nome+'</div>'
+      +'<div style="font-size:28px;font-weight:600;color:'+notaColor(item.nota)+'">'+item.nota+'%</div>'
+      +'<div style="height:3px;background:var(--surface3);border-radius:2px;margin:8px 16px"><div style="width:'+item.nota+'%;height:100%;background:'+notaColor(item.nota)+';border-radius:2px"></div></div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+(idx+1)+' de '+ab.length+' clientes</div>'
+      +'</div>'
+      +'<button onclick="state.kpiAbaixo50Idx=Math.min('+(ab.length-1)+',state.kpiAbaixo50Idx+1);render()" style="width:28px;height:28px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);cursor:pointer;font-size:14px;color:var(--text2);'+(idx===ab.length-1?'opacity:.3':'')+'">›</button>'
+      +'</div>';
+  }
+
+  var ss='padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;';
+  return'<div class="page">'
+    +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+    +'<div><div class="page-title">Dashboard</div><div class="page-sub">Visão geral da equipe</div></div>'
+    +'<div style="display:flex;gap:10px;align-items:center">'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">ANO</span><select id="ano-sel" style="'+ss+'">'+gerarAnos()+'</select></div>'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel" style="'+ss+'">'+gerarMeses()+'</select></div>'
+    +'</div></div></div>'
+    +'<div class="cards-grid cols-4" style="margin-bottom:20px">'
+    +'<div class="card"><div class="metric-label">MÉDIA GERAL</div><div class="metric-value" style="color:'+notaColor(mg)+'">'+mg+'%</div><div class="metric-sub">performance do time</div></div>'
+    +'<div class="card"><div class="metric-label">PENDÊNCIAS</div><div class="metric-value" style="color:'+(pend>0?'var(--danger)':'var(--ok)')+'">'+pend+'</div><div class="metric-sub">sem preenchimento</div></div>'
+    +'<div class="card"><div class="metric-label">TOTAL CLIENTES</div><div class="metric-value">'+tc+'</div><div class="metric-sub">4 consultores</div></div>'
+    +'<div class="card"><div class="metric-label">ATIVIDADES/MÊS</div><div class="metric-value">'+ta+'</div><div class="metric-sub">'+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
+    +'</div>'
+    +'<div class="cards-grid cols-2">'
+    +'<div class="card"><div class="section-title">RANKING — EQUIPE</div>'+rankHTML+'</div>'
+    +'<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div class="section-title" style="margin-bottom:0">CLIENTES ABAIXO DE 50%</div>'
+    +'<span style="font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:4px;background:'+(ab.length>0?'rgba(248,113,113,.12)':'rgba(74,222,128,.12)')+';color:'+(ab.length>0?'var(--danger)':'var(--ok)')+'">'+ab.length+' cliente(s)</span>'
+    +'</div>'+kpiHTML+'</div></div></div>';
+}
+
+function renderAtivExpandida(consultor,clienteId,mesAno){
+  var ativs=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo&&escopoInclui(a.escopo,clienteId);});
+  var regs=getRegistros().filter(function(r){return r.consultor===consultor&&r.clienteId===clienteId&&r.mesAno===mesAno;});
+  if(!ativs.length)return'<tr><td colspan="3" style="padding:12px;color:var(--text3);font-size:12px">Nenhuma atividade.</td></tr>';
+  return ativs.map(function(a){
+    var reg=regs.find(function(r){return r.atividadeId===a.id;});
+    var nota=reg?reg.nota:0;var cod=reg?reg.codigo:'—';
+    return'<tr class="'+notaRowClass(nota)+'"><td style="padding:8px 12px;font-size:12px;padding-left:20px;">'+a.nome+'</td>'
+      +'<td style="padding:8px 12px;font-size:12px;font-family:var(--mono);color:var(--text2)">'+cod+'</td>'
+      +'<td style="padding:8px 12px;font-size:12px;font-family:var(--mono);font-weight:500;color:'+notaColor(nota)+'">'+nota+'pts</td></tr>';
+  }).join('');
+}
+
+function renderConsultoresPage(){
+  var m=state.mesAtual;var ek=state.clienteExpandido;
+  var body=['igor','felipe','paula','ramon'].map(function(c){
+    var u=USUARIOS[c];var cls=CLIENTES[c];
+    var linhas=cls.map(function(cl){
+      var n=calcNota(c,cl.id,m);
+      var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,cl.id);});
+      var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
+      var prog=ativs.length?Math.round((regs.length/ativs.length)*100):0;
+      var eid=c+'_'+cl.id;var isOpen=ek===eid;
+      var exp=isOpen?('<tr><td colspan="6" style="padding:0;background:var(--surface2)">'
+        +'<table style="width:100%;border-collapse:collapse">'
+        +'<tr style="background:var(--surface3)"><th style="padding:6px 12px 6px 20px;font-size:10px;font-family:var(--mono);color:var(--text3);font-weight:400;letter-spacing:1px;text-align:left">ATIVIDADE</th>'
+        +'<th style="padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);font-weight:400;text-align:left">CÓDIGO</th>'
+        +'<th style="padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);font-weight:400;text-align:left">NOTA</th></tr>'
+        +renderAtivExpandida(c,cl.id,m)+'</table></td></tr>'):'';
+      return'<tr style="cursor:pointer" onclick="toggleExpand(\''+eid+'\')">'
+        +'<td style="font-weight:500;">'+cl.nome+'</td>'
+        +'<td><span class="badge badge-gray">'+cl.regiao+'</span></td>'
+        +'<td style="font-family:var(--mono);font-size:12px;color:var(--text2)">'+cl.area.toLocaleString('pt-BR')+'</td>'
+        +'<td><span style="font-family:var(--mono);font-weight:500;color:'+notaColor(n||0)+'">'+( n!==null?n+'%':'—')+'</span></td>'
+        +'<td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:'+prog+'%;background:'+notaColor(prog)+'"></div></div>'
+        +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+prog+'%</span></div></td>'
+        +'<td style="font-size:12px;color:var(--text3)">'+(isOpen?'▲':'▼')+'</td></tr>'+exp;
+    }).join('');
+    var nota=calcNotaConsultor(c,m);var prog2=progresso(c,m);
+    return'<div class="card" style="margin-bottom:20px">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'
+      +'<div style="width:40px;height:40px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px">'+u.nome[0]+'</div>'
+      +'<div style="flex:1"><div style="font-size:16px;font-weight:600;">'+u.nome+'</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+cls.length+' clientes</div></div>'
+      +'<div style="text-align:right"><div style="font-size:22px;font-weight:600;color:'+notaColor(nota)+'">'+nota+'%</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">preench. '+prog2+'%</div></div>'
+      +'</div>'
+      +'<div class="table-wrap"><table><tr><th>CLIENTE</th><th>REGIÃO</th><th>ÁREA (ha)</th><th>NOTA</th><th>PROGRESSO</th><th></th></tr>'+linhas+'</table></div></div>';
+  }).join('');
+  return'<div class="page">'
+    +'<div class="page-header"><div class="page-title">Consultores</div><div class="page-sub">Desempenho por cliente e atividade</div></div>'
+    +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
+    +body+'</div>';
+}
+
+function renderAtividadesPage(){
+  var m=state.mesAtual;
+  var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo;});
+  var lista=ativs.map(function(a,i){
+    return'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="flex:1;font-size:13px;">'+a.nome+'</div>'
+      +'<span class="badge badge-gray">'+( a.escopo==='geral'?'Geral':Array.isArray(a.escopo)?a.escopo.length+' clientes':a.escopo)+'</span>'
+      +'<button onclick="removerAtiv(\''+a.id+'\')" style="padding:4px 10px;border:1px solid var(--border2);background:transparent;border-radius:6px;color:var(--danger);font-family:var(--mono);font-size:11px;cursor:pointer;">✕</button>'
+      +'</div>';
+  }).join('');
+
+  var allClientes=Object.values(CLIENTES).flat();
+  var consultores=['igor','felipe','paula','ramon'];
+  var escopoUI=consultores.map(function(c){
+    var u=USUARIOS[c];
+    var items=CLIENTES[c].map(function(cl){
+      return'<label class="check-item"><input type="checkbox" onchange="toggleEscopoCheck(\''+cl.id+'\')"'+(state.novaAtivEscopo[cl.id]?' checked':'')+'>'+cl.nome+'</label>';
+    }).join('');
+    return'<div class="scope-group"><div class="scope-group-label">'+u.nome.toUpperCase()+'</div>'+items+'</div>';
+  }).join('');
+
+  return'<div class="page">'
+    +'<div class="page-header"><div class="page-title">Atividades</div><div class="page-sub">Gerenciar atividades do mês</div></div>'
+    +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
+    +'<div class="cards-grid cols-2">'
+    +'<div class="card"><div class="section-title">NOVA ATIVIDADE</div>'
+    +'<div class="modal-field"><label>NOME DA ATIVIDADE</label><input type="text" id="nova-ativ-nome" placeholder="Digite o nome..."></div>'
+    +'<div class="modal-field"><label>ESCOPO</label>'
+    +'<label class="check-item" style="margin-bottom:8px"><input type="checkbox" onchange="toggleEscopoCheck(\'geral\')"'+(state.novaAtivEscopo['geral']?' checked':'')+'>Todos os clientes (Geral)</label>'
+    +'<div class="scope-scroll">'+escopoUI+'</div></div>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button class="btn-save" id="btn-add-ativ">+ Adicionar</button>'
+    +'<button class="btn-sec" id="btn-salvar-atividades">↑ Salvar no Sheets</button>'
+    +'</div></div>'
+    +'<div class="card"><div class="section-title">ATIVIDADES DO MÊS — '+ativs.length+'</div>'
+    +(ativs.length===0?'<div style="padding:20px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Nenhuma atividade neste mês.</div>':lista)
+    +'</div></div></div>';
+}
+
+function removerAtiv(id){
+  var ativs=getAtividades().filter(function(a){return a.id!==id;});
+  setStore('atividades',ativs);_cacheAtividades=ativs;
+  if(APPS_SCRIPT_URL)apiCall({action:'removerAtividade',id:id});
+  showToast('Atividade removida');render();
+}
+
+function renderPendenciasPage(){
+  var m=state.mesAtual;
+  var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo;});
+  var pends=[];
+  ['igor','felipe','paula','ramon'].forEach(function(c){
+    CLIENTES[c].forEach(function(cl){
+      var ac=ativs.filter(function(a){return escopoInclui(a.escopo,cl.id);});
+      var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
+      ac.forEach(function(a){if(!regs.find(function(r){return r.atividadeId===a.id;}))pends.push({consultor:c,cliente:cl.nome,atividade:a.nome});});
+    });
+  });
+  var filtro=state.pendenciaFiltro||'todos';
+  var pf=filtro==='todos'?pends:pends.filter(function(p){return p.consultor===filtro;});
+  var tabs=[['todos','Todos'],['igor','Igor'],['felipe','Felipe'],['paula','Paula'],['ramon','Ramon']];
+  var tabsHTML=tabs.map(function(t){
+    var cnt=t[0]==='todos'?pends.length:pends.filter(function(p){return p.consultor===t[0];}).length;
+    return'<button class="filtro-tab'+(filtro===t[0]?' active':'')+'" onclick="state.pendenciaFiltro=\''+t[0]+'\';render()">'+t[1]+' ('+cnt+')</button>';
+  }).join('');
+  var rows=pf.slice(0,100).map(function(p){
+    var u=USUARIOS[p.consultor];
+    return'<tr><td><span style="font-size:12px;font-weight:500;color:'+u.cor+'">'+u.nome+'</span></td>'
+      +'<td>'+p.cliente+'</td><td style="font-size:12px;color:var(--text2)">'+p.atividade+'</td></tr>';
+  }).join('');
+  if(!pf.length)rows='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3);font-family:var(--mono)">Nenhuma pendência!</td></tr>';
+  return'<div class="page">'
+    +'<div class="page-header"><div class="page-title">Pendências</div><div class="page-sub">'+pf.length+' atividade(s) sem preenchimento</div></div>'
+    +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
+    +'<div class="filtro-tabs">'+tabsHTML+'</div>'
+    +'<div class="card"><div class="table-wrap"><table><tr><th>CONSULTOR</th><th>CLIENTE</th><th>ATIVIDADE</th></tr>'+rows+'</table></div></div></div>';
+}
+
+// ============================================================
+// CONSULTOR
+// ============================================================
+function renderConsultor(){
+  if(state.paginaGestor==='progresso')return renderProgressoConsultor();
+  if(state.paginaGestor==='lucas')    return renderLucasPage();
+  return renderClientesConsultor();
+}
+
+function renderClientesConsultor(){
+  var c=state.usuario,u=USUARIOS[c],cls=CLIENTES[c]||[],m=state.mesAtual,sel=state.clienteSelecionado;
+  var cards=cls.map(function(cl){
+    var n=calcNota(c,cl.id,m);
+    var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,cl.id);});
+    var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
+    var prog=ativs.length?Math.round((regs.length/ativs.length)*100):0;
+    return'<div class="client-card'+(sel===cl.id?' selected':'')+'" onclick="state.clienteSelecionado=\''+cl.id+'\';render()">'
+      +'<div style="font-size:15px;font-weight:500;">'+cl.nome+'</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:2px">'+cl.regiao+'</div>'
+      +'<div style="font-size:13px;font-family:var(--mono);font-weight:500;margin-top:6px;color:'+notaColor(n||0)+'">'+( n!==null?n+'%':'sem dados')+'</div>'
+      +'<div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:'+prog+'%;background:'+notaColor(prog)+'"></div></div>'
+      +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:3px">'+regs.length+'/'+ativs.length+' preenchidas</div>'
+      +'</div>';
+  }).join('');
+  var detalhe='';
+  if(sel){
+    var cl=cls.find(function(x){return x.id===sel;});
+    var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,sel);});
+    var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===sel&&r.mesAno===m;});
+    var nota=calcNota(c,sel,m);
+    var linhas=ativs.map(function(a){
+      var r=regs.find(function(r){return r.atividadeId===a.id;});
+      var cls2=r?codigoCls(r.codigo):'';
+      var opts=CODIGOS.map(function(cd){
+        return'<option value="'+cd.codigo+'"'+(r&&r.codigo===cd.codigo?' selected':'')+'>'+cd.codigo+' — '+cd.descricao+'</option>';
+      }).join('');
+      return'<div class="ativ-fill-row"><div class="ativ-fill-name">'+a.nome+'</div>'
+        +'<select class="ativ-fill-select '+cls2+'" data-ativid="'+a.id+'" data-clienteid="'+sel+'" onchange="atualizarCorSelect(this);salvarRegistro(\''+c+'\',this.dataset.clienteid,this.dataset.ativid,this.value,\''+m+'\');mostrarIndicador()">'
+        +'<option value="">— selecionar —</option>'+opts+'</select>'
+        +'<div class="ativ-nota">'+(r?r.nota+'pts':'—')+'</div></div>';
+    }).join('');
+    detalhe='<div class="card" style="margin-top:20px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+      +'<div><div style="font-size:16px;font-weight:500;">'+cl.nome+'</div>'
+      +'<div style="font-size:12px;font-family:var(--mono);color:var(--text3)">'+cl.regiao+' · '+cl.area.toLocaleString('pt-BR')+' ha</div></div>'
+      +'<div style="text-align:right"><div style="font-size:22px;font-weight:600;color:'+notaColor(nota||0)+'">'+( nota!==null?nota+'%':'—')+'</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+regs.length+'/'+ativs.length+' preenchidas</div></div></div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px">ATIVIDADES — '+ativs.length+' TOTAL</span>'
+      +'<span id="indicador-salvando" style="opacity:0;transition:opacity .3s;color:var(--ok);font-size:11px;font-family:var(--mono)">● salvando...</span>'
+      +'</div>'
+      +linhas
+      +'<div style="margin-top:16px;display:flex;gap:10px">'
+      +'<button class="btn-save" id="btn-salvar">Salvar preenchimento</button>'
+      +'<button class="btn-sec" onclick="state.clienteSelecionado=null;render()">Voltar</button>'
+      +'</div></div>';
+  }
+  return'<div class="page">'
+    +'<div class="page-header"><div class="page-title">Olá, '+u.nome+'</div><div class="page-sub">Selecione um cliente</div></div>'
+    +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
+    +'<div class="clients-grid">'+cards+'</div>'+detalhe+'</div>';
+}
+
+function renderProgressoConsultor(){
+  var c=state.usuario,u=USUARIOS[c],m=state.mesAtual,cls=CLIENTES[c]||[];
+  var nota=calcNotaConsultor(c,m),prog=progresso(c,m);
+  var rows=cls.map(function(cl){
+    var n=calcNota(c,cl.id,m);
+    var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,cl.id);});
+    var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
+    var p2=ativs.length?Math.round((regs.length/ativs.length)*100):0;
+    return'<tr><td style="font-weight:500;">'+cl.nome+'</td>'
+      +'<td><span class="badge badge-gray">'+cl.regiao+'</span></td>'
+      +'<td style="font-family:var(--mono);font-weight:500;color:'+notaColor(n||0)+'">'+( n!==null?n+'%':'—')+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:'+p2+'%;background:'+notaColor(p2)+'"></div></div>'
+      +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+regs.length+'/'+ativs.length+'</span></div></td></tr>';
+  }).join('');
+  return'<div class="page">'
+    +'<div class="page-header"><div class="page-title">Meu Progresso</div><div class="page-sub">'+u.nome+' — '+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
+    +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
+    +'<div class="cards-grid cols-2" style="margin-bottom:20px">'
+    +'<div class="card"><div class="metric-label">NOTA GERAL</div><div class="metric-value" style="color:'+notaColor(nota)+'">'+nota+'%</div><div class="metric-sub">média de todos os clientes</div></div>'
+    +'<div class="card"><div class="metric-label">PREENCHIMENTO</div><div class="metric-value">'+prog+'%</div><div class="metric-sub">atividades preenchidas</div></div>'
+    +'</div>'
+    +'<div class="card"><div class="section-title">POR CLIENTE</div>'
+    +'<div class="table-wrap"><table><tr><th>CLIENTE</th><th>REGIÃO</th><th>NOTA</th><th>PROGRESSO</th></tr>'+rows+'</table></div></div></div>';
+}
+
+// ============================================================
+// LUCAS — PÁGINA COMPARTILHADA (gestor, consultores, lucas)
+// ============================================================
+function renderLucasPage(){
+  var m=state.mesAtual;
+  var cards=getCards().filter(function(c){return c.mesAno===m;});
+  var eu=state.usuario;
+  var isLucas=state.role==='lucas';
+
+  // Filtros
+  var filtroStatus=state.lucasFiltroStatus||'todos';
+  var filtroConsultor=state.lucasFiltroConsultor||'todos';
+
+  var filtrados=cards.filter(function(c){
+    if(filtroStatus!=='todos'&&c.status!==filtroStatus)return false;
+    if(filtroConsultor!=='todos'&&c.criadoPor!==filtroConsultor)return false;
+    return true;
+  });
+
+  // KPIs
+  var abertos=cards.filter(function(c){return c.status==='aberto';}).length;
+  var emAnd=cards.filter(function(c){return c.status==='em_andamento';}).length;
+  var feitos=cards.filter(function(c){return c.status==='feito';}).length;
+  var notaLucas=calcNotaLucas(m);
+
+  // Tabs status
+  var statusTabs=[['todos','Todos',cards.length],['aberto','Aberto',abertos],['em_andamento','Em andamento',emAnd],['feito','Feito',feitos]];
+  var statusTabsHTML=statusTabs.map(function(t){
+    return'<button class="filtro-tab'+(filtroStatus===t[0]?' active':'')+'" onclick="state.lucasFiltroStatus=\''+t[0]+'\';render()">'+t[1]+' ('+t[2]+')</button>';
+  }).join('');
+
+  // Tabs consultor
+  var consultores=['todos','igor','felipe','paula','ramon','gestor'];
+  var consTabsHTML=consultores.map(function(c){
+    var lbl=c==='todos'?'Todos':USUARIOS[c]?USUARIOS[c].nome:c;
+    var cnt=c==='todos'?cards.length:cards.filter(function(x){return x.criadoPor===c;}).length;
+    return'<button class="filtro-tab'+(filtroConsultor===c?' active':'')+'" onclick="state.lucasFiltroConsultor=\''+c+'\';render()">'+lbl+' ('+cnt+')</button>';
+  }).join('');
+
+  // Kanban por status
+  var cols=['aberto','em_andamento','feito'];
+  var kanbanHTML=cols.map(function(st){
+    var colCards=filtrados.filter(function(c){return c.status===st;});
+    var cnt=colCards.length;
+    var colItems=colCards.map(function(c){
+      var u=USUARIOS[c.criadoPor]||{cor:'#8b90a8',nome:c.criadoPor};
+      var canEdit=(state.role==='gestor'||c.criadoPor===eu||isLucas);
+      var notaHTML=c.nota!==null&&c.nota!==''?'<span class="kanban-card-nota" style="color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
+      var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
+      var prazoHtml=prazoHTML(c.dataEntrega);
+      return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHtml+'</div>'
+        +'<div class="kanban-card-title">'+c.titulo+'</div>'
+        +'<div class="kanban-card-meta">'
+        +'<span>'+c.clienteNome+'</span>'
+        +(c.folderUrl&&c.folderUrl!=='null'&&c.folderUrl?'<a href="'+c.folderUrl+'" target="_blank" onclick="event.stopPropagation()" style="color:#60a5fa;font-size:10px;text-decoration:none">📁 Drive</a>':'')
+        +'</div>'
+        +'<div class="kanban-card-footer">'
+        +'<span class="kanban-card-autor" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome+'</span>'
+        +notaHTML
+        +'</div>'
+        +'</div>';
+    }).join('');
+    var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma demanda</div>':'';
+    return'<div class="kanban-col">'
+      +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+cnt+'</span></div>'
+      +'<div class="kanban-col-body">'+colItems+emptyMsg+'</div>'
+      +'</div>';
+  }).join('');
+
+  // Card aberto em detalhe
+  var detalheHTML='';
+  if(state.lucasCardAberto){
+    detalheHTML=renderCardDetalhe(state.lucasCardAberto);
+  }
+
+  var btnNova=(!isLucas)?'<button class="btn-lucas" onclick="abrirModalNovoCard()">+ Nova Demanda</button>':'';
+
+  return'<div class="page">'
+    +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+    +'<div><div class="page-title" style="color:var(--lucas)">Demandas — Lucas</div>'
+    +'<div class="page-sub">Solicitações de atividades · '+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
+    +'<div style="display:flex;gap:10px;align-items:center">'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel" style="padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;">'+gerarMeses()+'</select></div>'
+    +btnNova
+    +'</div></div></div>'
+    +'<div class="cards-grid cols-4" style="margin-bottom:20px">'
+    +'<div class="card"><div class="metric-label">TOTAL</div><div class="metric-value" style="color:var(--lucas)">'+cards.length+'</div><div class="metric-sub">demandas no mês</div></div>'
+    +'<div class="card"><div class="metric-label">ABERTO</div><div class="metric-value" style="color:#60a5fa">'+abertos+'</div><div class="metric-sub">aguardando</div></div>'
+    +'<div class="card"><div class="metric-label">EM ANDAMENTO</div><div class="metric-value" style="color:#fbbf24">'+emAnd+'</div><div class="metric-sub">em execução</div></div>'
+    +'<div class="card"><div class="metric-label">NOTA LUCAS</div><div class="metric-value" style="color:'+(notaLucas!==null?notaColor(notaLucas):'var(--text3)')+'">'+( notaLucas!==null?notaLucas+'%':'—')+'</div><div class="metric-sub">média das notas</div></div>'
+    +'</div>'
+    +'<div class="card" style="margin-bottom:16px">'
+    +'<div style="margin-bottom:8px"><div class="section-title" style="margin-bottom:6px">POR STATUS</div><div class="filtro-tabs" style="margin-bottom:0">'+statusTabsHTML+'</div></div>'
+    +'<div><div class="section-title" style="margin-bottom:6px">POR CRIADOR</div><div class="filtro-tabs" style="margin-bottom:0">'+consTabsHTML+'</div></div>'
+    +'</div>'
+    +'<div class="kanban-wrap">'+kanbanHTML+'</div>'
+    +detalheHTML
+    +'</div>';
+}
+
+// Lucas como role principal
+function renderLucas(){
+  return renderLucasPage();
+}
+
+function renderCardDetalhe(cardId){
+  var card=getCards().find(function(c){return c.id===cardId;});
+  if(!card)return'';
+  var eu=state.usuario;
+  var isLucas=state.role==='lucas';
+  var canEdit=(state.role==='gestor'||card.criadoPor===eu||isLucas);
+  var canEditNota=(state.role==='gestor'||state.role==='consultor');
+  var canMoveStatus=isLucas||state.role==='gestor';
+  var u=USUARIOS[card.criadoPor]||{cor:'#8b90a8',corBg:'var(--surface2)',nome:card.criadoPor};
+
+  // Botões status
+  var statusBtns=['aberto','em_andamento','feito'].map(function(s){
+    var disabled=!canMoveStatus;
+    return'<button class="status-btn '+s+(card.status===s?' active':'')+'"'
+      +(disabled?' disabled style="opacity:.4;cursor:not-allowed"':' onclick="moverStatusCard(\''+cardId+'\',\''+s+'\')"')+'>'
+      +statusLabel(s)+'</button>';
+  }).join('');
+
+  // Notas 1-10
+  var notaBtns='';
+  if(canEditNota){
+    notaBtns='<div class="nota-input-wrap">';
+    for(var i=1;i<=10;i++){
+      var isActive=card.nota!==null&&card.nota!==''&&Number(card.nota)===i;
+      notaBtns+='<button class="nota-btn'+(isActive?' active':'')+'" onclick="atribuirNota(\''+cardId+'\','+i+')">'+i+'</button>';
+    }
+    notaBtns+='</div>';
+  }else{
+    notaBtns=card.nota?'<span style="font-size:18px;font-weight:600;color:'+notaColor(Number(card.nota)*10)+'">'+card.nota+'/10</span>':'<span style="color:var(--text3);font-size:13px">Aguardando avaliação</span>';
+  }
+
+  // Anexos da memória local
+  var anexos=state.lucasCardAnexos[cardId]||[];
+  var anexosHTML=anexos.length?anexos.map(function(a,i){
+    return'<div class="anexo-item">'
+      +'<span class="anexo-icon">'+fileIcon(a.tipo)+'</span>'
+      +'<span class="anexo-nome">'+a.nome+'</span>'
+      +'<span class="anexo-size">'+fmtBytes(a.tamanho)+'</span>'
+      +(a.driveUrl&&a.driveUrl!=='null'?'<a href="'+a.driveUrl+'" target="_blank" class="anexo-link">↗ abrir</a>':'<span style="font-size:10px;font-family:var(--mono);color:var(--warn)">pendente</span>')
+      +(canEdit?'<button onclick="removerAnexo(\''+cardId+'\','+i+')" style="padding:2px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--danger);font-size:10px;cursor:pointer;">✕</button>':'')
+      +'</div>';
+  }).join(''):'<div style="font-size:12px;font-family:var(--mono);color:var(--text3);padding:8px 0">Nenhum anexo</div>';
+
+  // Upload area (só quem pode editar)
+  var uploadHTML='';
+  if(canEdit){
+    // Arquivos da fila (antes de salvar)
+    var fila=state.lucasUploadQueue||[];
+    var filaHTML=fila.length?'<div style="margin-top:8px">'
+      +fila.map(function(f,i){
+        return'<div class="anexo-item"><span class="anexo-icon">'+fileIcon(f.type)+'</span>'
+          +'<span class="anexo-nome">'+f.name+'</span>'
+          +'<span class="anexo-size">'+fmtBytes(f.size)+'</span>'
+          +'<span style="font-size:10px;font-family:var(--mono);color:var(--warn)">na fila</span>'
+          +'<button onclick="removerDaFila('+i+')" style="padding:2px 8px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--danger);font-size:10px;cursor:pointer;">✕</button>'
+          +'</div>';
+      }).join('')+'</div>':'';
+    uploadHTML='<div class="upload-area" id="upload-area-drop" onclick="document.getElementById(\'file-input-card\').click()" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="handleFileDrop(event)">'
+      +'<input type="file" id="file-input-card" multiple accept=".xlsx,.xls,.doc,.docx,.ppt,.pptx,.pdf,.csv,.txt,.zip,.rar,.png,.jpg,.jpeg" onchange="handleFileSelect(this)">'
+      +'<div class="upload-area-text">📎 Clique ou arraste arquivos aqui<br><span style="font-size:10px;color:var(--text3)">Excel, Word, PowerPoint, PDF, imagens e mais</span></div>'
+      +'</div>'
+      +filaHTML
+      +(fila.length?'<button class="btn-lucas" style="margin-top:10px;width:100%" onclick="enviarAnexosFila(\''+cardId+'\')">↑ Enviar '+fila.length+' arquivo(s) para o Drive</button>':'');
+  }
+
+  // Feedback
+  var feedbackHTML='';
+  if(canEditNota){
+    feedbackHTML='<textarea id="feedback-input" rows="3" placeholder="Adicionar feedback..." style="width:100%;padding:10px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);resize:vertical;margin-top:8px;outline:none;">'+( card.feedback||'')+'</textarea>'
+      +'<button class="btn-lucas" style="margin-top:8px" onclick="salvarFeedback(\''+cardId+'\')">Salvar Feedback</button>';
+  }else{
+    feedbackHTML=card.feedback?'<div style="font-size:13px;color:var(--text2);padding:10px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--lucas)">'+card.feedback+'</div>'
+      :'<div style="font-size:12px;font-family:var(--mono);color:var(--text3)">Sem feedback ainda</div>';
+  }
+
+  var prioDetalhe=card.prioridade?'<span class="prioridade-badge '+prioridadeCls(card.prioridade)+'" style="font-size:11px;padding:3px 10px;">'+prioridadeLabel(card.prioridade)+'</span>':'';
+  var prazoDetalhe=prazoHTML(card.dataEntrega);
+  var dataEntregaStr=card.dataEntrega&&card.dataEntrega!=='null'&&card.dataEntrega?'Entrega: '+card.dataEntrega:'';
+  return'<div class="card-detalhe">'
+    +'<div class="card-detalhe-header">'
+    +'<div style="flex:1">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'+prioDetalhe+prazoDetalhe+'</div>'
+    +'<div class="card-detalhe-title">'+card.titulo+'</div>'
+    +'<div class="card-detalhe-meta">'+card.clienteNome+' · criado por <span style="color:'+u.cor+'">'+u.nome+'</span> · '+(card.criadoEm||'').substring(0,10)+(dataEntregaStr?' · <span style="color:var(--text2)">'+dataEntregaStr+'</span>':'')+'</div></div>'
+    +'<div style="display:flex;gap:8px;align-items:flex-start">'
+    +(canEdit&&!isLucas?'<button onclick="abrirModalEditarCard(\''+cardId+'\')" style="padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;">✎ Editar</button>':'')
+    +(state.role==='gestor'||card.criadoPor===eu?'<button onclick="deletarCard(\''+cardId+'\')" style="padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--danger);font-family:var(--sans);font-size:12px;cursor:pointer;">✕</button>':'')
+    +'<button onclick="state.lucasCardAberto=null;render()" style="padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;">↑ Fechar</button>'
+    +'</div></div>'
+
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">'
+    +'<div>'
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">DESCRIÇÃO</div>'
+    +'<div style="font-size:13px;color:var(--text2);line-height:1.6">'+( card.descricao||'—')+'</div></div>'
+
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">STATUS</div>'
+    +'<div class="status-btns">'+statusBtns+'</div></div>'
+
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">NOTA (LUCAS)</div>'
+    +notaBtns+'</div>'
+
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">FEEDBACK</div>'
+    +feedbackHTML+'</div>'
+    +'</div>'
+
+    +'<div>'
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">PASTA NO DRIVE</div>'
+    +(card.folderUrl&&card.folderUrl!=='null'&&card.folderUrl
+      ?'<a href="'+card.folderUrl+'" target="_blank" class="anexo-link" style="font-size:13px">📁 Abrir pasta no Drive ↗</a>'
+      :'<span style="font-size:12px;font-family:var(--mono);color:var(--text3)">Criando...</span>')+'</div>'
+
+    +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">ANEXOS</div>'
+    +'<div class="anexos-list">'+anexosHTML+'</div>'
+    +uploadHTML+'</div>'
+    +'</div></div></div>';
+}
+
+// ============================================================
+// AÇÕES DOS CARDS
+// ============================================================
+function abrirCardDetalhe(cardId){
+  state.lucasCardAberto=cardId;
+  // Carrega anexos do Sheets
+  if(!state.lucasCardAnexos[cardId]){
+    state.lucasCardAnexos[cardId]=[];
+    if(APPS_SCRIPT_URL){
+      apiCall({action:'getAnexos',cardId:cardId}).then(function(res){
+        if(res&&Array.isArray(res)){state.lucasCardAnexos[cardId]=res;render();}
+      });
+    }
+  }
+  state.lucasUploadQueue=[];
+  render();
+}
+
+function abrirModalNovoCard(){
+  state.lucasModal=true;
+  state.lucasModalData={titulo:'',descricao:'',clienteId:'geral',clienteNome:'Geral'};
+  render();
+  // Abre modal
+  document.getElementById('root').insertAdjacentHTML('beforeend',renderModalNovoCard());
+  bindModalCard();
+}
+
+function renderModalNovoCard(){
+  var eu=state.usuario;
+  var clientes=[{id:'geral',nome:'Geral (sem cliente específico)'}].concat(
+    eu==='gestor'?TODOS_CLIENTES_FLAT:(CLIENTES[eu]||[]).map(function(c){return Object.assign({},c);})
+  );
+  var opts=clientes.map(function(c){return'<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
+  return'<div class="modal-overlay" id="modal-novo-card">'
+    +'<div class="modal-box">'
+    +'<div class="modal-title" style="color:var(--lucas)">Nova Demanda para Lucas</div>'
+    +'<div class="modal-field"><label>TÍTULO *</label><input type="text" id="nc-titulo" placeholder="Descreva a demanda..."></div>'
+    +'<div class="modal-field"><label>DESCRIÇÃO</label><textarea id="nc-desc" rows="4" placeholder="Detalhes da solicitação..."></textarea></div>'
+    +'<div class="modal-field"><label>CLIENTE</label><select id="nc-cliente">'+opts+'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'<div class="modal-field"><label>PRIORIDADE</label><select id="nc-prioridade"><option value="baixa">🔵 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option></select></div>'
+    +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="nc-data-entrega" style="color-scheme:dark"></div>'
+    +'</div>'
+    +'<div class="modal-actions">'
+    +'<button class="btn-sec" onclick="fecharModalCard()">Cancelar</button>'
+    +'<button class="btn-lucas" id="btn-criar-card">Criar Demanda</button>'
+    +'</div></div></div>';
+}
+
+function bindModalCard(){
+  var btn=document.getElementById('btn-criar-card');
+  if(!btn)return;
+  btn.onclick=async function(){
+    var titulo=document.getElementById('nc-titulo').value.trim();
+    if(!titulo){showToast('Digite o título');return;}
+    var selEl=document.getElementById('nc-cliente');
+    var clienteId=selEl.value;
+    var clienteNome=selEl.options[selEl.selectedIndex].text;
+    if(clienteId==='geral')clienteNome='Geral';
+    btn.disabled=true;btn.textContent='Criando...';
+    var prioridade=document.getElementById('nc-prioridade').value;
+    var dataEntrega=document.getElementById('nc-data-entrega').value;
+    var data={action:'salvarCard',titulo:titulo,descricao:document.getElementById('nc-desc').value.trim(),
+      clienteId:clienteId,clienteNome:clienteNome,criadoPor:state.usuario,mesAno:state.mesAtual,
+      prioridade:prioridade,dataEntrega:dataEntrega};
+    var res=await apiCall(data);
+    if(res&&res.ok){
+      // Salva localmente
+      var cards=getCards();
+      cards.push({id:res.id,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
+        criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
+        prioridade:prioridade,dataEntrega:dataEntrega,
+        folderId:res.folderId||'',folderUrl:res.folderUrl||'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
+      setStore('cards',cards);_cacheCards=cards;
+      showToast('✓ Demanda criada! Pasta no Drive criada.');
+    }else{
+      // Offline: salva local
+      var id='c'+Date.now();
+      var cards=getCards();
+      cards.push({id:id,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
+        criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
+        prioridade:prioridade,dataEntrega:dataEntrega,
+        folderId:'',folderUrl:'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
+      setStore('cards',cards);_cacheCards=cards;
+      showToast('⚠ Salvo localmente (sem API)');
+    }
+    fecharModalCard();render();
+  };
+}
+
+function fecharModalCard(){
+  var m=document.getElementById('modal-novo-card');
+  if(m)m.remove();
+  state.lucasModal=false;
+}
+
+function abrirModalEditarCard(cardId){
+  var card=getCards().find(function(c){return c.id===cardId;});
+  if(!card)return;
+  var eu=state.usuario;
+  var clientes=[{id:'geral',nome:'Geral (sem cliente específico)'}].concat(
+    eu==='gestor'?TODOS_CLIENTES_FLAT:(CLIENTES[eu]||[]).map(function(c){return Object.assign({},c);})
+  );
+  var opts=clientes.map(function(c){
+    return'<option value="'+c.id+'"'+(c.id===card.clienteId?' selected':'')+'>'+c.nome+'</option>';
+  }).join('');
+  var prioOpts=['baixa','media','alta'].map(function(p){return'<option value="'+p+'"'+(card.prioridade===p?' selected':'')+'>'+({'baixa':'🔵 Baixa','media':'🟡 Média','alta':'🔴 Alta'}[p])+'</option>';}).join('');
+  var html='<div class="modal-overlay" id="modal-editar-card">'
+    +'<div class="modal-box">'
+    +'<div class="modal-title" style="color:var(--lucas)">Editar Demanda</div>'
+    +'<div class="modal-field"><label>TÍTULO *</label><input type="text" id="ec-titulo" value="'+card.titulo.replace(/"/g,'&quot;')+'"></div>'
+    +'<div class="modal-field"><label>DESCRIÇÃO</label><textarea id="ec-desc" rows="4">'+(card.descricao||'')+'</textarea></div>'
+    +'<div class="modal-field"><label>CLIENTE</label><select id="ec-cliente">'+opts+'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'<div class="modal-field"><label>PRIORIDADE</label><select id="ec-prioridade">'+prioOpts+'</select></div>'
+    +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="ec-data-entrega" value="'+(card.dataEntrega||'')+'" style="color-scheme:dark"></div>'
+    +'</div>'
+    +'<div class="modal-actions">'
+    +'<button class="btn-sec" onclick="document.getElementById(\'modal-editar-card\').remove()">Cancelar</button>'
+    +'<button class="btn-lucas" id="btn-salvar-edicao">Salvar</button>'
+    +'</div></div></div>';
+document.getElementById('root').insertAdjacentHTML('beforeend',html);
+  document.getElementById('btn-salvar-edicao').onclick=async function(){
+    var titulo=document.getElementById('ec-titulo').value.trim();
+    if(!titulo){showToast('Digite o título');return;}
+    var selEl=document.getElementById('ec-cliente');
+    var clienteId=selEl.value;
+    var clienteNome=selEl.options[selEl.selectedIndex].text;
+    // Atualiza local
+    var prioridade=document.getElementById('ec-prioridade').value;
+    var dataEntrega=document.getElementById('ec-data-entrega').value;
+    var cards=getCards();
+    var idx=cards.findIndex(function(c){return c.id===cardId;});
+    if(idx>=0){cards[idx].titulo=titulo;cards[idx].descricao=document.getElementById('ec-desc').value.trim();
+      cards[idx].clienteId=clienteId;cards[idx].clienteNome=clienteNome;
+      cards[idx].prioridade=prioridade;cards[idx].dataEntrega=dataEntrega;}
+    setStore('cards',cards);_cacheCards=cards;
+    // Atualiza Sheets
+    if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,titulo:titulo,descricao:cards[idx].descricao,clienteId:clienteId,clienteNome:clienteNome,prioridade:prioridade,dataEntrega:dataEntrega});
+    document.getElementById('modal-editar-card').remove();
+    showToast('✓ Demanda atualizada!');render();
+  };
+}
+
+function moverStatusCard(cardId,novoStatus){
+  var cards=getCards();
+  var idx=cards.findIndex(function(c){return c.id===cardId;});
+  if(idx<0)return;
+  cards[idx].status=novoStatus;
+  cards[idx].atualizadoEm=new Date().toISOString();
+  setStore('cards',cards);_cacheCards=cards;
+  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,status:novoStatus});
+  showToast('Status: '+statusLabel(novoStatus));render();
+}
+
+function atribuirNota(cardId,nota){
+  var cards=getCards();
+  var idx=cards.findIndex(function(c){return c.id===cardId;});
+  if(idx<0)return;
+  cards[idx].nota=nota;
+  cards[idx].atualizadoEm=new Date().toISOString();
+  setStore('cards',cards);_cacheCards=cards;
+  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,nota:String(nota)});
+  showToast('Nota '+nota+'/10 atribuída!');render();
+}
+
+function salvarFeedback(cardId){
+  var fb=document.getElementById('feedback-input');
+  if(!fb)return;
+  var texto=fb.value.trim();
+  var cards=getCards();
+  var idx=cards.findIndex(function(c){return c.id===cardId;});
+  if(idx<0)return;
+  cards[idx].feedback=texto;
+  setStore('cards',cards);_cacheCards=cards;
+  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,feedback:texto});
+  showToast('✓ Feedback salvo!');render();
+}
+
+function deletarCard(cardId){
+  if(!confirm('Excluir esta demanda?'))return;
+  var cards=getCards().filter(function(c){return c.id!==cardId;});
+  setStore('cards',cards);_cacheCards=cards;
+  state.lucasCardAberto=null;
+  if(APPS_SCRIPT_URL)apiCall({action:'deletarCard',id:cardId});
+  showToast('Demanda excluída');render();
+}
+
+// ============================================================
+// ANEXOS
+// ============================================================
+function handleFileSelect(input){
+  var files=Array.from(input.files);
+  files.forEach(function(f){state.lucasUploadQueue.push(f);});
+  input.value='';render();
+}
+function handleFileDrop(e){
+  e.preventDefault();
+  document.getElementById('upload-area-drop').classList.remove('drag');
+  var files=Array.from(e.dataTransfer.files);
+  files.forEach(function(f){state.lucasUploadQueue.push(f);});
+  render();
+}
+function removerDaFila(idx){state.lucasUploadQueue.splice(idx,1);render();}
+
+async function enviarAnexosFila(cardId){
+  if(!APPS_SCRIPT_URL){showToast('Configure a API primeiro');return;}
+  var fila=state.lucasUploadQueue.slice();
+  if(!fila.length)return;
+  var card=getCards().find(function(c){return c.id===cardId;});
+  var folderId=card?card.folderId:'';
+  showToast('Enviando '+fila.length+' arquivo(s)...');
+  var ok=0;
+  for(var i=0;i<fila.length;i++){
+    var f=fila[i];
+    try{
+      var base64=await lerBase64(f);
+      var res=await apiPost({action:'uploadAnexo',cardId:cardId,folderId:folderId,
+        nome:f.name,tipo:f.type,tamanho:String(f.size),base64:base64,enviadoPor:state.usuario});
+      if(res&&res.ok){
+        if(!state.lucasCardAnexos[cardId])state.lucasCardAnexos[cardId]=[];
+        state.lucasCardAnexos[cardId].push({nome:f.name,tipo:f.type,tamanho:String(f.size),driveUrl:res.driveUrl,driveId:res.driveId,enviadoPor:state.usuario,enviadoEm:new Date().toISOString()});
+        ok++;
+      }
+    }catch(e){console.warn('Upload erro:',e);}
+  }
+  state.lucasUploadQueue=[];
+  showToast('✓ '+ok+'/'+fila.length+' enviado(s) para o Drive!');render();
+}
+
+function lerBase64(file){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var b64=e.target.result.split(',')[1];
+      resolve(b64);
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function removerAnexo(cardId,idx){
+  var anexos=state.lucasCardAnexos[cardId]||[];
+  var anexo=anexos[idx];
+  if(!anexo)return;
+  if(!confirm('Remover "'+anexo.nome+'" do Drive?'))return;
+  if(APPS_SCRIPT_URL&&anexo.driveId){
+    apiCall({action:'deletarAnexo',driveId:anexo.driveId,cardId:cardId});
+  }
+  state.lucasCardAnexos[cardId].splice(idx,1);
+  showToast('Anexo removido');render();
+}
+
+// ============================================================
+// BIND COMMON
+// ============================================================
+function bindCommon(){
+  ['btn-logout','btn-sincronizar','btn-config-api'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){var cl=el.cloneNode(true);el.parentNode.replaceChild(cl,el);}
+  });
+  document.getElementById('btn-logout').onclick=function(){
+    state.tela='login';state.usuario=null;state.role=null;
+    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();
+  };
+  var ms=document.getElementById('mes-sel');
+  if(ms)ms.onchange=async function(e){
+    state.mesAtual=e.target.value;state.lucasCardAberto=null;
+    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();
+    await sincronizarDoSheets();render();
+  };
+  document.getElementById('btn-sincronizar').onclick=async function(){
+    await sincronizarDoSheets();render();
+  };
+  document.getElementById('btn-config-api').onclick=function(){
+    var url=prompt('Cole a URL do Apps Script (deixe vazio para usar o padrão):',APPS_SCRIPT_URL||'');
+    if(url!==null){
+      APPS_SCRIPT_URL=(url.trim()||APPS_SCRIPT_URL_DEFAULT);
+      localStorage.setItem('agro_api_url',APPS_SCRIPT_URL);
+      showToast(url.trim()?'API configurada!':'API padrão restaurada!');
+    }
+  };
+}
+
+function bindGestor(){
+  bindCommon();
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
+    el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
+  });
+  var aS=document.getElementById('ano-sel');if(aS)aS.onchange=function(e){state.anoAtual=e.target.value;render();};
+  var bA=document.getElementById('btn-add-ativ');
+  if(bA)bA.onclick=function(){
+    var nome=document.getElementById('nova-ativ-nome').value.trim();
+    if(!nome){showToast('Digite o nome');return;}
+    var esc=state.novaAtivEscopo,escopo;
+    if(esc['geral']){escopo='geral';}
+    else{var todos=Object.values(CLIENTES).flat();var sels=todos.filter(function(cl){return esc[cl.id];}).map(function(cl){return cl.id;});
+      if(!sels.length){showToast('Selecione ao menos um cliente');return;}escopo=sels.length===1?sels[0]:sels;}
+    var id='a'+Date.now();var ativs=getAtividades();
+    ativs.push({id:id,nome:nome,mesAno:state.mesAtual,escopo:escopo,ativo:true});
+    setStore('atividades',ativs);_cacheAtividades=ativs;
+    if(APPS_SCRIPT_URL){var es=typeof escopo==='object'?JSON.stringify(escopo):escopo;apiCall({action:'addAtividade',id:id,nome:nome,mesAno:state.mesAtual,escopo:es,ativo:'true'});}
+    state.novaAtivEscopo={geral:true};showToast('Atividade adicionada!');render();
+  };
+  var bSA=document.getElementById('btn-salvar-atividades');
+  if(bSA)bSA.onclick=async function(){
+    if(!APPS_SCRIPT_URL){showToast('API não configurada');return;}
+    bSA.disabled=true;bSA.textContent='Salvando...';
+    var ativs=getAtividades().filter(function(a){return a.mesAno===state.mesAtual;});
+    var ok=0;for(var i=0;i<ativs.length;i++){var a=ativs[i];var es=typeof a.escopo==='object'?JSON.stringify(a.escopo):a.escopo;var res=await apiCall({action:'addAtividade',id:a.id,nome:a.nome,mesAno:a.mesAno,escopo:es,ativo:'true'});if(res&&res.ok)ok++;}
+    showToast(ok+'/'+ativs.length+' salvas!');bSA.disabled=false;bSA.textContent='↑ Salvar no Sheets';
+  };
+  var bCM=document.getElementById('btn-criar-mes');
+  if(bCM)bCM.onclick=function(){
+    var mes=document.getElementById('novo-mes-mes').value;var ano=document.getElementById('novo-mes-ano').value;
+    if(!mes||!ano){showToast('Selecione mês e ano');return;}
+    var valor=ano+'-'+mes;var nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var label=nomes[parseInt(mes)-1]+'/'+ano;var extras=getStore('meses_extras',[]);
+    if(extras.find(function(e){return e.valor===valor;})){showToast('Mês já existe');return;}
+    extras.push({valor:valor,label:label});setStore('meses_extras',extras);state.mesAtual=valor;showToast('Mês '+label+' criado!');render();
+  };
+}
+
+function bindConsultor(){
+  bindCommon();
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
+    el.onclick=function(){state.paginaGestor=el.dataset.page;state.clienteSelecionado=null;state.lucasCardAberto=null;render();};
+  });
+  var bS=document.getElementById('btn-salvar');
+  if(bS)bS.onclick=async function(){
+    if(_bufferTimer){clearTimeout(_bufferTimer);_bufferTimer=null;}
+    var lote=Object.values(_bufferRegistros);
+    if(lote.length>0){
+      _bufferRegistros={};bS.disabled=true;bS.textContent='Enviando...';
+      try{await salvarRegistrosLote(lote);showToast('✓ Tudo salvo!');}
+      catch(e){showToast('⚠ Salvo localmente');}
+      finally{bS.disabled=false;bS.textContent='Salvar preenchimento';}
+    }else{showToast('✓ Tudo já está salvo!');}
+    render();
+  };
+}
+
+function bindLucas(){
+  bindCommon();
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
+    el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
+  });
+}
+
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      console.log('SW registrado:', reg.scope);
+    }).catch(function(err){
+      console.log('SW erro:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
