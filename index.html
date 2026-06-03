@@ -698,15 +698,37 @@ function renderDashboard(){
 
   var rankHTML=rankAll.map(function(x,i){
     var u=USUARIOS[x.c];
-    var sub=x.isLucas?'<div class="rank-clients" style="text-align:right">'+x.cardsFeitos+' cards feitos</div>'
-      :'<div class="rank-clients" style="text-align:right">'+CLIENTES[x.c].length+' clientes</div>';
-    var score=x.isLucas&&notaLucas===null?'<div class="rank-score" style="color:var(--text3)">—</div>':'<div class="rank-score" style="color:'+notaColor(x.n)+'">'+x.n+'%</div>';
+    var sub=x.isLucas?'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+x.cardsFeitos+' cards feitos</span>'
+      :'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+CLIENTES[x.c].length+' clientes</span>';
+    var progVal=x.isLucas?null:x.p;
+    var notaColor2=x.isLucas?'var(--lucas)':notaColor(x.n);
+    var notaValStr=x.isLucas&&notaLucas===null?'—':x.n+'%';
+    var notaNum=x.isLucas&&notaLucas===null?0:x.n;
+    var progBlock=progVal!==null
+      ?'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
+        +'<span style="font-size:9px;font-family:var(--mono);color:var(--text3);width:34px;letter-spacing:.5px">PROG</span>'
+        +'<div style="flex:1;height:3px;background:var(--surface3);border-radius:2px">'
+          +'<div style="width:'+progVal+'%;height:100%;background:#60a5fa;border-radius:2px"></div></div>'
+        +'<span style="font-size:11px;font-family:var(--mono);color:#60a5fa;min-width:34px;text-align:right">'+progVal+'%</span>'
+        +'</div>'
+      :'';
+    var notaBlock='<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:9px;font-family:var(--mono);color:var(--text3);width:34px;letter-spacing:.5px">NOTA</span>'
+      +'<div style="flex:1;height:3px;background:var(--surface3);border-radius:2px">'
+        +'<div style="width:'+notaNum+'%;height:100%;background:'+notaColor2+';border-radius:2px"></div></div>'
+      +'<span style="font-size:11px;font-family:var(--mono);color:'+notaColor2+';min-width:34px;text-align:right">'+notaValStr+'</span>'
+      +'</div>';
     return'<div class="ranking-row">'
       +'<div class="rank-num">'+(i+1)+'</div>'
       +'<div class="rank-avatar" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome[0]+'</div>'
-      +'<div style="flex:1"><div class="rank-name">'+u.nome+(x.isLucas?' <span style="font-size:10px;font-family:var(--mono);color:var(--lucas)">lucas</span>':'')+'</div>'
-      +'<div class="progress-bar" style="width:140px"><div class="progress-fill" style="width:'+x.n+'%;background:'+(x.isLucas?'var(--lucas)':notaColor(x.n))+'"></div></div></div>'
-      +'<div>'+score+sub+'</div>'
+      +'<div style="flex:1">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          +'<div class="rank-name">'+u.nome+(x.isLucas?' <span style="font-size:10px;font-family:var(--mono);color:var(--lucas)">lucas</span>':'')+'</div>'
+          +sub
+        +'</div>'
+        +progBlock
+        +notaBlock
+      +'</div>'
       +'</div>';
   }).join('');
 
