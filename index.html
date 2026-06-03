@@ -1130,8 +1130,13 @@ async function salvarReuniao(){
   var payload={action:'salvarReuniao',dataHora:dataHora,consultor:consultor,cliente:cliente,status:status,obs:obs};
   if(dataFim) payload.dataFim=dataFim;
   if(d.id) payload.id=d.id;
+  console.log('inicio raw:',(document.getElementById('r-inicio')||{}).value);
+  console.log('fim raw:',(document.getElementById('r-fim')||{}).value);
+  console.log('inicio norm:',inicio,'fim norm:',fim);
+  console.log('PAYLOAD:',JSON.stringify(payload));
   showToast('Salvando...');
   var res=await apiPost(payload);
+  console.log('RESPOSTA:',JSON.stringify(res));
   if(res&&res.ok){
     showToast('\u2713 Reuni\u00e3o salva!');
     state.reuniaoModal=false;
