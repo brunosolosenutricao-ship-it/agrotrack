@@ -333,6 +333,11 @@ var state={
   lucasFiltroConsultor:'todos',
   lucasCardAnexos:{},         // cache de anexos por cardId
   lucasUploadQueue:[],        // arquivos selecionados antes de salvar
+  // Reuniões
+  reunioes:[],
+  reuniaoModal:false,
+  reuniaoModalData:{},
+  reuniaoCarregada:false,
 };
 
 // ============================================================
@@ -618,11 +623,11 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências']];
+    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões']];
   }else if(state.role==='lucas'){
     pages=[['lucas','Demandas']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões']];
   }
 
   var nav=pages.map(function(p){
@@ -674,7 +679,163 @@ function renderGestor(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='pendencias') return renderPendenciasPage();
   if(state.paginaGestor==='lucas')      return renderLucasPage();
+  if(state.paginaGestor==='reunioes')   return renderReunioesPage();
   return'';
+}
+
+
+// ============================================================
+// REUNIÕES
+// ============================================================
+async function carregarReunioes(){
+  var res=await apiCall({action:'getReunioes'});
+  if(res&&!res.erro&&Array.isArray(res)){
+    state.reunioes=res;
+    state.reuniaoCarregada=true;
+    setStore('reunioes',res);
+  } else {
+    state.reunioes=getStore('reunioes',[]);
+    state.reuniaoCarregada=true;
+  }
+  render();
+}
+
+function fmtDataHora(dh){
+  if(!dh)return'';
+  try{
+    var d=new Date(dh);
+    var dia=String(d.getDate()).padStart(2,'0');
+    var mes=String(d.getMonth()+1).padStart(2,'0');
+    var h=String(d.getHours()).padStart(2,'0');
+    var mi=String(d.getMinutes()).padStart(2,'0');
+    return dia+'/'+mes+' '+h+':'+mi;
+  }catch(e){return dh;}
+}
+
+function statusReuniaoLabel(s){
+  if(s==='marcada')return'Marcada';
+  if(s==='aguardando')return'Aguardando resposta';
+  return'Livre';
+}
+function statusReuniaoColor(s){
+  if(s==='marcada')return'#4ade80';
+  if(s==='aguardando')return'#fbbf24';
+  return'#555a75';
+}
+function statusReuniaoClass(s){
+  if(s==='marcada')return'badge-ok';
+  if(s==='aguardando')return'badge-warn';
+  return'badge-gray';
+}
+
+function renderReunioesPage(){
+  if(!state.reuniaoCarregada){
+    carregarReunioes();
+    return renderApp('<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuniões...</div></div>');
+  }
+
+  var reunioes=state.reunioes.slice().sort(function(a,b){return a.dataHora>b.dataHora?1:-1;});
+  var isGestor=state.role==='gestor';
+
+  // Agrupar por data
+  var grupos={};
+  reunioes.forEach(function(r){
+    var d=r.dataHora?r.dataHora.substring(0,10):'';
+    if(!grupos[d])grupos[d]=[];
+    grupos[d].push(r);
+  });
+
+  var diasHTML='';
+  Object.keys(grupos).sort().forEach(function(dia){
+    var items=grupos[dia];
+    var dFmt='';
+    try{
+      var dd=new Date(dia+'T00:00:00');
+      var semana=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      dFmt=semana[dd.getDay()]+', '+String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0')+'/'+dd.getFullYear();
+    }catch(e){dFmt=dia;}
+
+    var cardsHTML=items.map(function(r){
+      var u=USUARIOS[r.consultor]||{nome:r.consultor||'—',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+      var hora=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
+      var podeDeletar=isGestor||(r.consultor===state.usuario);
+      var podeEditar=isGestor||(r.consultor===state.usuario&&r.status!=='marcada');
+      var statusLivre=!r.consultor||r.status==='livre';
+      return'<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px">'        +'<div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--text3);min-width:44px;text-align:center">'+hora+'</div>'        +'<div style="flex:1">'          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'            +(statusLivre
+              ?'<span style="font-size:12px;font-family:var(--mono);color:var(--text3)">Slot livre</span>'
+              :'<div style="width:28px;height:28px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">'+u.nome[0]+'</div>'               +'<span style="font-size:13px;font-weight:500">'+u.nome+'</span>'               +(r.cliente?'<span style="font-size:12px;color:var(--text3)">·</span><span style="font-size:12px;color:var(--text2)">'+r.cliente+'</span>':'')
+            )          +'</div>'          +(r.obs&&r.obs!=='undefined'&&r.obs!==''?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px">'+r.obs+'</div>':'')        +'</div>'        +'<div style="display:flex;align-items:center;gap:6px">'          +'<span class="badge '+statusReuniaoClass(statusLivre?'livre':r.status)+'">'+statusReuniaoLabel(statusLivre?'livre':r.status)+'</span>'          +(statusLivre
+            ?'<button onclick="abrirModalReuniao(''+r.id+'','agendar')" style="padding:5px 12px;background:var(--accent);color:#0a1a0f;border:none;border-radius:6px;font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer">Agendar</button>'
+            :(podeEditar?'<button onclick="abrirModalReuniao(''+r.id+'','editar')" style="padding:5px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer">Editar</button>':'')             +(podeDeletar?'<button onclick="deletarReuniao(''+r.id+'')" style="padding:5px 10px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:6px;font-size:11px;color:#f87171;cursor:pointer">✕</button>':'')          )        +'</div>'        +'</div>';
+    }).join('');
+
+    diasHTML+='<div style="margin-bottom:20px">'      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1.5px;margin-bottom:10px">'+dFmt+'</div>'      +'<div style="display:flex;flex-direction:column;gap:8px">'+cardsHTML+'</div>'      +'</div>';
+  });
+
+  if(!diasHTML)diasHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma reunião agendada ainda.</div>';
+
+  var modalHTML='';
+  if(state.reuniaoModal){
+    var d=state.reuniaoModalData;
+    var titulo=d.modo==='novo'?'Nova Reunião':d.modo==='agendar'?'Agendar Slot':'Editar Reunião';
+    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.reuniaoModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">'+titulo+'</div>'      +(d.modo==='novo'||d.modo===undefined
+        ?'<div class="modal-field"><label>DATA E HORA</label><input type="datetime-local" id="r-datahora" value="'+(d.dataHora||'')+'"></div>'
+        :d.modo==='agendar'?'<div style="font-size:13px;color:var(--text2);margin-bottom:16px;font-family:var(--mono)">Slot: '+fmtDataHora(d.dataHora)+'</div>'
+        :'<div class="modal-field"><label>DATA E HORA</label><input type="datetime-local" id="r-datahora" value="'+(d.dataHora||'')+'"></div>'      )      +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="r-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'      +'<div class="modal-field"><label>STATUS</label><select id="r-status">'        +'<option value="aguardando"'+(d.status==='aguardando'?' selected':'')+'>Aguardando resposta</option>'        +'<option value="marcada"'+(d.status==='marcada'?' selected':'')+'>Marcada</option>'        +'</select></div>'      +'<div class="modal-field"><label>OBS</label><textarea id="r-obs" rows="2" placeholder="Observações...">'+(d.obs&&d.obs!=='undefined'?d.obs:'')+'</textarea></div>'      +'<div class="modal-actions">'        +'<button class="btn-sec" onclick="state.reuniaoModal=false;render()">Cancelar</button>'        +'<button class="btn-save" onclick="salvarReuniao()">Salvar</button>'      +'</div></div></div>';
+  }
+
+  var content='<div class="page">'    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'    +'<div><div class="page-title">Reuniões</div><div class="page-sub">Agenda da equipe</div></div>'    +'<div style="display:flex;gap:8px">'    +'<button class="btn-sec" onclick="state.reuniaoCarregada=false;render()">⟳ Atualizar</button>'    +'<button class="btn-save" onclick="abrirModalReuniao(null,'novo')">+ Nova Reunião</button>'    +'</div></div>'    +'<div style="margin-top:20px">'+diasHTML+'</div>'    +'</div>'+modalHTML;
+
+  return renderApp(content);
+}
+
+function abrirModalReuniao(id, modo){
+  var data={modo:modo};
+  if(id){
+    var r=state.reunioes.find(function(x){return x.id===id;});
+    if(r)data=Object.assign({},r,{modo:modo});
+  }
+  state.reuniaoModal=true;
+  state.reuniaoModalData=data;
+  render();
+}
+
+async function salvarReuniao(){
+  var d=state.reuniaoModalData;
+  var dataHora=d.modo==='agendar'?d.dataHora:(document.getElementById('r-datahora')||{}).value||d.dataHora||'';
+  var cliente=(document.getElementById('r-cliente')||{}).value||'';
+  var status=(document.getElementById('r-status')||{}).value||'aguardando';
+  var obs=(document.getElementById('r-obs')||{}).value||'';
+  var consultor=state.usuario;
+
+  if(!dataHora){showToast('Informe a data e hora');return;}
+
+  var payload={action:'salvarReuniao',dataHora:dataHora,consultor:consultor,cliente:cliente,status:status,obs:obs};
+  if(d.id)payload.id=d.id;
+
+  showToast('Salvando...');
+  var res=await apiPost(payload);
+  if(res&&res.ok){
+    showToast('✓ Reunião salva!');
+    state.reuniaoModal=false;
+    state.reuniaoCarregada=false;
+    render();
+  } else {
+    showToast('Erro ao salvar');
+  }
+}
+
+async function deletarReuniao(id){
+  if(!confirm('Remover esta reunião?'))return;
+  showToast('Removendo...');
+  var res=await apiPost({action:'deletarReuniao',id:id});
+  if(res&&res.ok){
+    showToast('✓ Removido!');
+    state.reuniaoCarregada=false;
+    render();
+  } else {
+    showToast('Erro ao remover');
+  }
 }
 
 function renderDashboard(){
@@ -909,6 +1070,7 @@ function renderPendenciasPage(){
 function renderConsultor(){
   if(state.paginaGestor==='progresso')return renderProgressoConsultor();
   if(state.paginaGestor==='lucas')    return renderLucasPage();
+  if(state.paginaGestor==='reunioes') return renderReunioesPage();
   return renderClientesConsultor();
 }
 
