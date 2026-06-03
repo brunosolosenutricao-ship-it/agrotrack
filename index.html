@@ -922,8 +922,8 @@ function renderReunioesPage(){
     var cardsHTML=items.map(function(r){
       var u=USUARIOS[r.consultor]||{nome:r.consultor||'—',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
       var hora=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
-      var podeDeletar=isGestor||(r.consultor===state.usuario);
-      var podeEditar=isGestor||(r.consultor===state.usuario&&r.status!=='marcada');
+      var podeDeletar=true;
+      var podeEditar=true;
       var statusLivre=!r.consultor||r.status==='livre';
       var botoesHTML='';
       if(statusLivre){
