@@ -242,6 +242,19 @@ tr:hover td{background:var(--surface2)!important;}
   .modal-overlay{align-items:flex-end;padding:0;}
   .card-detalhe{padding:16px;}
   .scope-scroll{max-height:160px;}
+  /* Page header stacks on mobile */
+  .page-header{flex-direction:column;align-items:flex-start!important;gap:10px!important;}
+  .page-header>div:last-child{width:100%;display:flex;gap:8px;}
+  .page-header>div:last-child button{flex:1;}
+  /* Badge wrap on mobile */
+  .badge{white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;}
+  /* Ranking rows on mobile */
+  .ranking-row>div:last-child{flex-basis:100%;}
+  /* Modal fields full width */
+  .modal-field input,.modal-field select,.modal-field textarea{width:100%;box-sizing:border-box;}
+  /* Modal actions stack */
+  .modal-actions{flex-direction:column-reverse!important;gap:8px!important;}
+  .modal-actions button{width:100%!important;}
 }
 input[type=text],input[type=password],input[type=number],select,textarea{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border2)!important;border-radius:8px;outline:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;}
