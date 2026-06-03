@@ -1127,7 +1127,8 @@ async function salvarReuniao(){
   var obs=(document.getElementById('r-obs')||{}).value||'';
   var consultor=state.usuario;
   if(!dataHora){showToast('Informe o hor\u00e1rio');return;}
-  var payload={action:'salvarReuniao',dataHora:dataHora,dataFim:dataFim,consultor:consultor,cliente:cliente,status:status,obs:obs};
+  var payload={action:'salvarReuniao',dataHora:dataHora,consultor:consultor,cliente:cliente,status:status,obs:obs};
+  if(dataFim) payload.dataFim=dataFim;
   if(d.id) payload.id=d.id;
   showToast('Salvando...');
   var res=await apiPost(payload);
