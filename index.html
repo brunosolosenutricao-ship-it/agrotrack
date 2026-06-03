@@ -893,14 +893,14 @@ function statusReuniaoClass(s){
   return'badge-gray';
 }
 
+
 function renderReunioesPage(){
   if(!state.reuniaoCarregada){
     carregarReunioes();
-    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuniões...</div></div>';
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuni\u00f5es...</div></div>';
   }
 
   var reunioes=state.reunioes.slice().sort(function(a,b){return a.dataHora>b.dataHora?1:-1;});
-  var isGestor=state.role==='gestor';
 
   var grupos={};
   reunioes.forEach(function(r){
@@ -915,22 +915,22 @@ function renderReunioesPage(){
     var dFmt='';
     try{
       var dd=new Date(dia+'T00:00:00');
-      var semana=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      var semana=['Dom','Seg','Ter','Qua','Qui','Sex','S\u00e1b'];
       dFmt=semana[dd.getDay()]+', '+String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0')+'/'+dd.getFullYear();
     }catch(e){dFmt=dia;}
 
     var cardsHTML=items.map(function(r){
-      var u=USUARIOS[r.consultor]||{nome:r.consultor||'—',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
-      var hora=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
-      var podeDeletar=true;
-      var podeEditar=true;
+      var u=USUARIOS[r.consultor]||{nome:r.consultor||'\u2014',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+      var horaInicio=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
+      var horaFim=r.dataFim&&r.dataFim.length>=16?r.dataFim.substring(11,16):'';
+      var intervalo=horaInicio+(horaFim?' \u2013 '+horaFim:'');
       var statusLivre=!r.consultor||r.status==='livre';
       var botoesHTML='';
       if(statusLivre){
         botoesHTML='<button onclick="abrirModalReuniao(\''+r.id+'\',\'agendar\')" style="padding:5px 12px;background:var(--accent);color:#0a1a0f;border:none;border-radius:6px;font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer">Agendar</button>';
       } else {
-        if(podeEditar) botoesHTML+='<button onclick="abrirModalReuniao(\''+r.id+'\',\'editar\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer">Editar</button>';
-        if(podeDeletar) botoesHTML+='<button onclick="deletarReuniao(\''+r.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:6px;font-size:11px;color:#f87171;cursor:pointer">✕</button>';
+        botoesHTML+='<button onclick="abrirModalReuniao(\''+r.id+'\',\'editar\')" style="padding:5px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer">Editar</button>';
+        botoesHTML+='<button onclick="deletarReuniao(\''+r.id+'\')" style="padding:5px 10px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:6px;font-size:11px;color:#f87171;cursor:pointer">\u2715</button>';
       }
       var infoHTML='';
       if(statusLivre){
@@ -938,10 +938,10 @@ function renderReunioesPage(){
       } else {
         infoHTML='<div style="width:28px;height:28px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">'+u.nome[0]+'</div>'
           +'<span style="font-size:13px;font-weight:500">'+u.nome+'</span>'
-          +(r.cliente?'<span style="font-size:12px;color:var(--text3)">·</span><span style="font-size:12px;color:var(--text2)">'+r.cliente+'</span>':'');
+          +(r.cliente?'<span style="font-size:12px;color:var(--text3)">\u00b7</span><span style="font-size:12px;color:var(--text2)">'+r.cliente+'</span>':'');
       }
       return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px">'
-        +'<div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--text3);min-width:44px;text-align:center">'+hora+'</div>'
+        +'<div style="font-size:14px;font-weight:600;font-family:var(--mono);color:var(--text3);min-width:90px;text-align:center">'+intervalo+'</div>'
         +'<div style="flex:1">'
           +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+infoHTML+'</div>'
           +(r.obs&&r.obs!=='undefined'&&r.obs!==''?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px">'+r.obs+'</div>':'')
@@ -959,45 +959,101 @@ function renderReunioesPage(){
       +'</div>';
   });
 
-  if(!diasHTML)diasHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma reunião agendada ainda.</div>';
+  if(!diasHTML)diasHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma reuni\u00e3o agendada ainda.</div>';
 
   var modalHTML='';
   if(state.reuniaoModal){
     var d=state.reuniaoModalData;
-    var titulo=d.modo==='novo'?'Nova Reunião':d.modo==='agendar'?'Agendar Slot':'Editar Reunião';
-    var dataHoraField='';
-    if(d.modo==='agendar'){
-      dataHoraField='<div style="font-size:13px;color:var(--text2);margin-bottom:16px;font-family:var(--mono)">Slot: '+fmtDataHora(d.dataHora)+'</div>';
+
+    if(d.modo==='novo'){
+      var slots=state.reuniaoSlots||[{inicio:'',fim:''}];
+      var slotsHTML=slots.map(function(s,i){
+        return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+          +'<input type="time" id="slot-inicio-'+i+'" value="'+s.inicio+'" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--text1);font-family:var(--mono);font-size:13px">'
+          +'<span style="color:var(--text3);font-size:13px">\u2013</span>'
+          +'<input type="time" id="slot-fim-'+i+'" value="'+s.fim+'" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--text1);font-family:var(--mono);font-size:13px">'
+          +(slots.length>1?'<button onclick="removerSlot('+i+')" style="background:transparent;border:none;color:#f87171;cursor:pointer;font-size:16px;padding:0 4px">\u2715</button>':'')
+          +'</div>';
+      }).join('');
+      modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.reuniaoModal=false;state.reuniaoSlots=[];render();}">'
+        +'<div class="modal-box">'
+        +'<div class="modal-title">Nova Reuni\u00e3o</div>'
+        +'<div class="modal-field"><label>DIA</label><input type="date" id="r-dia" value="'+(d.dia||'')+'"></div>'
+        +'<div class="modal-field"><label>HOR\u00c1RIOS</label>'
+          +slotsHTML
+          +'<button onclick="adicionarSlot()" style="width:100%;padding:7px;background:transparent;border:1px dashed var(--border2);border-radius:6px;color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px">+ Adicionar hor\u00e1rio</button>'
+        +'</div>'
+        +'<div class="modal-actions">'
+          +'<button class="btn-sec" onclick="state.reuniaoModal=false;state.reuniaoSlots=[];render()">Cancelar</button>'
+          +'<button class="btn-save" onclick="salvarReuniaoNova()">Criar Slots</button>'
+        +'</div></div></div>';
     } else {
-      dataHoraField='<div class="modal-field"><label>DATA E HORA</label><input type="datetime-local" id="r-datahora" value="'+(d.dataHora||'')+'"></div>';
+      var diaVal=d.dataHora?d.dataHora.substring(0,10):'';
+      var inicioVal=d.dataHora&&d.dataHora.length>=16?d.dataHora.substring(11,16):'';
+      var fimVal=d.dataFim&&d.dataFim.length>=16?d.dataFim.substring(11,16):'';
+      var titulo=d.modo==='agendar'?'Agendar Slot':'Editar Reuni\u00e3o';
+      modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.reuniaoModal=false;render();}">'
+        +'<div class="modal-box">'
+        +'<div class="modal-title">'+titulo+'</div>'
+        +'<div class="modal-field"><label>DIA</label><input type="date" id="r-dia" value="'+diaVal+'"></div>'
+        +'<div class="modal-field"><label>HOR\u00c1RIOS</label>'
+          +'<div style="display:flex;gap:8px;align-items:center">'
+            +'<input type="time" id="r-inicio" value="'+inicioVal+'" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--text1);font-family:var(--mono);font-size:13px">'
+            +'<span style="color:var(--text3);font-size:13px">\u2013</span>'
+            +'<input type="time" id="r-fim" value="'+fimVal+'" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--text1);font-family:var(--mono);font-size:13px">'
+          +'</div>'
+        +'</div>'
+        +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="r-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'
+        +'<div class="modal-field"><label>STATUS</label><select id="r-status">'
+          +'<option value="aguardando"'+(d.status==='aguardando'?' selected':'')+'>Aguardando resposta</option>'
+          +'<option value="marcada"'+(d.status==='marcada'?' selected':'')+'>Marcada</option>'
+        +'</select></div>'
+        +'<div class="modal-field"><label>OBS</label><textarea id="r-obs" rows="2" placeholder="Observa\u00e7\u00f5es...">'+(d.obs&&d.obs!=='undefined'?d.obs:'')+'</textarea></div>'
+        +'<div class="modal-actions">'
+          +'<button class="btn-sec" onclick="state.reuniaoModal=false;render()">Cancelar</button>'
+          +'<button class="btn-save" onclick="salvarReuniao()">Salvar</button>'
+        +'</div></div></div>';
     }
-    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.reuniaoModal=false;render();}">'
-      +'<div class="modal-box">'
-      +'<div class="modal-title">'+titulo+'</div>'
-      +dataHoraField
-      +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="r-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'
-      +'<div class="modal-field"><label>STATUS</label><select id="r-status">'
-        +'<option value="aguardando"'+(d.status==='aguardando'?' selected':'')+'>Aguardando resposta</option>'
-        +'<option value="marcada"'+(d.status==='marcada'?' selected':'')+'>Marcada</option>'
-      +'</select></div>'
-      +'<div class="modal-field"><label>OBS</label><textarea id="r-obs" rows="2" placeholder="Observações...">'+(d.obs&&d.obs!=='undefined'?d.obs:'')+'</textarea></div>'
-      +'<div class="modal-actions">'
-        +'<button class="btn-sec" onclick="state.reuniaoModal=false;render()">Cancelar</button>'
-        +'<button class="btn-save" onclick="salvarReuniao()">Salvar</button>'
-      +'</div></div></div>';
   }
 
   var content='<div class="page">'
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
-    +'<div><div class="page-title">Reuniões</div><div class="page-sub">Agenda da equipe</div></div>'
+    +'<div><div class="page-title">Reuni\u00f5es</div><div class="page-sub">Agenda da equipe</div></div>'
     +'<div style="display:flex;gap:8px">'
-    +'<button class="btn-sec" onclick="state.reuniaoCarregada=false;render()">⟳ Atualizar</button>'
-    +'<button class="btn-save" onclick="abrirModalReuniao(null,\'novo\')">+ Nova Reunião</button>'
+    +'<button class="btn-sec" onclick="state.reuniaoCarregada=false;render()">\u27f3 Atualizar</button>'
+    +'<button class="btn-save" onclick="abrirModalReuniao(null,\'novo\')">+ Nova Reuni\u00e3o</button>'
     +'</div></div>'
     +'<div style="margin-top:20px">'+diasHTML+'</div>'
     +'</div>'+modalHTML;
 
   return content;
+}
+
+function adicionarSlot(){
+  if(!state.reuniaoSlots) state.reuniaoSlots=[];
+  state.reuniaoSlots.forEach(function(s,i){
+    var ini=document.getElementById('slot-inicio-'+i);
+    var fim=document.getElementById('slot-fim-'+i);
+    if(ini) s.inicio=ini.value;
+    if(fim) s.fim=fim.value;
+  });
+  var dia=document.getElementById('r-dia');
+  if(dia) state.reuniaoModalData.dia=dia.value;
+  state.reuniaoSlots.push({inicio:'',fim:''});
+  render();
+}
+
+function removerSlot(idx){
+  state.reuniaoSlots.forEach(function(s,i){
+    var ini=document.getElementById('slot-inicio-'+i);
+    var fim=document.getElementById('slot-fim-'+i);
+    if(ini) s.inicio=ini.value;
+    if(fim) s.fim=fim.value;
+  });
+  var dia=document.getElementById('r-dia');
+  if(dia) state.reuniaoModalData.dia=dia.value;
+  state.reuniaoSlots.splice(idx,1);
+  render();
 }
 
 function abrirModalReuniao(id, modo){
@@ -1006,25 +1062,58 @@ function abrirModalReuniao(id, modo){
     var r=state.reunioes.find(function(x){return x.id===id;});
     if(r) data=Object.assign({},r,{modo:modo});
   }
+  state.reuniaoSlots=[{inicio:'',fim:''}];
   state.reuniaoModal=true;
   state.reuniaoModalData=data;
   render();
 }
 
+async function salvarReuniaoNova(){
+  var dia=(document.getElementById('r-dia')||{}).value||'';
+  if(!dia){showToast('Informe o dia');return;}
+  var slots=state.reuniaoSlots||[];
+  slots.forEach(function(s,i){
+    var ini=document.getElementById('slot-inicio-'+i);
+    var fim=document.getElementById('slot-fim-'+i);
+    if(ini) s.inicio=ini.value;
+    if(fim) s.fim=fim.value;
+  });
+  var validos=slots.filter(function(s){return s.inicio;});
+  if(!validos.length){showToast('Informe ao menos um hor\u00e1rio');return;}
+  showToast('Salvando '+validos.length+' slot(s)...');
+  var erros=0;
+  for(var i=0;i<validos.length;i++){
+    var s=validos[i];
+    var dataHora=dia+'T'+s.inicio;
+    var dataFim=s.fim?dia+'T'+s.fim:'';
+    var res=await apiPost({action:'salvarReuniao',dataHora:dataHora,dataFim:dataFim,consultor:'',cliente:'',status:'livre',obs:''});
+    if(!res||!res.ok) erros++;
+  }
+  showToast(erros===0?'\u2713 '+validos.length+' slot(s) criado(s)!':'Criado com '+erros+' erro(s)');
+  state.reuniaoModal=false;
+  state.reuniaoSlots=[];
+  state.reuniaoCarregada=false;
+  render();
+}
+
 async function salvarReuniao(){
   var d=state.reuniaoModalData;
-  var dataHora=d.modo==='agendar'?d.dataHora:(document.getElementById('r-datahora')||{}).value||d.dataHora||'';
+  var dia=(document.getElementById('r-dia')||{}).value||d.dataHora&&d.dataHora.substring(0,10)||'';
+  var inicio=(document.getElementById('r-inicio')||{}).value||'';
+  var fim=(document.getElementById('r-fim')||{}).value||'';
+  var dataHora=inicio?dia+'T'+inicio:(d.dataHora||'');
+  var dataFim=fim?dia+'T'+fim:(d.dataFim||'');
   var cliente=(document.getElementById('r-cliente')||{}).value||'';
   var status=(document.getElementById('r-status')||{}).value||'aguardando';
   var obs=(document.getElementById('r-obs')||{}).value||'';
   var consultor=state.usuario;
-  if(!dataHora){showToast('Informe a data e hora');return;}
-  var payload={action:'salvarReuniao',dataHora:dataHora,consultor:consultor,cliente:cliente,status:status,obs:obs};
+  if(!dataHora){showToast('Informe o hor\u00e1rio');return;}
+  var payload={action:'salvarReuniao',dataHora:dataHora,dataFim:dataFim,consultor:consultor,cliente:cliente,status:status,obs:obs};
   if(d.id) payload.id=d.id;
   showToast('Salvando...');
   var res=await apiPost(payload);
   if(res&&res.ok){
-    showToast('✓ Reunião salva!');
+    showToast('\u2713 Reuni\u00e3o salva!');
     state.reuniaoModal=false;
     state.reuniaoCarregada=false;
     render();
@@ -1034,11 +1123,11 @@ async function salvarReuniao(){
 }
 
 async function deletarReuniao(id){
-  if(!confirm('Remover esta reunião?'))return;
+  if(!confirm('Remover esta reuni\u00e3o?'))return;
   showToast('Removendo...');
   var res=await apiPost({action:'deletarReuniao',id:id});
   if(res&&res.ok){
-    showToast('✓ Removido!');
+    showToast('\u2713 Removido!');
     state.reuniaoCarregada=false;
     render();
   } else {
