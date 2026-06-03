@@ -708,7 +708,7 @@ async function carregarHistorico(){
 function renderHistoricoPage(){
   if(!state.historicoCarregado){
     carregarHistorico();
-    return renderApp('<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando histórico...</div></div>');
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando histórico...</div></div>';
   }
 
   var isGestor=state.role==='gestor';
@@ -803,7 +803,7 @@ function renderHistoricoPage(){
     +'<div style="margin-top:20px">'+cardsHTML+'</div>'
     +'</div>'+modalHTML;
 
-  return renderApp(pageContent);
+  return pageContent;
 }
 
 function abrirModalHistorico(id, mesAno){
@@ -896,7 +896,7 @@ function statusReuniaoClass(s){
 function renderReunioesPage(){
   if(!state.reuniaoCarregada){
     carregarReunioes();
-    return renderApp('<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuniões...</div></div>');
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuniões...</div></div>';
   }
 
   var reunioes=state.reunioes.slice().sort(function(a,b){return a.dataHora>b.dataHora?1:-1;});
@@ -997,7 +997,7 @@ function renderReunioesPage(){
     +'<div style="margin-top:20px">'+diasHTML+'</div>'
     +'</div>'+modalHTML;
 
-  return renderApp(content);
+  return content;
 }
 
 function abrirModalReuniao(id, modo){
