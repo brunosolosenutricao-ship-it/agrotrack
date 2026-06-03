@@ -1029,6 +1029,25 @@ function renderReunioesPage(){
   return content;
 }
 
+function normalizeTime(val){
+  if(!val)return'';
+  // Already HH:MM format
+  if(/^\d{2}:\d{2}$/.test(val))return val;
+  // Try parsing AM/PM
+  try{
+    var m=val.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if(m){
+      var h=parseInt(m[1]);
+      var mi=m[2];
+      var ampm=m[3].toUpperCase();
+      if(ampm==='PM'&&h!==12)h+=12;
+      if(ampm==='AM'&&h===12)h=0;
+      return String(h).padStart(2,'0')+':'+mi;
+    }
+  }catch(e){}
+  return val.substring(0,5);
+}
+
 function adicionarSlot(){
   if(!state.reuniaoSlots) state.reuniaoSlots=[];
   state.reuniaoSlots.forEach(function(s,i){
@@ -1075,11 +1094,11 @@ async function salvarReuniaoNova(){
   slots.forEach(function(s,i){
     var ini=document.getElementById('slot-inicio-'+i);
     var fim=document.getElementById('slot-fim-'+i);
-    if(ini) s.inicio=ini.value;
-    if(fim) s.fim=fim.value;
+    if(ini) s.inicio=normalizeTime(ini.value);
+    if(fim) s.fim=normalizeTime(fim.value);
   });
   var validos=slots.filter(function(s){return s.inicio;});
-  if(!validos.length){showToast('Informe ao menos um hor\u00e1rio');return;}
+  if(!validos.length){showToast('Informe ao menos um horário');return;}
   showToast('Salvando '+validos.length+' slot(s)...');
   var erros=0;
   for(var i=0;i<validos.length;i++){
@@ -1099,8 +1118,8 @@ async function salvarReuniaoNova(){
 async function salvarReuniao(){
   var d=state.reuniaoModalData;
   var dia=(document.getElementById('r-dia')||{}).value||d.dataHora&&d.dataHora.substring(0,10)||'';
-  var inicio=(document.getElementById('r-inicio')||{}).value||'';
-  var fim=(document.getElementById('r-fim')||{}).value||'';
+  var inicio=normalizeTime((document.getElementById('r-inicio')||{}).value||'');
+  var fim=normalizeTime((document.getElementById('r-fim')||{}).value||'');
   var dataHora=inicio?dia+'T'+inicio:(d.dataHora||'');
   var dataFim=fim?dia+'T'+fim:(d.dataFim||'');
   var cliente=(document.getElementById('r-cliente')||{}).value||'';
