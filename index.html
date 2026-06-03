@@ -338,6 +338,11 @@ var state={
   reuniaoModal:false,
   reuniaoModalData:{},
   reuniaoCarregada:false,
+  // Histórico
+  historico:[],
+  historicoCarregado:false,
+  historicoModal:false,
+  historicoModalData:{},
 };
 
 // ============================================================
@@ -623,11 +628,11 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões']];
+    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico']];
   }else if(state.role==='lucas'){
-    pages=[['lucas','Demandas']];
+    pages=[['lucas','Demandas'],['historico','Histórico']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico']];
   }
 
   var nav=pages.map(function(p){
@@ -680,9 +685,174 @@ function renderGestor(){
   if(state.paginaGestor==='pendencias') return renderPendenciasPage();
   if(state.paginaGestor==='lucas')      return renderLucasPage();
   if(state.paginaGestor==='reunioes')   return renderReunioesPage();
+  if(state.paginaGestor==='historico')  return renderHistoricoPage();
   return'';
 }
 
+
+// ============================================================
+// HISTÓRICO DE NOTAS
+// ============================================================
+async function carregarHistorico(){
+  var res=await apiCall({action:'getHistorico'});
+  if(res&&!res.erro&&Array.isArray(res)){
+    state.historico=res;
+    setStore('historico',res);
+  } else {
+    state.historico=getStore('historico',[]);
+  }
+  state.historicoCarregado=true;
+  render();
+}
+
+function renderHistoricoPage(){
+  if(!state.historicoCarregado){
+    carregarHistorico();
+    return renderApp('<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando histórico...</div></div>');
+  }
+
+  var isGestor=state.role==='gestor';
+  var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  function labelMes(mesAno){
+    if(!mesAno)return mesAno;
+    var p=mesAno.split('-');
+    return meses[parseInt(p[1])-1]+' '+p[0];
+  }
+
+  // Agrupar por mesAno
+  var grupos={};
+  state.historico.forEach(function(h){
+    if(!grupos[h.mesAno])grupos[h.mesAno]=[];
+    grupos[h.mesAno].push(h);
+  });
+
+  var mesesOrdenados=Object.keys(grupos).sort().reverse();
+
+  var cardsHTML=mesesOrdenados.map(function(mes){
+    var itens=grupos[mes].slice().sort(function(a,b){return b.nota-a.nota;});
+    var linhas=itens.map(function(h,i){
+      var u=USUARIOS[h.pessoa]||{nome:h.pessoa,cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+      var editBtn=isGestor
+        ?'<button onclick="abrirModalHistorico(\''+h.id+'\')" style="padding:3px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:11px;color:var(--text2);cursor:pointer;margin-left:6px">Editar</button>'
+        +'<button onclick="deletarNotaHistorico(\''+h.id+'\')" style="padding:3px 8px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:5px;font-size:11px;color:#f87171;cursor:pointer;margin-left:4px">✕</button>'
+        :'';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);width:16px">'+(i+1)+'</div>'
+        +'<div style="width:32px;height:32px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">'+u.nome[0]+'</div>'
+        +'<div style="flex:1">'
+          +'<div style="font-size:13px;font-weight:500">'+u.nome+'</div>'
+          +'<div style="height:3px;background:var(--surface3);border-radius:2px;margin-top:5px;width:100%">'
+            +'<div style="width:'+h.nota+'%;height:100%;background:'+notaColor(h.nota)+';border-radius:2px"></div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="font-size:18px;font-weight:600;font-family:var(--mono);color:'+notaColor(h.nota)+'">'+h.nota+'%</div>'
+        +editBtn
+        +'</div>';
+    }).join('');
+
+    var addBtn=isGestor
+      ?'<button onclick="abrirModalHistorico(null,\''+mes+'\')" style="padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer">+ Pessoa</button>'
+      :'';
+
+    return '<div class="card" style="margin-bottom:16px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+        +'<div style="font-size:16px;font-weight:600">'+labelMes(mes)+'</div>'
+        +addBtn
+      +'</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:12px">'+itens.length+' participante(s)</div>'
+      +linhas
+      +'</div>';
+  }).join('');
+
+  if(!cardsHTML) cardsHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhum histórico registrado ainda.</div>';
+
+  var modalHTML='';
+  if(state.historicoModal){
+    var d=state.historicoModalData;
+    var pessoasOpts=Object.keys(USUARIOS).map(function(k){
+      return '<option value="'+k+'"'+(d.pessoa===k?' selected':'')+'>'+USUARIOS[k].nome+'</option>';
+    }).join('');
+    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.historicoModal=false;render();}">'
+      +'<div class="modal-box">'
+      +'<div class="modal-title">'+(d.id?'Editar Nota':'Nova Nota')+'</div>'
+      +'<div class="modal-field"><label>MÊS</label>'
+        +'<input type="month" id="h-mes" value="'+(d.mesAno||'')+'"></div>'
+      +'<div class="modal-field"><label>PESSOA</label>'
+        +'<select id="h-pessoa">'+pessoasOpts+'</select></div>'
+      +'<div class="modal-field"><label>NOTA (%)</label>'
+        +'<input type="number" id="h-nota" min="0" max="100" value="'+(d.nota||'')+'"></div>'
+      +'<div class="modal-actions">'
+        +'<button class="btn-sec" onclick="state.historicoModal=false;render()">Cancelar</button>'
+        +'<button class="btn-save" onclick="salvarNotaHistorico()">Salvar</button>'
+      +'</div></div></div>';
+  }
+
+  var novoMesBtn=isGestor
+    ?'<button class="btn-save" onclick="abrirModalHistorico(null,null)">+ Novo Mês</button>'
+    :'';
+
+  var pageContent='<div class="page">'
+    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      +'<div><div class="page-title">Histórico de Notas</div><div class="page-sub">Performance mensal da equipe</div></div>'
+      +'<div style="display:flex;gap:8px">'
+        +'<button class="btn-sec" onclick="state.historicoCarregado=false;render()">⟳ Atualizar</button>'
+        +novoMesBtn
+      +'</div>'
+    +'</div>'
+    +'<div style="margin-top:20px">'+cardsHTML+'</div>'
+    +'</div>'+modalHTML;
+
+  return renderApp(pageContent);
+}
+
+function abrirModalHistorico(id, mesAno){
+  var data={};
+  if(id){
+    var h=state.historico.find(function(x){return x.id===id;});
+    if(h) data=Object.assign({},h);
+  } else if(mesAno){
+    data={mesAno:mesAno};
+  }
+  state.historicoModal=true;
+  state.historicoModalData=data;
+  render();
+}
+
+async function salvarNotaHistorico(){
+  var d=state.historicoModalData;
+  var mesAno=(document.getElementById('h-mes')||{}).value||d.mesAno||'';
+  var pessoa=(document.getElementById('h-pessoa')||{}).value||'';
+  var nota=parseInt((document.getElementById('h-nota')||{}).value||'0');
+  if(!mesAno){showToast('Informe o mês');return;}
+  if(!pessoa){showToast('Informe a pessoa');return;}
+  if(isNaN(nota)||nota<0||nota>100){showToast('Nota inválida (0-100)');return;}
+  var payload={action:'salvarNotaHistorico',mesAno:mesAno,pessoa:pessoa,nota:nota,criadoPor:state.usuario};
+  if(d.id) payload.id=d.id;
+  showToast('Salvando...');
+  var res=await apiPost(payload);
+  if(res&&res.ok){
+    showToast('✓ Nota salva!');
+    state.historicoModal=false;
+    state.historicoCarregado=false;
+    render();
+  } else {
+    showToast('Erro ao salvar');
+  }
+}
+
+async function deletarNotaHistorico(id){
+  if(!confirm('Remover esta nota?'))return;
+  showToast('Removendo...');
+  var res=await apiPost({action:'deletarNotaHistorico',id:id});
+  if(res&&res.ok){
+    showToast('✓ Removido!');
+    state.historicoCarregado=false;
+    render();
+  } else {
+    showToast('Erro ao remover');
+  }
+}
 
 // ============================================================
 // REUNIÕES
@@ -1110,6 +1280,7 @@ function renderConsultor(){
   if(state.paginaGestor==='progresso')return renderProgressoConsultor();
   if(state.paginaGestor==='lucas')    return renderLucasPage();
   if(state.paginaGestor==='reunioes') return renderReunioesPage();
+  if(state.paginaGestor==='historico') return renderHistoricoPage();
   return renderClientesConsultor();
 }
 
