@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AgroTrack</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,7 +22,7 @@ html,body{background:#0f1117!important;color:#f0f2f8!important;}
   --lucas:#f472b6;--lucas-bg:rgba(244,114,182,.1);
   --radius:12px;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{overflow-x:hidden;max-width:100vw;}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
 /* LOGIN */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;}
@@ -57,7 +57,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .sidebar-bottom{margin-top:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;}
 .btn-logout{width:100%;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;}
 .btn-logout:hover{background:var(--surface3);color:var(--text);}
-.main{flex:1;overflow-y:auto;}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;min-width:0;}
 .page{padding:32px;max-width:1200px;}
 .page-header{margin-bottom:28px;}
 .page-title{font-size:22px;font-weight:600;}
@@ -71,7 +71,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .metric-sub{font-size:12px;color:var(--text2);margin-top:4px;}
 .month-bar{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
 .month-bar select{padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;}
-.ranking-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.ranking-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);min-width:0;}
 .ranking-row:last-child{border-bottom:none;}
 .rank-num{font-size:11px;font-family:var(--mono);color:var(--text3);width:20px;}
 .rank-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
@@ -255,6 +255,9 @@ tr:hover td{background:var(--surface2)!important;}
   /* Modal actions stack */
   .modal-actions{flex-direction:column-reverse!important;gap:8px!important;}
   .modal-actions button{width:100%!important;}
+  .cards-grid{grid-template-columns:1fr!important;}
+  .rank-name{max-width:80px!important;}
+  .cards-grid.cols-4{grid-template-columns:repeat(2,1fr)!important;}
 }
 input[type=text],input[type=password],input[type=number],select,textarea{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border2)!important;border-radius:8px;outline:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;}
