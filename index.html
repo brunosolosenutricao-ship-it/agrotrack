@@ -1334,8 +1334,8 @@ function renderPrioridadesPage(){
       +'<div class="modal-title">'+(d.id?'Editar Demanda':'Nova Demanda')+'</div>'
       +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="pr-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'
       +'<div class="modal-field"><label>CONSULTOR</label><select id="pr-consultor">'+consultorOpts+'</select></div>'
-      +'<div class="modal-field"><label>TIPO DE DEMANDA</label><select id="pr-tipo" onchange="atualizarTipo()">'+tipoOpts+'</select></div>'
-      +(isExtra?'<div class="modal-field" id="pr-desc-field"><label>DESCRIÇÃO</label><textarea id="pr-descricao" rows="2" placeholder="Descreva a demanda...">'+(d.descricao||'')+'</textarea></div>':'<div id="pr-desc-field" style="display:none"><label>DESCRIÇÃO</label><textarea id="pr-descricao" rows="2">'+(d.descricao||'')+'</textarea></div>')
+      +'<div class="modal-field"><label>TIPO DE DEMANDA</label><select id="pr-tipo">'+tipoOpts+'</select></div>'
+      +'<div class="modal-field"><label>OBSERVAÇÃO (opcional)</label><textarea id="pr-descricao" rows="2" placeholder="Observações...">'+(d.descricao||'')+'</textarea></div>'
       +'<div class="modal-field"><label>PRIORIDADE</label><select id="pr-prioridade">'
         +'<option value="alta"'+(d.prioridade==='alta'?' selected':'')+'>Alta</option>'
         +'<option value="media"'+(d.prioridade==='media'||!d.prioridade?' selected':'')+'>Média</option>'
