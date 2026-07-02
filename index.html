@@ -1200,9 +1200,9 @@ async function deletarReuniao(id){
 // ANÁLISE POR ATIVIDADE
 // ============================================================
 function renderAnalisePage(){
-  var mesAno=state.mesAno;
-  var registros=state.registros.filter(function(r){return r.mesAno===mesAno;});
-  var atividades=state.atividades.filter(function(a){return a.mesAno===mesAno&&a.ativo;});
+  var mesAno=state.mesAtual;
+  var registros=getRegistros().filter(function(r){return r.mesAno===mesAno;});
+  var atividades=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
   var filtroConsultor=state.analiseConsultorFiltro||'todos';
 
   // Filtro de consultor
