@@ -366,6 +366,9 @@ var state={
   prioridadeModal:false,
   prioridadeModalData:{},
   prioridadeReunioPopup:false,
+  // Análise
+  analiseAtividadeExpandida:null,
+  analiseConsultorFiltro:'todos',
 };
 
 // ============================================================
@@ -651,7 +654,7 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
+    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
   }else if(state.role==='lucas'){
     pages=[['lucas','Demandas'],['historico','Histórico'],['prioridades','Prioridades']];
   }else{
@@ -710,6 +713,7 @@ function renderGestor(){
   if(state.paginaGestor==='reunioes')   return renderReunioesPage();
   if(state.paginaGestor==='historico')  return renderHistoricoPage();
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
+  if(state.paginaGestor==='analise')     return renderAnalisePage();
   return'';
 }
 
@@ -1190,6 +1194,134 @@ async function deletarReuniao(id){
 }
 
 
+
+
+// ============================================================
+// ANÁLISE POR ATIVIDADE
+// ============================================================
+function renderAnalisePage(){
+  var mesAno=state.mesAno;
+  var registros=state.registros.filter(function(r){return r.mesAno===mesAno;});
+  var atividades=state.atividades.filter(function(a){return a.mesAno===mesAno&&a.ativo;});
+  var filtroConsultor=state.analiseConsultorFiltro||'todos';
+
+  // Filtro de consultor
+  var consultores=['todos','igor','felipe','paula','ramon'];
+  var filtroHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">'
+    +consultores.map(function(c){
+      var label=c==='todos'?'Todos':USUARIOS[c]?USUARIOS[c].nome:c;
+      var ativo=filtroConsultor===c;
+      return '<button onclick="state.analiseConsultorFiltro=\''+c+'\';state.analiseAtividadeExpandida=null;render()" '
+        +'style="padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid '
+        +(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text2)')+'">'+label+'</button>';
+    }).join('')
+    +'</div>';
+
+  // Para cada atividade, calcular distribuição de códigos
+  var atividadesHTML=atividades.map(function(atv){
+    // Clientes relevantes (por filtro de consultor)
+    var clientesList=[];
+    var consultoresAtv=filtroConsultor==='todos'?Object.keys(CLIENTES):[filtroConsultor];
+    consultoresAtv.forEach(function(cons){
+      (CLIENTES[cons]||[]).forEach(function(cl){
+        clientesList.push({consultor:cons,clienteId:cl.id,clienteNome:cl.nome});
+      });
+    });
+
+    var total=clientesList.length;
+    if(!total)return'';
+
+    // Contar por código
+    var contagem={};
+    var preenchidos=0;
+    clientesList.forEach(function(cl){
+      var reg=registros.find(function(r){
+        return r.consultor===cl.consultor&&r.clienteId===cl.clienteId&&r.atividadeId===atv.id;
+      });
+      var cod=reg?reg.codigo:'';
+      if(cod){
+        preenchidos++;
+        contagem[cod]=(contagem[cod]||0)+1;
+      } else {
+        contagem['Sem Resposta']=(contagem['Sem Resposta']||0)+1;
+      }
+    });
+
+    var pctPreench=Math.round(preenchidos/total*100);
+    var expandida=state.analiseAtividadeExpandida===atv.id;
+
+    // Barras por código
+    var barrasHTML=Object.keys(contagem).sort().map(function(cod){
+      var qtd=contagem[cod];
+      var pct=Math.round(qtd/total*100);
+      var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
+      var label=codObj?codObj.descricao:cod;
+      var cor=cod==='10'||cod==='Não se aplica'||cod==='IND'||cod==='Cliente não executou'||cod==='Fora de timing'||cod==='Sem Resposta'?'#4ade80'
+        :cod==='5-'||cod==='Enviado para cotação'?'#fbbf24'
+        :cod==='0'?'#f87171':'#60a5fa';
+      return '<div style="margin-bottom:8px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+          +'<span style="font-size:11px;font-family:var(--mono);color:var(--text2)">'+label+'</span>'
+          +'<span style="font-size:11px;font-family:var(--mono);color:'+cor+'">'+qtd+'x · '+pct+'%</span>'
+        +'</div>'
+        +'<div style="height:4px;background:var(--surface3);border-radius:2px">'
+          +'<div style="width:'+pct+'%;height:100%;background:'+cor+';border-radius:2px"></div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+
+    // Tabela expandida por cliente
+    var tabelaHTML='';
+    if(expandida){
+      var linhas=clientesList.map(function(cl){
+        var reg=registros.find(function(r){
+          return r.consultor===cl.consultor&&r.clienteId===cl.clienteId&&r.atividadeId===atv.id;
+        });
+        var cod=reg?reg.codigo:'—';
+        var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
+        var label=codObj?codObj.descricao:cod;
+        var cor=!reg?'var(--text3)'
+          :cod==='0'?'#f87171'
+          :cod==='5-'||cod==='Enviado para cotação'?'#fbbf24'
+          :'#4ade80';
+        var u=USUARIOS[cl.consultor]||{nome:cl.consultor,cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
+          +'<div style="width:22px;height:22px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">'+u.nome[0]+'</div>'
+          +'<div style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cl.clienteNome+'</div>'
+          +'<div style="font-size:11px;font-family:var(--mono);color:'+cor+';text-align:right;min-width:80px">'+label+'</div>'
+          +'</div>';
+      }).join('');
+      tabelaHTML='<div style="margin-top:12px;border-top:1px solid var(--border2);padding-top:12px">'+linhas+'</div>';
+    }
+
+    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:10px">'
+      +'<div onclick="state.analiseAtividadeExpandida=state.analiseAtividadeExpandida===\''+atv.id+'\'?null:\''+atv.id+'\';render()" style="cursor:pointer">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+          +'<div style="font-size:13px;font-weight:600;flex:1;padding-right:12px;line-height:1.3">'+atv.nome+'</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+            +'<span style="font-size:13px;font-family:var(--mono);color:'+(pctPreench>=90?'#4ade80':pctPreench>=60?'#fbbf24':'#f87171')+'">'+pctPreench+'%</span>'
+            +'<span style="font-size:16px;color:var(--text3)">'+(expandida?'▲':'▼')+'</span>'
+          +'</div>'
+        +'</div>'
+        +'<div style="height:4px;background:var(--surface3);border-radius:2px;margin-bottom:12px">'
+          +'<div style="width:'+pctPreench+'%;height:100%;background:'+(pctPreench>=90?'#4ade80':pctPreench>=60?'#fbbf24':'#f87171')+';border-radius:2px"></div>'
+        +'</div>'
+        +barrasHTML
+      +'</div>'
+      +tabelaHTML
+      +'</div>';
+  }).join('');
+
+  if(!atividadesHTML) atividadesHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma atividade neste mês.</div>';
+
+  return '<div class="page">'
+    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
+      +'<div><div class="page-title">Análise por Atividade</div><div class="page-sub">'+mesAno+'</div></div>'
+    +'</div>'
+    +filtroHTML
+    +atividadesHTML
+    +'</div>';
+}
 
 // ============================================================
 // CENTRAL DE PRIORIDADES
