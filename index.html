@@ -261,6 +261,45 @@ tr:hover td{background:var(--surface2)!important;}
 }
 input[type=text],input[type=password],input[type=number],select,textarea{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border2)!important;border-radius:8px;outline:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;}
+
+/* MODO CLARO */
+body.light-mode{
+  --bg:#f0f2f8;--surface:#ffffff;--surface2:#e8eaf2;--surface3:#dde0ee;
+  --text:#1a1d27;--text2:#555a75;--text3:#8b90a8;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --accent:#16a34a;--accent2:#15803d;--accent-light:rgba(22,163,74,.1);
+}
+body.light-mode .sidebar{background:#ffffff;border-right:1px solid rgba(0,0,0,.08);}
+body.light-mode .toast{background:#ffffff;border-color:rgba(0,0,0,.12);}
+body.light-mode input[type=text],body.light-mode input[type=password],body.light-mode input[type=number],body.light-mode select,body.light-mode textarea{background:#e8eaf2!important;color:#1a1d27!important;border-color:rgba(0,0,0,.14)!important;}
+
+/* ANIMAÇÃO DE PÁGINA */
+.page-fade{animation:pageFadeIn .2s ease;}
+@keyframes pageFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* SKELETON LOADING */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.skeleton-text{height:12px;margin-bottom:8px;}
+.skeleton-title{height:20px;width:60%;margin-bottom:12px;}
+.skeleton-bar{height:8px;border-radius:4px;margin-bottom:6px;}
+.skeleton-card{background:var(--surface2);border-radius:12px;padding:20px;margin-bottom:12px;}
+
+/* BADGE NAV */
+.nav-badge{position:absolute;top:-4px;right:-4px;background:#f87171;color:#fff;font-size:9px;font-weight:700;font-family:var(--mono);min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;}
+.nav-item{position:relative;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3);}
+.empty-state svg{margin-bottom:16px;opacity:.4;}
+.empty-state-title{font-size:15px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.empty-state-sub{font-size:12px;font-family:var(--mono);}
+
+/* TOGGLE TEMA */
+.theme-toggle{width:36px;height:20px;background:var(--surface3);border-radius:10px;cursor:pointer;position:relative;border:1px solid var(--border2);flex-shrink:0;transition:background .2s;}
+.theme-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text2);transition:transform .2s,background .2s;}
+body.light-mode .theme-toggle{background:var(--accent-light);}
+body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(--accent);}
 </style>
 </head>
 <body>
@@ -604,6 +643,23 @@ function mostrarIndicador(){
 // ============================================================
 // RENDER PRINCIPAL
 // ============================================================
+function toggleTheme(){
+  document.body.classList.toggle('light-mode');
+  localStorage.setItem('agro_theme',document.body.classList.contains('light-mode')?'light':'dark');
+}
+
+function emptyState(icon, title, sub){
+  return '<div class="empty-state">'    +'<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'    +'<rect x="8" y="16" width="48" height="36" rx="6" stroke="currentColor" stroke-width="2" fill="none"/>'    +'<path d="M24 28h16M24 36h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'    +'</svg>'    +'<div class="empty-state-title">'+title+'</div>'    +'<div class="empty-state-sub">'+sub+'</div>'    +'</div>';
+}
+
+function skeletonCards(n){
+  var html='';
+  for(var i=0;i<n;i++){
+    html+='<div class="skeleton-card">'      +'<div class="skeleton skeleton-title"></div>'      +'<div class="skeleton skeleton-bar" style="width:80%"></div>'      +'<div class="skeleton skeleton-bar" style="width:60%"></div>'      +'</div>';
+  }
+  return html;
+}
+
 function render(){
   var root=document.getElementById('root');
   if(state.tela==='login'){root.innerHTML=renderLogin();bindLogin();return;}
@@ -664,9 +720,13 @@ function renderApp(content){
   var nav=pages.map(function(p){
     var isActive=state.paginaGestor===p[0];
     var isLucas=p[0]==='lucas';
+    // Badge counts
+    var badge='';
+    if(p[0]==='pendencias'){var cnt=calcPendencias(state.mesAtual);if(cnt>0)badge='<span class="nav-badge">'+cnt+'</span>';}
+    if(p[0]==='prioridades'){var cnt2=(state.prioridades||[]).filter(function(x){return x.prioridade==='alta'&&x.status!=='marcado';}).length;if(cnt2>0)badge='<span class="nav-badge">'+cnt2+'</span>';}
     return'<div class="nav-item'+(isActive?' active':'')+(isLucas?' nav-lucas':'')+'" data-page="'+p[0]+'">'
       +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>'
-      +'<span>'+p[1]+'</span></div>';
+      +'<span>'+p[1]+'</span>'+badge+'</div>';
   }).join('');
 
   // Item Lucas para gestor e consultores (sempre visível)
@@ -694,6 +754,10 @@ function renderApp(content){
     +nav+lucasNavItem
     +mobileExtra+mobileLogout
     +'<div class="sidebar-bottom">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:4px">'
+    +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">Tema claro</span>'
+    +'<div class="theme-toggle" id="btn-theme" onclick="toggleTheme()"></div>'
+    +'</div>'
     +'<button class="btn-logout" id="btn-sincronizar">⟳ Sincronizar</button>'
     +'<button class="btn-logout" id="btn-config-api">⚙ Config API</button>'
     +'<button class="btn-logout" id="btn-logout">Sair</button>'
@@ -793,7 +857,7 @@ function renderHistoricoPage(){
       +'</div>';
   }).join('');
 
-  if(!cardsHTML) cardsHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhum histórico registrado ainda.</div>';
+  if(!cardsHTML) cardsHTML=emptyState('📊','Nenhum histórico registrado','Lance as notas mensais da equipe aqui.');
 
   var modalHTML='';
   if(state.historicoModal){
@@ -1327,7 +1391,7 @@ function renderAnalisePage(){
       +'</div>';
   }).join('');
 
-  if(!atividadesHTML) atividadesHTML='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma atividade neste mês.</div>';
+  if(!atividadesHTML) atividadesHTML=emptyState('📋','Nenhuma atividade neste mês','Sincronize os dados ou adicione atividades.');
 
   return '<div class="page">'
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
@@ -1442,7 +1506,7 @@ function renderPrioridadesPage(){
       +'</div>';
   }).join('');
 
-  if(!cards) cards='<div style="text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:13px">Nenhuma prioridade cadastrada ainda.</div>';
+  if(!cards) cards=emptyState('🎯','Nenhuma prioridade cadastrada','Adicione demandas para acompanhar aqui.');
 
   // Modal
   var modalHTML='';
@@ -1672,7 +1736,7 @@ function renderDashboard(){
   }
 
   var ss='padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;';
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
     +'<div><div class="page-title">Dashboard</div><div class="page-sub">Visão geral da equipe</div></div>'
     +'<div style="display:flex;gap:10px;align-items:center">'
@@ -1741,7 +1805,7 @@ function renderConsultoresPage(){
       +'</div>'
       +'<div class="table-wrap"><table><tr><th>CLIENTE</th><th>REGIÃO</th><th>ÁREA (ha)</th><th>NOTA</th><th>PROGRESSO</th><th></th></tr>'+linhas+'</table></div></div>';
   }).join('');
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Consultores</div><div class="page-sub">Desempenho por cliente e atividade</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
     +body+'</div>';
@@ -1768,7 +1832,7 @@ function renderAtividadesPage(){
     return'<div class="scope-group"><div class="scope-group-label">'+u.nome.toUpperCase()+'</div>'+items+'</div>';
   }).join('');
 
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Atividades</div><div class="page-sub">Gerenciar atividades do mês</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
     +'<div class="cards-grid cols-2">'
@@ -1817,7 +1881,7 @@ function renderPendenciasPage(){
       +'<td>'+p.cliente+'</td><td style="font-size:12px;color:var(--text2)">'+p.atividade+'</td></tr>';
   }).join('');
   if(!pf.length)rows='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3);font-family:var(--mono)">Nenhuma pendência!</td></tr>';
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Pendências</div><div class="page-sub">'+pf.length+' atividade(s) sem preenchimento</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
     +'<div class="filtro-tabs">'+tabsHTML+'</div>'
@@ -1884,7 +1948,7 @@ function renderClientesConsultor(){
       +'<button class="btn-sec" onclick="state.clienteSelecionado=null;render()">Voltar</button>'
       +'</div></div>';
   }
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Olá, '+u.nome+'</div><div class="page-sub">Selecione um cliente</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
     +'<div class="clients-grid">'+cards+'</div>'+detalhe+'</div>';
@@ -1904,7 +1968,7 @@ function renderProgressoConsultor(){
       +'<td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:'+p2+'%;background:'+notaColor(p2)+'"></div></div>'
       +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+regs.length+'/'+ativs.length+'</span></div></td></tr>';
   }).join('');
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Meu Progresso</div><div class="page-sub">'+u.nome+' — '+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
     +'<div class="cards-grid cols-2" style="margin-bottom:20px">'
@@ -1993,7 +2057,7 @@ function renderLucasPage(){
 
   var btnNova=(!isLucas)?'<button class="btn-lucas" onclick="abrirModalNovoCard()">+ Nova Demanda</button>':'';
 
-  return'<div class="page">'
+  return'<div class="page page-fade">'
     +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
     +'<div><div class="page-title" style="color:var(--lucas)">Demandas — Lucas</div>'
     +'<div class="page-sub">Solicitações de atividades · '+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
@@ -2494,6 +2558,9 @@ function bindLucas(){
 }
 
 render();
+
+// Restaurar tema salvo
+if(localStorage.getItem('agro_theme')==='light'){document.body.classList.add('light-mode');}
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
