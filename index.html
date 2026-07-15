@@ -1303,7 +1303,6 @@ function donutSVG(fatias, tamanho){
 
 function renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML){
   var consultores=['igor','felipe','paula','ramon'];
-
   var cards=atividades.map(function(atv){
     var donutsHTML=consultores.map(function(cons){
       var u=USUARIOS[cons];
@@ -1315,15 +1314,13 @@ function renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML){
         if(!reg||!reg.codigo){cinza++;return;}
         var codObj=CODIGOS.find(function(c){return c.codigo===reg.codigo;});
         var nota=codObj?codObj.nota:0;
-        if(nota>=10)verde++;
-        else if(nota>=5)amarelo++;
-        else vermelho++;
+        if(nota>=10)verde++;else if(nota>=5)amarelo++;else vermelho++;
       });
       var total=clientes.length;
       var pct=total>0?Math.round(((verde+amarelo)/total)*100):0;
       var pctColor=pct>=80?'#4ade80':pct>=50?'#fbbf24':'#f87171';
       var fatias=[{valor:verde,cor:'#4ade80'},{valor:amarelo,cor:'#fbbf24'},{valor:vermelho,cor:'#f87171'},{valor:cinza,cor:'#374151'}];
-      return'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0">'
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0">'
         +'<div style="position:relative;width:56px;height:56px">'
           +donutSVG(fatias,56)
           +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);color:'+pctColor+'">'+pct+'%</div>'
@@ -1333,29 +1330,40 @@ function renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML){
         +'</div>';
     }).join('');
     if(!donutsHTML.replace(/\s/g,''))return'';
-    var legendHTML='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center">'
-      +'<span style="font-size:9px;font-family:var(--mono);color:#4ade80;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block"></span>Nota 10</span>'
-      +'<span style="font-size:9px;font-family:var(--mono);color:#fbbf24;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#fbbf24;display:inline-block"></span>Nota 5</span>'
-      +'<span style="font-size:9px;font-family:var(--mono);color:#f87171;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#f87171;display:inline-block"></span>Nota 0</span>'
-      +'<span style="font-size:9px;font-family:var(--mono);color:#555a75;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#374151;display:inline-block"></span>Vazio</span>'
-      +'</div>';
-    return'<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px">'
+    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px">'
       +'<div style="font-size:12px;font-weight:600;margin-bottom:12px;line-height:1.3;color:var(--text)">'+atv.nome+'</div>'
       +'<div style="display:flex;gap:8px;justify-content:space-around">'+donutsHTML+'</div>'
-      +legendHTML
       +'</div>';
   }).filter(Boolean).join('');
 
-  if(!cards)cards=emptyState('&#128203;','Nenhuma atividade neste m\u00eas','Sincronize os dados ou adicione atividades.');
+  if(!cards)cards=emptyState('&#128203;','Nenhuma atividade neste mês','Sincronize os dados ou adicione atividades.');
 
-  return'<div class="page page-fade">'
+  var leg='<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px 20px;margin-bottom:20px">'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:12px">'
+      +'<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:10px;height:10px;border-radius:50%;background:#4ade80;flex-shrink:0;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#4ade80;font-family:var(--mono)">Nota 10</span></div>'
+        +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.7">Atividade finalizada<br>Não se aplica<br>Sem informação (IND)<br>Cliente não executou<br>Fora de timing<br>Sem resposta do cliente</div></div>'
+      +'<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:10px;height:10px;border-radius:50%;background:#fbbf24;flex-shrink:0;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#fbbf24;font-family:var(--mono)">Nota 5</span></div>'
+        +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.7">Realizado parcial<br>Planilha de cotação enviada</div></div>'
+      +'<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:10px;height:10px;border-radius:50%;background:#f87171;flex-shrink:0;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#f87171;font-family:var(--mono)">Nota 0</span></div>'
+        +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.7">Não realizado</div></div>'
+      +'<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="width:10px;height:10px;border-radius:50%;background:#374151;flex-shrink:0;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#555a75;font-family:var(--mono)">Vazio</span></div>'
+        +'<div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.7">Consultor não preencheu</div></div>'
+    +'</div>'
+    +'<div style="border-top:1px solid var(--border);padding-top:10px">'
+      +'<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">% no centro = proporção de clientes com nota ≥ 5 (verde + amarelo)</span>'
+    +'</div>'
+    +'</div>';
+
+  return '<div class="page page-fade">'
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
-      +'<div><div class="page-title">An\u00e1lise por Atividade</div><div class="page-sub">'+mesAno+' \u00b7 KPIs</div></div>'
+      +'<div><div class="page-title">Análise por Atividade</div><div class="page-sub">'+mesAno+' · KPIs</div></div>'
     +'</div>'
     +(vizTabsHTML||'')
+    +leg
     +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">'+cards+'</div>'
     +'</div>';
 }
+
 
 function renderAnalisePage(){
   var mesAno=state.mesAtual;
