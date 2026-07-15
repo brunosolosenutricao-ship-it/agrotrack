@@ -408,6 +408,7 @@ var state={
   // Análise
   analiseAtividadeExpandida:null,
   analiseConsultorFiltro:'todos',
+  analiseVisualizacao:'lista',
 };
 
 // ============================================================
@@ -1278,29 +1279,41 @@ async function deletarReuniao(id){
 // ============================================================
 // ANÁLISE POR ATIVIDADE
 // ============================================================
+function setAnaliseFiltro(c){state.analiseConsultorFiltro=c;state.analiseAtividadeExpandida=null;render();}
+function setAnaliseViz(v){state.analiseVisualizacao=v;render();}
+function setAnaliseFiltro(c){state.analiseConsultorFiltro=c;state.analiseAtividadeExpandida=null;render();}
+
 function renderAnalisePage(){
   var mesAno=state.mesAtual;
   var registros=getRegistros().filter(function(r){return r.mesAno===mesAno;});
   var atividades=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
   var filtroConsultor=state.analiseConsultorFiltro||'todos';
+  var visualizacao=state.analiseVisualizacao||'lista';
+  var aLista=visualizacao==='lista';
+  var aKpis=!aLista;
 
-  // Filtro de consultor
+  var btnStyle='padding:7px 18px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;';
+  var vizTabsHTML='<div style="display:flex;gap:8px;margin-bottom:16px">'
+    +'<button id="btn-viz-lista" style="'+btnStyle+'border:1px solid '+(aLista?'var(--accent)':'var(--border2)')+';background:'+(aLista?'var(--accent-light)':'transparent')+';color:'+(aLista?'var(--accent)':'var(--text2)')+'">&#128203; Lista</button>'
+    +'<button id="btn-viz-kpis" style="'+btnStyle+'border:1px solid '+(aKpis?'var(--accent)':'var(--border2)')+';background:'+(aKpis?'var(--accent-light)':'transparent')+';color:'+(aKpis?'var(--accent)':'var(--text2)')+'">&#128202; KPIs</button>'
+    +'</div>';
+
+  if(aKpis) return renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML);
+
   var consultores=['todos','igor','felipe','paula','ramon'];
   var filtroHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">'
     +consultores.map(function(c){
       var label=c==='todos'?'Todos':USUARIOS[c]?USUARIOS[c].nome:c;
       var ativo=filtroConsultor===c;
-      return '<button onclick="state.analiseConsultorFiltro=\''+c+'\';state.analiseAtividadeExpandida=null;render()" '
-        +'style="padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid '
-        +(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text2)')+'">'+label+'</button>';
+      var s='padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid ';
+      return '<button id="filtro-'+c+'" style="'+s+(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text2)')+'">'+label+'</button>';
     }).join('')
     +'</div>';
 
-  // Para cada atividade, calcular distribuição de códigos
+  var clientesList=[];
+  var consultoresAtv=filtroConsultor==='todos'?Object.keys(CLIENTES):[filtroConsultor];
   var atividadesHTML=atividades.map(function(atv){
-    // Clientes relevantes (por filtro de consultor)
-    var clientesList=[];
-    var consultoresAtv=filtroConsultor==='todos'?Object.keys(CLIENTES):[filtroConsultor];
+    clientesList=[];
     consultoresAtv.forEach(function(cons){
       (CLIENTES[cons]||[]).forEach(function(cl){
         if(escopoInclui(atv.escopo,cl.id)){
@@ -1312,7 +1325,6 @@ function renderAnalisePage(){
     var total=clientesList.length;
     if(!total)return'';
 
-    // Contar por código
     var contagem={};
     var preenchidos=0;
     clientesList.forEach(function(cl){
@@ -1331,16 +1343,15 @@ function renderAnalisePage(){
     var pctPreench=Math.round(preenchidos/total*100);
     var expandida=state.analiseAtividadeExpandida===atv.id;
 
-    // Barras por código
     var barrasHTML=Object.keys(contagem).sort().map(function(cod){
       var qtd=contagem[cod];
       var pct=Math.round(qtd/total*100);
       var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
       var label=cod==='__sem_preenchimento'?'Consultor não preencheu':codObj?codObj.descricao:cod;
       var cor=cod==='__sem_preenchimento'?'#555a75'
-        :cod==='10'||cod==='Não se aplica'||cod==='IND'||cod==='Cliente não executou'||cod==='Fora de timing'?'#4ade80'
+        :cod==='10'||cod==='ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂNÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o se aplica'||cod==='IND'||cod==='Cliente nÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o executou'||cod==='Fora de timing'?'#4ade80'
         :cod==='Sem Resposta'?'#60a5fa'
-        :cod==='5-'||cod==='Enviado para cotação'?'#fbbf24'
+        :cod==='5-'||cod==='Enviado para cotaÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ§ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o'?'#fbbf24'
         :cod==='0'?'#f87171':'#60a5fa';
       return '<div style="margin-bottom:8px">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
@@ -1353,7 +1364,6 @@ function renderAnalisePage(){
         +'</div>';
     }).join('');
 
-    // Tabela expandida por cliente
     var tabelaHTML='';
     if(expandida){
       var linhas=clientesList.map(function(cl){
@@ -1378,8 +1388,8 @@ function renderAnalisePage(){
       tabelaHTML='<div style="margin-top:12px;border-top:1px solid var(--border2);padding-top:12px">'+linhas+'</div>';
     }
 
-    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:10px">'
-      +'<div onclick="state.analiseAtividadeExpandida=state.analiseAtividadeExpandida===\''+atv.id+'\'?null:\''+atv.id+'\';render()" style="cursor:pointer">'
+    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:10px" id="atv-'+atv.id+'">'
+      +'<div style="cursor:pointer" id="atv-hdr-'+atv.id+'">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
           +'<div style="font-size:13px;font-weight:600;flex:1;padding-right:12px;line-height:1.3">'+atv.nome+'</div>'
           +'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
@@ -1396,276 +1406,18 @@ function renderAnalisePage(){
       +'</div>';
   }).join('');
 
-  if(!atividadesHTML) atividadesHTML=emptyState('📋','Nenhuma atividade neste mês','Sincronize os dados ou adicione atividades.');
+  if(!atividadesHTML) atividadesHTML=emptyState('&#128203;','Nenhuma atividade neste mês','Sincronize os dados ou adicione atividades.');
 
-  return '<div class="page">'
+  return '<div class="page page-fade">'
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
       +'<div><div class="page-title">Análise por Atividade</div><div class="page-sub">'+mesAno+'</div></div>'
     +'</div>'
+    +vizTabsHTML
     +filtroHTML
     +atividadesHTML
     +'</div>';
 }
 
-// ============================================================
-// CENTRAL DE PRIORIDADES
-// ============================================================
-var TIPOS_DEMANDA = [
-  'Entrega de Safra',
-  'Recomendações Safra',
-  'Recomendações Inverno',
-  'Recomendações Foliares',
-  'Ajustes Pontuais',
-  'Demanda Extra'
-];
-
-async function carregarPrioridades(){
-  var res=await apiCall({action:'getPrioridades'});
-  if(res&&!res.erro&&Array.isArray(res)){
-    state.prioridades=res;
-    setStore('prioridades',res);
-  } else {
-    state.prioridades=getStore('prioridades',[]);
-  }
-  state.prioridadesCarregadas=true;
-  render();
-}
-
-function prioridadeCor(p){
-  if(p==='alta')return'#f87171';
-  if(p==='media')return'#fbbf24';
-  return'#4ade80';
-}
-function prioridadeBg(p){
-  if(p==='alta')return'rgba(248,113,113,.12)';
-  if(p==='media')return'rgba(251,191,36,.12)';
-  return'rgba(74,222,128,.12)';
-}
-function prioridadeLabel(p){
-  if(p==='alta')return'Alta';
-  if(p==='media')return'Média';
-  return'Baixa';
-}
-function statusPrioLabel(s){
-  return s==='marcado'?'Marcado':'Pendente de Agenda';
-}
-function statusPrioCls(s){
-  return s==='marcado'?'badge-ok':'badge-warn';
-}
-
-function renderPrioridadesPage(){
-  if(!state.prioridadesCarregadas){
-    carregarPrioridades();
-    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando prioridades...</div></div>';
-  }
-
-  // Sort: alta > media > baixa, depois pendente > marcado
-  var ordem={alta:0,media:1,baixa:2};
-  var lista=state.prioridades.slice().sort(function(a,b){
-    var po=(ordem[a.prioridade]||2)-(ordem[b.prioridade]||2);
-    if(po!==0)return po;
-    if(a.status==='pendente'&&b.status!=='pendente')return-1;
-    if(b.status==='pendente'&&a.status!=='pendente')return 1;
-    return 0;
-  });
-
-  var cards=lista.map(function(p){
-    var u=USUARIOS[p.consultor]||{nome:p.consultor||'—',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
-    var cor=prioridadeCor(p.prioridade);
-    var bg=prioridadeBg(p.prioridade);
-    // Reunião vinculada
-    var reuniaoInfo='';
-    if(p.status==='marcado'&&p.reuniaoId){
-      var reu=state.reunioes.find(function(r){return r.id===p.reuniaoId;});
-      if(reu){
-        var hi=reu.dataHora&&reu.dataHora.length>=16?reu.dataHora.substring(11,16):'';
-        var hf=reu.dataFim&&reu.dataFim.length>=16?reu.dataFim.substring(11,16):'';
-        var dia=reu.dataHora?reu.dataHora.substring(0,10):'';
-        var dFmt='';
-        try{var dd=new Date(dia+'T00:00:00');dFmt=String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0');}catch(e){dFmt=dia;}
-        reuniaoInfo='<div style="font-size:11px;font-family:var(--mono);color:#60a5fa;margin-top:4px">'
-          +'\uD83D\uDCC5 '+dFmt+' '+hi+(hf?' \u2013 '+hf:'')+'</div>';
-      }
-    }
-    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-left:3px solid '+cor+';border-radius:10px;padding:14px 16px;margin-bottom:10px">'
-      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
-            +'<span style="font-size:11px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:4px;background:'+bg+';color:'+cor+'">'+prioridadeLabel(p.prioridade).toUpperCase()+'</span>'
-            +'<span class="badge '+statusPrioCls(p.status)+'">'+statusPrioLabel(p.status)+'</span>'
-            +'<span style="font-size:12px;font-family:var(--mono);color:var(--text3)">'+p.tipo+'</span>'
-          +'</div>'
-          +'<div style="font-size:15px;font-weight:600;margin-bottom:4px">'+p.cliente+'</div>'
-          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(p.descricao?'6px':'0')+'">'
-            +'<div style="width:22px;height:22px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">'+u.nome[0]+'</div>'
-            +'<span style="font-size:12px;color:var(--text2)">'+u.nome+'</span>'
-          +'</div>'
-          +(p.descricao?'<div style="font-size:12px;color:var(--text3);font-family:var(--mono)">'+p.descricao+'</div>':'')
-          +reuniaoInfo
-        +'</div>'
-        +'<div style="display:flex;gap:6px;flex-shrink:0">'
-          +'<button onclick="abrirModalPrioridade(\''+p.id+'\')" style="padding:6px 12px;background:transparent;border:1px solid var(--border2);border-radius:7px;font-size:11px;color:var(--text2);cursor:pointer">Editar</button>'
-          +'<button onclick="deletarPrioridade(\''+p.id+'\')" style="padding:6px 10px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:7px;font-size:11px;color:#f87171;cursor:pointer">\u2715</button>'
-        +'</div>'
-      +'</div>'
-      +'</div>';
-  }).join('');
-
-  if(!cards) cards=emptyState('🎯','Nenhuma prioridade cadastrada','Adicione demandas para acompanhar aqui.');
-
-  // Modal
-  var modalHTML='';
-  if(state.prioridadeModal){
-    var d=state.prioridadeModalData;
-    var consultorOpts=Object.keys(USUARIOS).filter(function(k){return USUARIOS[k].role!=='lucas';}).map(function(k){
-      return '<option value="'+k+'"'+(d.consultor===k?' selected':'')+'>'+USUARIOS[k].nome+'</option>';
-    }).join('');
-    var tipoOpts=TIPOS_DEMANDA.map(function(t){
-      return '<option value="'+t+'"'+(d.tipo===t?' selected':'')+'>'+t+'</option>';
-    }).join('');
-    var isExtra=d.tipo==='Demanda Extra';
-
-    // Reunioes popup
-    var reunioesPopupHTML='';
-    if(state.prioridadeReunioPopup){
-      var livres=state.reunioes.filter(function(r){return r.status==='livre'||r.status==='marcada';});
-      var optsReu=livres.map(function(r){
-        var hi=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
-        var hf=r.dataFim&&r.dataFim.length>=16?r.dataFim.substring(11,16):'';
-        var dia=r.dataHora?r.dataHora.substring(0,10):'';
-        var dFmt='';
-        try{var dd=new Date(dia+'T00:00:00');var sem=['Dom','Seg','Ter','Qua','Qui','Sex','S\u00e1b'];dFmt=sem[dd.getDay()]+' '+String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0');}catch(e){dFmt=dia;}
-        var sel=d.reuniaoId===r.id;
-        return '<div onclick="selecionarReuniao(\''+r.id+'\')" style="padding:10px 12px;cursor:pointer;border-radius:7px;margin-bottom:4px;background:'+(sel?'var(--accent-light)':'var(--surface2)')+';border:1px solid '+(sel?'var(--accent)':'var(--border)')+';">'
-          +'<div style="font-size:13px;font-weight:500">'+dFmt+'</div>'
-          +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+hi+(hf?' \u2013 '+hf:'')+(r.cliente&&r.cliente!=='Agenda Livre'?' · '+r.cliente:'')+'</div>'
-          +'</div>';
-      }).join('');
-      if(!optsReu) optsReu='<div style="font-size:12px;color:var(--text3);padding:12px;text-align:center">Nenhuma reuni\u00e3o dispon\u00edvel</div>';
-      reunioesPopupHTML='<div style="margin-top:8px;border:1px solid var(--border2);border-radius:10px;max-height:200px;overflow-y:auto;padding:8px;background:var(--surface)">'+optsReu+'</div>';
-    }
-
-    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.prioridadeModal=false;state.prioridadeReunioPopup=false;render();}">'
-      +'<div class="modal-box">'
-      +'<div class="modal-title">'+(d.id?'Editar Demanda':'Nova Demanda')+'</div>'
-      +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="pr-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'
-      +'<div class="modal-field"><label>CONSULTOR</label><select id="pr-consultor">'+consultorOpts+'</select></div>'
-      +'<div class="modal-field"><label>TIPO DE DEMANDA</label><select id="pr-tipo">'+tipoOpts+'</select></div>'
-      +'<div class="modal-field"><label>OBSERVAÇÃO (opcional)</label><textarea id="pr-descricao" rows="2" placeholder="Observações...">'+(d.descricao||'')+'</textarea></div>'
-      +'<div class="modal-field"><label>PRIORIDADE</label><select id="pr-prioridade">'
-        +'<option value="alta"'+(d.prioridade==='alta'?' selected':'')+'>Alta</option>'
-        +'<option value="media"'+(d.prioridade==='media'||!d.prioridade?' selected':'')+'>Média</option>'
-        +'<option value="baixa"'+(d.prioridade==='baixa'?' selected':'')+'>Baixa</option>'
-      +'</select></div>'
-      +'<div class="modal-field"><label>STATUS</label>'
-        +'<div style="display:flex;gap:8px">'
-          +'<button onclick="setStatusPrio(\'pendente\')" id="btn-pendente" style="flex:1;padding:9px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--mono);border:1px solid '+(d.status!=='marcado'?'var(--accent)':'var(--border2)')+';background:'+(d.status!=='marcado'?'var(--accent-light)':'transparent')+';color:'+(d.status!=='marcado'?'var(--accent)':'var(--text2)')+'">Pendente de Agenda</button>'
-          +'<button onclick="setStatusPrio(\'marcado\')" id="btn-marcado" style="flex:1;padding:9px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--mono);border:1px solid '+(d.status==='marcado'?'var(--accent)':'var(--border2)')+';background:'+(d.status==='marcado'?'var(--accent-light)':'transparent')+';color:'+(d.status==='marcado'?'var(--accent)':'var(--text2)')+'">Marcado</button>'
-        +'</div>'
-      +'</div>'
-      +(d.status==='marcado'
-        ?'<div class="modal-field"><label>REUNIÃO VINCULADA</label>'
-          +'<button onclick="state.prioridadeReunioPopup=!state.prioridadeReunioPopup;render()" style="width:100%;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;color:var(--text2);cursor:pointer;text-align:left">'
-            +(d.reuniaoId&&state.reunioes.find(function(r){return r.id===d.reuniaoId;})
-              ?'\u2705 Reuni\u00e3o selecionada'
-              :'\uD83D\uDCC5 Selecionar reuni\u00e3o...')
-          +'</button>'
-          +reunioesPopupHTML
-        +'</div>'
-        :'')
-      +'<div class="modal-actions">'
-        +'<button class="btn-sec" onclick="state.prioridadeModal=false;state.prioridadeReunioPopup=false;render()">Cancelar</button>'
-        +'<button class="btn-save" onclick="salvarPrioridade()">Salvar</button>'
-      +'</div></div></div>';
-  }
-
-  var pageContent='<div class="page">'
-    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
-      +'<div><div class="page-title">Central de Prioridades</div><div class="page-sub">Demandas da equipe</div></div>'
-      +'<div style="display:flex;gap:8px">'
-        +'<button class="btn-sec" onclick="state.prioridadesCarregadas=false;render()">\u27f3 Atualizar</button>'
-        +'<button class="btn-save" onclick="abrirModalPrioridade(null)">+ Nova Demanda</button>'
-      +'</div>'
-    +'</div>'
-    +'<div style="margin-top:20px">'+cards+'</div>'
-    +'</div>'+modalHTML;
-
-  return pageContent;
-}
-
-function atualizarTipo(){
-  var sel=document.getElementById('pr-tipo');
-  var field=document.getElementById('pr-desc-field');
-  if(!sel||!field)return;
-  field.style.display=sel.value==='Demanda Extra'?'':'none';
-}
-
-function setStatusPrio(status){
-  state.prioridadeModalData.status=status;
-  if(status!=='marcado') state.prioridadeModalData.reuniaoId='';
-  state.prioridadeReunioPopup=false;
-  render();
-}
-
-function selecionarReuniao(id){
-  state.prioridadeModalData.reuniaoId=id;
-  state.prioridadeReunioPopup=false;
-  render();
-}
-
-function abrirModalPrioridade(id){
-  var data={status:'pendente',prioridade:'media'};
-  if(id){
-    var p=state.prioridades.find(function(x){return x.id===id;});
-    if(p) data=Object.assign({},p);
-  }
-  // Garante que reunioes estão carregadas
-  if(!state.reuniaoCarregada) carregarReunioes();
-  state.prioridadeModal=true;
-  state.prioridadeReunioPopup=false;
-  state.prioridadeModalData=data;
-  render();
-}
-
-async function salvarPrioridade(){
-  var d=state.prioridadeModalData;
-  var cliente=(document.getElementById('pr-cliente')||{}).value||'';
-  var consultor=(document.getElementById('pr-consultor')||{}).value||'';
-  var tipo=(document.getElementById('pr-tipo')||{}).value||'';
-  var prioridade=(document.getElementById('pr-prioridade')||{}).value||'media';
-  var descricao=(document.getElementById('pr-descricao')||{}).value||'';
-  var status=d.status||'pendente';
-  var reuniaoId=d.reuniaoId||'';
-  if(!cliente){showToast('Informe o cliente');return;}
-  if(!consultor){showToast('Informe o consultor');return;}
-  var payload={action:'salvarPrioridade',cliente:cliente,consultor:consultor,tipo:tipo,
-    prioridade:prioridade,status:status,descricao:descricao,reuniaoId:reuniaoId,criadoPor:state.usuario};
-  if(d.id) payload.id=d.id;
-  showToast('Salvando...');
-  var res=await apiPost(payload);
-  if(res&&res.ok){
-    showToast('\u2713 Demanda salva!');
-    state.prioridadeModal=false;
-    state.prioridadeReunioPopup=false;
-    state.prioridadesCarregadas=false;
-    render();
-  } else {
-    showToast('Erro ao salvar');
-  }
-}
-
-async function deletarPrioridade(id){
-  if(!confirm('Remover esta demanda?'))return;
-  showToast('Removendo...');
-  var res=await apiPost({action:'deletarPrioridade',id:id});
-  if(res&&res.ok){
-    showToast('\u2713 Removido!');
-    state.prioridadesCarregadas=false;
-    render();
-  } else {
-    showToast('Erro ao remover');
-  }
-}
 
 function renderDashboard(){
   var m=state.mesAtual;
@@ -2499,6 +2251,21 @@ function bindCommon(){
 
 function bindGestor(){
   bindCommon();
+  // Bind analise viz buttons
+  var bLista=document.getElementById('btn-viz-lista');
+  var bKpis=document.getElementById('btn-viz-kpis');
+  if(bLista)bLista.onclick=function(){state.analiseVisualizacao='lista';render();};
+  if(bKpis)bKpis.onclick=function(){state.analiseVisualizacao='kpis';render();};
+  // Bind filtro buttons
+  ['todos','igor','felipe','paula','ramon'].forEach(function(c){
+    var btn=document.getElementById('filtro-'+c);
+    if(btn)btn.onclick=function(){state.analiseConsultorFiltro=c;state.analiseAtividadeExpandida=null;render();};
+  });
+  // Bind atividade expand
+  document.querySelectorAll('[id^="atv-hdr-"]').forEach(function(el){
+    var id=el.id.replace('atv-hdr-','');
+    el.onclick=function(){state.analiseAtividadeExpandida=state.analiseAtividadeExpandida===id?null:id;render();};
+  });
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
