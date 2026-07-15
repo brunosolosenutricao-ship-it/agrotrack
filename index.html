@@ -1303,7 +1303,9 @@ function renderAnalisePage(){
     var consultoresAtv=filtroConsultor==='todos'?Object.keys(CLIENTES):[filtroConsultor];
     consultoresAtv.forEach(function(cons){
       (CLIENTES[cons]||[]).forEach(function(cl){
-        clientesList.push({consultor:cons,clienteId:cl.id,clienteNome:cl.nome});
+        if(escopoInclui(atv.escopo,cl.id)){
+          clientesList.push({consultor:cons,clienteId:cl.id,clienteNome:cl.nome});
+        }
       });
     });
 
