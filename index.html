@@ -1324,7 +1324,7 @@ function renderAnalisePage(){
         preenchidos++;
         contagem[cod]=(contagem[cod]||0)+1;
       } else {
-        contagem['Sem Resposta']=(contagem['Sem Resposta']||0)+1;
+        contagem['__sem_preenchimento']=(contagem['__sem_preenchimento']||0)+1;
       }
     });
 
@@ -1336,8 +1336,10 @@ function renderAnalisePage(){
       var qtd=contagem[cod];
       var pct=Math.round(qtd/total*100);
       var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
-      var label=codObj?codObj.descricao:cod;
-      var cor=cod==='10'||cod==='Não se aplica'||cod==='IND'||cod==='Cliente não executou'||cod==='Fora de timing'||cod==='Sem Resposta'?'#4ade80'
+      var label=cod==='__sem_preenchimento'?'Consultor não preencheu':codObj?codObj.descricao:cod;
+      var cor=cod==='__sem_preenchimento'?'#555a75'
+        :cod==='10'||cod==='Não se aplica'||cod==='IND'||cod==='Cliente não executou'||cod==='Fora de timing'?'#4ade80'
+        :cod==='Sem Resposta'?'#60a5fa'
         :cod==='5-'||cod==='Enviado para cotação'?'#fbbf24'
         :cod==='0'?'#f87171':'#60a5fa';
       return '<div style="margin-bottom:8px">'
@@ -1358,12 +1360,13 @@ function renderAnalisePage(){
         var reg=registros.find(function(r){
           return r.consultor===cl.consultor&&r.clienteId===cl.clienteId&&r.atividadeId===atv.id;
         });
-        var cod=reg?reg.codigo:'—';
+        var cod=reg?reg.codigo:'';
         var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
-        var label=codObj?codObj.descricao:cod;
-        var cor=!reg?'var(--text3)'
+        var label=!cod?'Consultor não preencheu':codObj?codObj.descricao:cod;
+        var cor=!cod?'#555a75'
           :cod==='0'?'#f87171'
           :cod==='5-'||cod==='Enviado para cotação'?'#fbbf24'
+          :cod==='Sem Resposta'?'#60a5fa'
           :'#4ade80';
         var u=USUARIOS[cl.consultor]||{nome:cl.consultor,cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
