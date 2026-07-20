@@ -444,7 +444,7 @@ async function sincronizarDoSheets(){
   try{
     showToast('Carregando...');
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
-    var res=await Promise.all([apiCall({action:'getAtividades'}),apiCall({action:'getRegistros'}),apiCall({action:'getCards',mesAno:state.mesAtual})]);
+    var res=await Promise.all([apiCall({action:'getAtividades'}),apiCall({action:'getRegistros'}),apiCall({action:'getCards'})]);
     var aR=res[0],rR=res[1],cR=res[2],ok=false;
     if(aR&&!aR.erro&&Array.isArray(aR)&&aR.length>0){
       var n=aR.map(function(a){return Object.assign({},a,{ativo:a.ativo===true||String(a.ativo).toUpperCase()==='TRUE'});});
