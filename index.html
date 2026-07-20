@@ -1711,7 +1711,7 @@ async function deletarPrioridade(id){
 function renderJeanPage(){
   // Jean has same kanban view as Lucas but for 'jean' user
   var m=state.mesAtual;
-  var cards=getCards().filter(function(c){return c.mesAno===m&&c.criadoPor==='jean';});
+  var cards=getCards().filter(function(c){return c.mesAno===m&&c.destinatario==='jean';});
   var eu=state.usuario;
   var isJean=state.role==='jean';
   var abertos=cards.filter(function(c){return c.status==='aberto';}).length;
@@ -2138,7 +2138,7 @@ function renderProgressoConsultor(){
 // ============================================================
 function renderLucasPage(){
   var m=state.mesAtual;
-  var cards=getCards().filter(function(c){return c.mesAno===m;});
+  var cards=getCards().filter(function(c){return c.mesAno===m&&(!c.destinatario||c.destinatario==='lucas');});
   var eu=state.usuario;
   var isLucas=state.role==='lucas';
 
@@ -2403,6 +2403,7 @@ function renderModalNovoCard(){
     +'<div class="modal-field"><label>PRIORIDADE</label><select id="nc-prioridade"><option value="baixa">🔵 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option></select></div>'
     +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="nc-data-entrega" style="color-scheme:dark"></div>'
     +'</div>'
+    +'<div class="modal-field"><label>DESTINATÁRIO</label><select id="nc-destinatario"><option value="lucas">Lucas</option><option value="jean">Jean</option></select></div>'
     +'<div class="modal-actions">'
     +'<button class="btn-sec" onclick="fecharModalCard()">Cancelar</button>'
     +'<button class="btn-lucas" id="btn-criar-card">Criar Demanda</button>'
@@ -2422,16 +2423,17 @@ function bindModalCard(){
     btn.disabled=true;btn.textContent='Criando...';
     var prioridade=document.getElementById('nc-prioridade').value;
     var dataEntrega=document.getElementById('nc-data-entrega').value;
+    var destinatario=(document.getElementById('nc-destinatario')||{value:'lucas'}).value||'lucas';
     var data={action:'salvarCard',titulo:titulo,descricao:document.getElementById('nc-desc').value.trim(),
       clienteId:clienteId,clienteNome:clienteNome,criadoPor:state.usuario,mesAno:state.mesAtual,
-      prioridade:prioridade,dataEntrega:dataEntrega};
+      prioridade:prioridade,dataEntrega:dataEntrega,destinatario:destinatario};
     var res=await apiCall(data);
     if(res&&res.ok){
       // Salva localmente
       var cards=getCards();
       cards.push({id:res.id,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
         criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
-        prioridade:prioridade,dataEntrega:dataEntrega,
+        prioridade:prioridade,dataEntrega:dataEntrega,destinatario:destinatario,
         folderId:res.folderId||'',folderUrl:res.folderUrl||'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
       setStore('cards',cards);_cacheCards=cards;
       showToast('✓ Demanda criada! Pasta no Drive criada.');
