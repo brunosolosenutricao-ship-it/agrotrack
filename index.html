@@ -1711,7 +1711,7 @@ async function deletarPrioridade(id){
 function renderJeanPage(){
   // Jean has same kanban view as Lucas but for 'jean' user
   var m=state.mesAtual;
-  var cards=getCards().filter(function(c){return c.mesAno===m&&c.destinatario==='jean';});
+  var cards=getCards().filter(function(c){return c.mesAno===m&&String(c.destinatario||'').toLowerCase()==='jean';});
   var eu=state.usuario;
   var isJean=state.role==='jean';
   var abertos=cards.filter(function(c){return c.status==='aberto';}).length;
@@ -2138,7 +2138,7 @@ function renderProgressoConsultor(){
 // ============================================================
 function renderLucasPage(){
   var m=state.mesAtual;
-  var cards=getCards().filter(function(c){return c.mesAno===m&&(!c.destinatario||c.destinatario==='lucas');});
+  var cards=getCards().filter(function(c){return c.mesAno===m&&String(c.destinatario||'lucas').toLowerCase()!=='jean';});
   var eu=state.usuario;
   var isLucas=state.role==='lucas';
 
