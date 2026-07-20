@@ -363,6 +363,13 @@ var CODIGOS=[
   {codigo:'Cliente não executou',descricao:'Sem informação no cliente',   nota:10,cls:'cod-cliente'},
   {codigo:'Fora de timing',  descricao:'Fora de timing',                  nota:10,cls:'cod-timing'},
   {codigo:'Sem Resposta',    descricao:'Sem resposta do cliente',         nota:10,cls:'cod-semresp'},
+  {codigo:'5-pad',           descricao:'Padrão de análise lab. enviado, sem laudos recebidos', nota:5, cls:'cod-5'},
+  {codigo:'5-laudo',         descricao:'Laudo de análise do Insumo recebido',                      nota:5, cls:'cod-cotacao'},
+  {codigo:'n-insumo',        descricao:'Cliente ainda não comprou Insumo',                         nota:10,cls:'cod-nao'},
+  {codigo:'n-rec',           descricao:'Cliente NÃO tem recomendação deste insumo 26.27', nota:10,cls:'cod-nao'},
+  {codigo:'n-analise',       descricao:'Padrão enviado mas cliente não irá fazer análise', nota:10,cls:'cod-nao'},
+  {codigo:'10-ds',           descricao:'Laudo recebido e compilado em Excel DataScience',               nota:10,cls:'cod-10'},
+  {codigo:'0-pad',           descricao:'Ainda não enviado padrão de análise para cliente', nota:0, cls:'cod-0'},
 ];
 var MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var _hoje=new Date();var MES_ATUAL=_hoje.getFullYear()+'-'+String(_hoje.getMonth()+1).padStart(2,'0');
