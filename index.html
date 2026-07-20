@@ -2204,7 +2204,7 @@ function renderLucasPage(){
       var canEdit=(state.role==='gestor'||c.criadoPor===eu||isLucas);
       var notaHTML=c.nota!==null&&c.nota!==''?'<span class="kanban-card-nota" style="color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      var prazoHtml=prazoHTML(c.dataEntrega);
+      var prazoHtml=prazoHTML(c.dataEntrega,c.status,c.dataConclusao);
       return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHtml+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
