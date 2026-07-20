@@ -2325,6 +2325,15 @@ function renderCardDetalhe(cardId){
   var prioDetalhe=card.prioridade?'<span class="prioridade-badge '+prioridadeCls(card.prioridade)+'" style="font-size:11px;padding:3px 10px;">'+prioridadeLabel(card.prioridade)+'</span>':'';
   var prazoDetalhe=prazoHTML(card.dataEntrega);
   var dataEntregaStr=card.dataEntrega&&card.dataEntrega!=='null'&&card.dataEntrega?'Entrega: '+card.dataEntrega:'';
+  // Transfer button
+  var canTransfer=(state.role==='lucas'||state.role==='jean'||card.criadoPor===state.usuario);
+  var destAtual=String(card.destinatario||'lucas').toLowerCase();
+  var destNovo=destAtual==='jean'?'lucas':'jean';
+  var destNovoLabel=destAtual==='jean'?'Lucas':'Jean';
+  var transferBtn=canTransfer
+    ?'<div class="card-detalhe-section"><div class="card-detalhe-section-label">DESTINATÁRIO</div><div style="display:flex;align-items:center;gap:10px;margin-top:4px"><span style="font-size:13px;color:var(--text2)">Atual: <strong style="color:'+(destAtual==='jean'?'#a78bfa':'#f472b6')+'">'+destAtual.charAt(0).toUpperCase()+destAtual.slice(1)+'</strong></span><button onclick="transferirCard(\''+cardId+'\',\''+destNovo+'\')" style="padding:6px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;color:var(--text2);cursor:pointer">→ Transferir para '+destNovoLabel+'</button></div></div>'
+    :'';
+
   return'<div class="card-detalhe">'
     +'<div class="card-detalhe-header">'
     +'<div style="flex:1">'
@@ -2336,14 +2345,6 @@ function renderCardDetalhe(cardId){
     +(state.role==='gestor'||card.criadoPor===eu?'<button onclick="deletarCard(\''+cardId+'\')" style="padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--danger);font-family:var(--sans);font-size:12px;cursor:pointer;">✕</button>':'')
     +'<button onclick="state.lucasCardAberto=null;render()" style="padding:6px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;">↑ Fechar</button>'
     +'</div></div>'
-
-    // Transfer button
-    var canTransfer=(state.role==='lucas'||state.role==='jean'||card.criadoPor===state.usuario);
-    var destAtual=String(card.destinatario||'lucas').toLowerCase();
-    var destNovo=destAtual==='jean'?'lucas':'jean';
-    var destNovoLabel=destAtual==='jean'?'Lucas':'Jean';
-    var transferBtn=canTransfer
-      ?'<div class="card-detalhe-section"><div class="card-detalhe-section-label">DESTINATÁRIO</div>'        +'<div style="display:flex;align-items:center;gap:10px;margin-top:4px">'          +'<span style="font-size:13px;color:var(--text2)">Atual: <strong style="color:'+(destAtual==='jean'?'#a78bfa':'#f472b6')+'">'+destAtual.charAt(0).toUpperCase()+destAtual.slice(1)+'</strong></span>'          +'<button onclick="transferirCard(\''+cardId+'\',\''+destNovo+'\')" style="padding:6px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;color:var(--text2);cursor:pointer">→ Transferir para '+destNovoLabel+'</button>'        +'</div>'      +'</div>'      :'';
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">'
     +'<div>'
     +'<div class="card-detalhe-section"><div class="card-detalhe-section-label">DESCRIÇÃO</div>'
