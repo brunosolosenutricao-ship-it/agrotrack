@@ -1460,11 +1460,12 @@ function renderAnalisePage(){
       var pct=Math.round(qtd/total*100);
       var codObj=CODIGOS.find(function(c){return c.codigo===cod;});
       var label=cod==='__sem_preenchimento'?'Consultor não preencheu':codObj?codObj.descricao:cod;
+      var codObjCor=CODIGOS.find(function(c){return c.codigo===cod;});
       var cor=cod==='__sem_preenchimento'?'#555a75'
-        :cod==='10'||cod==='ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂNÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o se aplica'||cod==='IND'||cod==='Cliente nÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o executou'||cod==='Fora de timing'?'#4ade80'
-        :cod==='Sem Resposta'?'#60a5fa'
-        :cod==='5-'||cod==='Enviado para cotaÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ§ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ£o'?'#fbbf24'
-        :cod==='0'?'#f87171':'#60a5fa';
+        :!codObjCor?'#555a75'
+        :codObjCor.nota>=10?'#4ade80'
+        :codObjCor.nota>=5?'#fbbf24'
+        :'#f87171';
       return '<div style="margin-bottom:8px">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
           +'<span style="font-size:11px;font-family:var(--mono);color:var(--text2)">'+label+'</span>'
