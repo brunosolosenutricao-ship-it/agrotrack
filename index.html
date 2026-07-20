@@ -727,13 +727,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['jean','Jean']];
+    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
   }else if(state.role==='lucas'){
     pages=[['lucas','Demandas'],['jean','Jean']];
   }else if(state.role==='jean'){
     pages=[['jean','Demandas']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['jean','Jean']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
   }
 
   var nav=pages.map(function(p){
