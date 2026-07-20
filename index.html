@@ -1711,7 +1711,11 @@ async function deletarPrioridade(id){
 function renderJeanPage(){
   // Jean has same kanban view as Lucas but for 'jean' user
   var m=state.mesAtual;
-  var cards=getCards().filter(function(c){return c.mesAno===m&&String(c.destinatario||'').toLowerCase()==='jean';});
+  var allCards=getCards();
+  console.log('Total cards no cache:', allCards.length);
+  console.log('Cards com destinatario jean:', allCards.filter(function(c){return String(c.destinatario||'').toLowerCase()==='jean';}).length);
+  allCards.slice(0,3).forEach(function(c){console.log('Sample:', c.id, '| dest:', c.destinatario, '| mes:', c.mesAno);});
+  var cards=allCards.filter(function(c){return String(c.destinatario||'').toLowerCase()==='jean';});
   var eu=state.usuario;
   var isJean=state.role==='jean';
   var abertos=cards.filter(function(c){return c.status==='aberto';}).length;
