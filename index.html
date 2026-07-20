@@ -1819,14 +1819,14 @@ function bindModalCardJean(){
     var prioridade=document.getElementById('nj-prioridade').value;
     var dataEntrega=document.getElementById('nj-data-entrega').value;
     var data={action:'salvarCard',titulo:titulo,descricao:document.getElementById('nj-desc').value.trim(),
-      clienteId:'geral',clienteNome:'Geral',criadoPor:'jean',mesAno:state.mesAtual,
-      prioridade:prioridade,dataEntrega:dataEntrega};
+      clienteId:'geral',clienteNome:'Geral',criadoPor:state.usuario,mesAno:state.mesAtual,
+      prioridade:prioridade,dataEntrega:dataEntrega,destinatario:'jean'};
     var res=await apiCall(data);
     var id=res&&res.ok?res.id:'c'+Date.now();
     var cards=getCards();
     cards.push({id:id,titulo:titulo,descricao:data.descricao,clienteId:'geral',clienteNome:'Geral',
-      criadoPor:'jean',mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
-      prioridade:prioridade,dataEntrega:dataEntrega,
+      criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
+      prioridade:prioridade,dataEntrega:dataEntrega,destinatario:'jean',
       folderId:res&&res.folderId?res.folderId:'',folderUrl:res&&res.folderUrl?res.folderUrl:'',
       criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
     setStore('cards',cards);_cacheCards=cards;
