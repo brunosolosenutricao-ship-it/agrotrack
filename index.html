@@ -492,8 +492,21 @@ function calcPrazo(dataEntrega){
   var diff=Math.round((d-hoje)/(1000*60*60*24));
   return diff;
 }
-function prazoHTML(dataEntrega, status){
-  if(status==='feito')return'<span class="prazo-badge prazo-ok">✓ Entregue</span>';
+function prazoHTML(dataEntrega, status, dataConclusao){
+  if(status==='feito'){
+    if(dataEntrega&&dataConclusao){
+      try{
+        var prazo=new Date(dataEntrega+'T00:00:00');
+        var concl=new Date(dataConclusao);
+        concl.setHours(0,0,0,0);
+        var diff=Math.round((concl-prazo)/(1000*60*60*24));
+        if(diff<0)return'<span class="prazo-badge prazo-ok">✓ '+Math.abs(diff)+'d antes do prazo</span>';
+        if(diff===0)return'<span class="prazo-badge prazo-ok">✓ No prazo</span>';
+        return'<span class="prazo-badge prazo-late">✓ '+diff+'d de atraso</span>';
+      }catch(e){}
+    }
+    return'<span class="prazo-badge prazo-ok">✓ Entregue</span>';
+  }
   var diff=calcPrazo(dataEntrega);
   if(diff===null)return'';
   if(diff<0)return'<span class="prazo-badge prazo-late">'+Math.abs(diff)+'d atrasado</span>';
@@ -1734,7 +1747,7 @@ function renderJeanPage(){
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
       return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')">' 
-        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status)+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
         +'<div class="kanban-card-footer">'
@@ -2329,7 +2342,7 @@ function renderCardDetalhe(cardId){
   }
 
   var prioDetalhe=card.prioridade?'<span class="prioridade-badge '+prioridadeCls(card.prioridade)+'" style="font-size:11px;padding:3px 10px;">'+prioridadeLabel(card.prioridade)+'</span>':'';
-  var prazoDetalhe=prazoHTML(card.dataEntrega,card.status);
+  var prazoDetalhe=prazoHTML(card.dataEntrega,card.status,card.dataConclusao);
   var dataEntregaStr=card.dataEntrega&&card.dataEntrega!=='null'&&card.dataEntrega?'Entrega: '+card.dataEntrega:'';
   // Transfer button
   var canTransfer=(state.role==='lucas'||state.role==='jean'||card.criadoPor===state.usuario);
@@ -2531,8 +2544,13 @@ function moverStatusCard(cardId,novoStatus){
   if(idx<0)return;
   cards[idx].status=novoStatus;
   cards[idx].atualizadoEm=new Date().toISOString();
+  var payload={action:'salvarCard',id:cardId,status:novoStatus};
+  if(novoStatus==='feito'&&!cards[idx].dataConclusao){
+    cards[idx].dataConclusao=new Date().toISOString();
+    payload.dataConclusao=cards[idx].dataConclusao;
+  }
   setStore('cards',cards);_cacheCards=cards;
-  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,status:novoStatus});
+  if(APPS_SCRIPT_URL)apiCall(payload);
   showToast('Status: '+statusLabel(novoStatus));render();
 }
 
