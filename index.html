@@ -2108,7 +2108,7 @@ function renderClientesConsultor(){
       var r=regs.find(function(r){return r.atividadeId===a.id;});
       var cls2=r?codigoCls(r.codigo):'';
       var opts=CODIGOS.map(function(cd){
-        return'<option value="'+cd.codigo+'"'+(r&&r.codigo===cd.codigo?' selected':'')+'>'+cd.codigo+' — '+cd.descricao+'</option>';
+        return'<option value="'+cd.codigo+'"'+(r&&r.codigo===cd.codigo?' selected':'')+'>'+cd.descricao+'</option>';
       }).join('');
       return'<div class="ativ-fill-row"><div class="ativ-fill-name">'+a.nome+'</div>'
         +'<select class="ativ-fill-select '+cls2+'" data-ativid="'+a.id+'" data-clienteid="'+sel+'" onchange="atualizarCorSelect(this);salvarRegistro(\''+c+'\',this.dataset.clienteid,this.dataset.ativid,this.value,\''+m+'\');mostrarIndicador()">'
