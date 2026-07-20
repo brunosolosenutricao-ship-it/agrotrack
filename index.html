@@ -713,13 +713,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
+    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['jean','Jean']];
   }else if(state.role==='lucas'){
-    pages=[['lucas','Demandas']];
+    pages=[['lucas','Demandas'],['jean','Jean']];
   }else if(state.role==='jean'){
     pages=[['jean','Demandas']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['jean','Jean']];
   }
 
   var nav=pages.map(function(p){
@@ -1745,7 +1745,7 @@ function renderJeanPage(){
       +'</div>';
   }).join('');
 
-  var btnNova=(state.role!=='lucas'&&state.role!=='jean')?'<button class="btn-save" onclick="abrirModalNovoCardJean()">+ Nova Demanda</button>':'';
+  var btnNova=(state.role!=='jean')?'<button class="btn-save" onclick="abrirModalNovoCardJean()">+ Nova Demanda</button>':'';
 
   var detalheHTML=state.lucasCardAberto?renderCardDetalhe(state.lucasCardAberto):'';
 
@@ -2055,6 +2055,7 @@ function renderConsultor(){
   if(state.paginaGestor==='reunioes') return renderReunioesPage();
   if(state.paginaGestor==='historico') return renderHistoricoPage();
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
+  if(state.paginaGestor==='jean')     return renderJeanPage();
   return renderClientesConsultor();
 }
 
@@ -2240,6 +2241,7 @@ function renderLucasPage(){
 
 // Lucas como role principal
 function renderLucas(){
+  if(state.paginaGestor==='jean') return renderJeanPage();
   return renderLucasPage();
 }
 
@@ -2252,9 +2254,9 @@ function renderCardDetalhe(cardId){
   if(!card)return'';
   var eu=state.usuario;
   var isLucas=state.role==='lucas';
-  var canEdit=(state.role==='gestor'||card.criadoPor===eu||isLucas);
-  var canEditNota=(state.role==='gestor'||state.role==='consultor');
-  var canMoveStatus=isLucas||state.role==='gestor';
+  var canEdit=(state.role==='gestor'||state.role==='diretor'||state.role==='consultor'||card.criadoPor===eu||isLucas||state.role==='jean');
+  var canEditNota=(state.role==='gestor'||state.role==='diretor'||state.role==='consultor');
+  var canMoveStatus=isLucas||state.role==='gestor'||state.role==='diretor'||state.role==='jean';
   var u=USUARIOS[card.criadoPor]||{cor:'#8b90a8',corBg:'var(--surface2)',nome:card.criadoPor};
 
   // Botões status
