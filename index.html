@@ -365,7 +365,7 @@ var CODIGOS=[
   {codigo:'Sem Resposta',    descricao:'Sem resposta do cliente',         nota:10,cls:'cod-semresp'},
 ];
 var MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-var MES_ATUAL='2026-03';
+var _hoje=new Date();var MES_ATUAL=_hoje.getFullYear()+'-'+String(_hoje.getMonth()+1).padStart(2,'0');
 var APPS_SCRIPT_URL_DEFAULT='https://script.google.com/macros/s/AKfycbzBMRVIGYqGPq1qfS3LC5vNGkvSgv-T9702igCHZoEdLEIhlncNEfUJI6SG8LVwe2B0mg/exec';
 var APPS_SCRIPT_URL=localStorage.getItem('agro_api_url')||APPS_SCRIPT_URL_DEFAULT;
 
@@ -2263,6 +2263,7 @@ function renderLucas(){
 }
 
 function renderJeanShell(){
+  if(state.paginaGestor==='lucas') return renderLucasPage();
   return renderJeanPage();
 }
 
