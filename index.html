@@ -625,6 +625,13 @@ function calcNotaLucas(mesAno){
   var soma=cards.reduce(function(s,c){return s+Number(c.nota)*10;},0);
   return Math.round(soma/cards.length);
 }
+function calcNotaJean(mesAno){
+  var cards=getCards().filter(function(c){return c.mesAno===mesAno&&c.destinatario==='jean'&&c.status==='feito'&&c.nota!==null&&c.nota!==''&&!isNaN(Number(c.nota));});
+  if(!cards.length)return null;
+  var soma=cards.reduce(function(s,c){return s+Number(c.nota)*10;},0);
+  return Math.round(soma/cards.length);
+}
+
 function progresso(consultor,mesAno){
   var cls=CLIENTES[consultor]||[];
   var ativs=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
@@ -2071,7 +2078,14 @@ function renderPlanejamentoPage(){
     modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.planejamentoModal=false;render();}">'
       +'<div class="modal-box">'
       +'<div class="modal-title">'+(isEdit?'Editar Tarefa':'Nova Tarefa')+'</div>'
-      +'<div class="modal-field"><label>T\u00cdTULO *</label><input type="text" id="pl-titulo" placeholder="Descreva a tarefa..." value="'+(d.titulo||'')+'"></div>'
+      +'<div class="modal-field"><label>TÍTULO *</label><input type="text" id="pl-titulo" placeholder="Descreva a tarefa..." value="'+(d.titulo||'')+'"></div>'
+      +'<div class="modal-field"><label>PARA QUEM</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="pl-consultores-wrap">'
+      +['gestor','igor','felipe','paula','ramon'].map(function(c){
+        var u=USUARIOS[c]||{nome:c,cor:'#8b90a8'};
+        var selecionado=d.consultoresSel&&d.consultoresSel.indexOf(c)>=0;
+        return '<button type="button" class="pl-cons-btn'+(selecionado?' selected':'')+'" data-cons="'+c+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(selecionado?u.cor:'var(--border2)')+';background:'+(selecionado?'rgba(0,0,0,.2)':'transparent')+';color:'+(selecionado?u.cor:'var(--text2)')+'">'+u.nome+'</button>';
+      }).join('')
+      +'</div></div>'
       +'<div class="modal-field"><label>DESCRI\u00c7\u00c3O</label><textarea id="pl-desc" rows="2" placeholder="Detalhes...">'+(d.descricao||'')+'</textarea></div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
         +'<div class="modal-field"><label>PRIORIDADE</label><select id="pl-prioridade">'
@@ -2146,6 +2160,16 @@ function bindPlanejamento(){
   // Salvar
   var btnSalvar=document.getElementById('btn-salvar-plan');
   if(btnSalvar)btnSalvar.onclick=salvarPlanejamentoCard;
+  document.querySelectorAll('.pl-cons-btn').forEach(function(btn){
+    btn.onclick=function(){
+      var c=this.dataset.cons;
+      if(!state.planejamentoModalData.consultoresSel)state.planejamentoModalData.consultoresSel=[];
+      var idx=state.planejamentoModalData.consultoresSel.indexOf(c);
+      if(idx>=0)state.planejamentoModalData.consultoresSel.splice(idx,1);
+      else state.planejamentoModalData.consultoresSel.push(c);
+      render();
+    };
+  });
   // Init drag and drop
   setTimeout(initPlanejamentoDnd, 50);
   // Cards - mover status ao clicar
@@ -2172,9 +2196,22 @@ async function salvarPlanejamentoCard(){
   showToast('Salvando...');
   var res=await apiPost(payload);
   if(res&&res.ok){
-    showToast(isEdit2?'\u2713 Tarefa atualizada!':'\u2713 Tarefa criada!');
+    showToast(isEdit2?'✓ Tarefa atualizada!':'✓ Tarefa(s) criada(s)!');
     state.planejamentoModal=false;
-    state.planejamentoCarregado=false;
+    if(isEdit2){
+      var idx2=state.planejamento.findIndex(function(p){return p.id===d2.id;});
+      if(idx2>=0){state.planejamento[idx2].titulo=titulo;state.planejamento[idx2].descricao=descricao;state.planejamento[idx2].prioridade=prioridade;state.planejamento[idx2].dataEntrega=dataEntrega;}
+    } else {
+      // Criar card para cada consultor selecionado
+      consultoresSel.forEach(function(cons,ci){
+        state.planejamento.push({id:ci===0?(res.id||('pl'+Date.now())):('pl'+Date.now()+ci),titulo:titulo,descricao:descricao,consultor:cons,criadoPor:state.usuario,mesAno:state.mesAtual,semana:state.planejamentoSemana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega,criadoEm:new Date().toISOString()});
+      });
+      // Salvar cards adicionais para outros consultores
+      for(var ci2=1;ci2<consultoresSel.length;ci2++){
+        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,consultor:consultoresSel[ci2],criadoPor:state.usuario,mesAno:state.mesAtual,semana:state.planejamentoSemana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
+      }
+    }
+    setStore('planejamento',state.planejamento);
     render();
   } else {showToast('Erro ao salvar');}
 }
@@ -2212,7 +2249,10 @@ function renderDashboard(){
   var notaLucas=calcNotaLucas(m);
   var cardsFeitos=getCards().filter(function(c){return c.mesAno===m&&c.status==='feito';}).length;
   var lucasRankItem={c:'lucas',n:notaLucas!==null?notaLucas:0,p:0,isLucas:true,cardsFeitos:cardsFeitos};
-  var rankAll=[lucasRankItem].concat(notas).sort(function(a,b){return b.n-a.n;});
+  var notaJean=calcNotaJean(m);
+  var cardsFeitosJean=getCards().filter(function(c){return c.mesAno===m&&c.destinatario==='jean'&&c.status==='feito';}).length;
+  var jeanRankItem={c:'jean',n:notaJean!==null?notaJean:0,p:0,isLucas:false,isJean:true,cardsFeitos:cardsFeitosJean};
+  var rankAll=[lucasRankItem,jeanRankItem].concat(notas).sort(function(a,b){return b.n-a.n;});
 
   var mg=Math.round(notas.reduce(function(s,x){return s+x.n;},0)/notas.length);
   var tc=Object.values(CLIENTES).flat().length;
@@ -2223,12 +2263,12 @@ function renderDashboard(){
 
   var rankHTML=rankAll.map(function(x,i){
     var u=USUARIOS[x.c];
-    var sub=x.isLucas?'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+x.cardsFeitos+' cards feitos</span>'
+    var sub=(x.isLucas||x.isJean)?'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+x.cardsFeitos+' cards feitos</span>'
       :'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+CLIENTES[x.c].length+' clientes</span>';
-    var progVal=x.isLucas?null:x.p;
-    var notaColor2=x.isLucas?'var(--lucas)':notaColor(x.n);
-    var notaValStr=x.isLucas&&notaLucas===null?'—':x.n+'%';
-    var notaNum=x.isLucas&&notaLucas===null?0:x.n;
+    var progVal=(x.isLucas||x.isJean)?null:x.p;
+    var notaColor2=x.isJean?'#a78bfa':x.isLucas?'var(--lucas)':notaColor(x.n);
+    var notaValStr=(x.isJean&&notaJean===null)||(x.isLucas&&notaLucas===null)?'—':x.n+'%';
+    var notaNum=(x.isJean&&notaJean===null)||(x.isLucas&&notaLucas===null)?0:x.n;
     var progBlock=progVal!==null
       ?'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
         +'<span style="font-size:9px;font-family:var(--mono);color:var(--text3);width:34px;letter-spacing:.5px">PROG</span>'
@@ -2248,7 +2288,7 @@ function renderDashboard(){
       +'<div class="rank-avatar" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome[0]+'</div>'
       +'<div style="flex:1">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-          +'<div class="rank-name">'+u.nome+(x.isLucas?' <span style="font-size:10px;font-family:var(--mono);color:var(--lucas)">lucas</span>':'')+'</div>'
+          +'<div class="rank-name">'+u.nome+(x.isLucas?' <span style="font-size:10px;font-family:var(--mono);color:var(--lucas)">lucas</span>':x.isJean?' <span style="font-size:10px;font-family:var(--mono);color:#a78bfa">jean</span>':'')+'</div>'
           +sub
         +'</div>'
         +progBlock
@@ -3085,6 +3125,11 @@ function bindCommon(){
 function bindGestor(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  // Bind prioridade filter
+  ['todos','alta','media','baixa'].forEach(function(f){
+    var btn=document.getElementById('prio-filtro-'+f);
+    if(btn)btn.onclick=function(){state.prioFiltro=f;render();};
+  });
   // Bind reunioes month selector
   // Bind prioridade filter
   ['todos','alta','media','baixa'].forEach(function(f){
