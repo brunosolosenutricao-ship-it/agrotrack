@@ -2185,14 +2185,26 @@ function bindPlanejamento(){
 
 async function salvarPlanejamentoCard(){
   var titulo=(document.getElementById('pl-titulo')||{}).value||'';
-  if(!titulo){showToast('Informe o t\u00edtulo');return;}
+  if(!titulo){showToast('Informe o título');return;}
   var descricao=(document.getElementById('pl-desc')||{}).value||'';
   var prioridade=(document.getElementById('pl-prioridade')||{}).value||'media';
   var dataEntrega=(document.getElementById('pl-data')||{}).value||'';
-  var semana=state.planejamentoSemana||semanaISO();
-  var payload={action:'salvarPlanejamento',titulo:titulo,descricao:descricao,consultor:state.planejamentoAba||'gestor',
-    criadoPor:state.usuario,mesAno:state.mesAtual,semana:semana,status:'aberto',
+
+  // Pega dados do modal
+  var d2=state.planejamentoModalData||{};
+  var isEdit2=!!d2.id;
+  var consultoresSel=(!isEdit2&&d2.consultoresSel&&d2.consultoresSel.length)?d2.consultoresSel:[isEdit2?d2.consultor:(state.planejamentoAba||'gestor')];
+
+  var payload={action:'salvarPlanejamento',
+    titulo:titulo,descricao:descricao,
+    consultor:consultoresSel[0],
+    criadoPor:isEdit2?d2.criadoPor:state.usuario,
+    mesAno:isEdit2?d2.mesAno:state.mesAtual,
+    semana:isEdit2?(d2.semana||''):(state.planejamentoSemana||''),
+    status:isEdit2?d2.status:'aberto',
     prioridade:prioridade,dataEntrega:dataEntrega};
+  if(isEdit2)payload.id=d2.id;
+
   showToast('Salvando...');
   var res=await apiPost(payload);
   if(res&&res.ok){
@@ -2200,15 +2212,28 @@ async function salvarPlanejamentoCard(){
     state.planejamentoModal=false;
     if(isEdit2){
       var idx2=state.planejamento.findIndex(function(p){return p.id===d2.id;});
-      if(idx2>=0){state.planejamento[idx2].titulo=titulo;state.planejamento[idx2].descricao=descricao;state.planejamento[idx2].prioridade=prioridade;state.planejamento[idx2].dataEntrega=dataEntrega;}
+      if(idx2>=0){
+        state.planejamento[idx2].titulo=titulo;
+        state.planejamento[idx2].descricao=descricao;
+        state.planejamento[idx2].prioridade=prioridade;
+        state.planejamento[idx2].dataEntrega=dataEntrega;
+      }
     } else {
-      // Criar card para cada consultor selecionado
       consultoresSel.forEach(function(cons,ci){
-        state.planejamento.push({id:ci===0?(res.id||('pl'+Date.now())):('pl'+Date.now()+ci),titulo:titulo,descricao:descricao,consultor:cons,criadoPor:state.usuario,mesAno:state.mesAtual,semana:state.planejamentoSemana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega,criadoEm:new Date().toISOString()});
+        state.planejamento.push({
+          id:ci===0?(res.id||('pl'+Date.now())):('pl'+Date.now()+ci),
+          titulo:titulo,descricao:descricao,consultor:cons,
+          criadoPor:state.usuario,mesAno:state.mesAtual,
+          semana:state.planejamentoSemana||'',status:'aberto',
+          prioridade:prioridade,dataEntrega:dataEntrega,
+          criadoEm:new Date().toISOString()
+        });
       });
-      // Salvar cards adicionais para outros consultores
       for(var ci2=1;ci2<consultoresSel.length;ci2++){
-        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,consultor:consultoresSel[ci2],criadoPor:state.usuario,mesAno:state.mesAtual,semana:state.planejamentoSemana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
+        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,
+          consultor:consultoresSel[ci2],criadoPor:state.usuario,
+          mesAno:state.mesAtual,semana:state.planejamentoSemana||'',
+          status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
       }
     }
     setStore('planejamento',state.planejamento);
