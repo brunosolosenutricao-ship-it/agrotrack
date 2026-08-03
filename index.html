@@ -1884,7 +1884,7 @@ function renderJeanPage(){
       var u=USUARIOS[c.criadoPor]||{cor:'#a78bfa',nome:'Jean'};
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')">' 
+      return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')" data-card-id="'+c.id+'" style="cursor:grab">' 
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
@@ -1896,7 +1896,7 @@ function renderJeanPage(){
     var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma demanda</div>':'';
     return'<div class="kanban-col">'
       +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+colCards.length+'</span></div>'
-      +'<div class="kanban-col-body">'+colItems+emptyMsg+'</div>'
+      +'<div class="kanban-col-body lucas-col-'+st+'" data-card-status="'+st+'">'+colItems+emptyMsg+'</div>'
       +'</div>';
   }).join('');
 
@@ -2163,11 +2163,23 @@ function bindPlanejamento(){
   document.querySelectorAll('.pl-cons-btn').forEach(function(btn){
     btn.onclick=function(){
       var c=this.dataset.cons;
+      var u=USUARIOS[c]||{cor:'#8b90a8'};
       if(!state.planejamentoModalData.consultoresSel)state.planejamentoModalData.consultoresSel=[];
       var idx=state.planejamentoModalData.consultoresSel.indexOf(c);
-      if(idx>=0)state.planejamentoModalData.consultoresSel.splice(idx,1);
-      else state.planejamentoModalData.consultoresSel.push(c);
-      render();
+      if(idx>=0){
+        state.planejamentoModalData.consultoresSel.splice(idx,1);
+        this.classList.remove('selected');
+        this.style.borderColor='var(--border2)';
+        this.style.background='transparent';
+        this.style.color='var(--text2)';
+      } else {
+        state.planejamentoModalData.consultoresSel.push(c);
+        this.classList.add('selected');
+        this.style.borderColor=u.cor;
+        this.style.background='rgba(0,0,0,.2)';
+        this.style.color=u.cor;
+      }
+      // NÃO chama render() para não apagar o que o usuário digitou
     };
   });
   // Init drag and drop
@@ -2175,7 +2187,7 @@ function bindPlanejamento(){
   // Cards - mover status ao clicar
   (state.planejamento||[]).filter(function(p){return p.consultor===state.planejamentoAba;}).forEach(function(p){
     var card=document.getElementById('plan-card-'+p.id);
-    if(card)card.onclick=function(e){if(!e.target.id.startsWith('plan-del'))moverPlanCard(p.id);};
+    // drag only - no click to advance
     var del=document.getElementById('plan-del-'+p.id);
     if(del)del.onclick=function(e){e.stopPropagation();deletarPlanCard(p.id);};
     var edit=document.getElementById('plan-edit-'+p.id);
@@ -3254,9 +3266,30 @@ function bindConsultor(){
   };
 }
 
+function initLucasJeanDnd(prefix){
+  var cols=['aberto','em_andamento','feito'];
+  cols.forEach(function(st){
+    var el=document.querySelector('.kanban-col-body.'+prefix+'-col-'+st);
+    if(!el||el._sortable)return;
+    el._sortable=Sortable.create(el,{
+      group:prefix+'-kanban',
+      animation:150,
+      ghostClass:'sortable-ghost',
+      dragClass:'sortable-drag',
+      onEnd:function(evt){
+        var id=evt.item.dataset.cardId;
+        var novoStatus=evt.to.dataset.cardStatus;
+        if(!id||!novoStatus)return;
+        moverStatusCard(id,novoStatus);
+      }
+    });
+  });
+}
+
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  setTimeout(function(){initLucasJeanDnd('lucas');initLucasJeanDnd('jean');},50);
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
