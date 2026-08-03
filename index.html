@@ -141,6 +141,9 @@ tr:hover td{background:var(--surface2)!important;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--text3);}
 
+.kanban-col-body.drag-over{background:var(--accent-light);border:1px dashed var(--accent);border-radius:8px;}
+.sortable-ghost{opacity:0.3;}
+.sortable-drag{opacity:0.9;transform:rotate(2deg);box-shadow:0 8px 24px rgba(0,0,0,.4);}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;font-family:var(--mono);opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:9999;}
 .toast.show{opacity:1;transform:translateY(0);}
 /* MODAL */
@@ -307,6 +310,7 @@ body.light-mode input[type=text],body.light-mode input[type=password],body.light
 body.light-mode .theme-toggle{background:var(--accent-light);}
 body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(--accent);}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -409,6 +413,7 @@ var state={
   reuniaoModal:false,
   reuniaoModalData:{},
   reuniaoCarregada:false,
+  reuniaoMesFiltro:'atual',
   // Histórico
   historico:[],
   historicoCarregado:false,
@@ -1039,7 +1044,30 @@ function renderReunioesPage(){
     return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando reuni\u00f5es...</div></div>';
   }
 
-  var reunioes=state.reunioes.slice().sort(function(a,b){return a.dataHora>b.dataHora?1:-1;});
+  var mesFiltro=state.reuniaoMesFiltro||'atual';
+  var mesAtualStr=state.mesAtual;
+
+  // Gerar seletor de mês — meses únicos das reuniões + mês atual
+  var mesesDisp={};
+  mesesDisp[mesAtualStr]=true;
+  state.reunioes.forEach(function(r){if(r.dataHora&&r.dataHora.length>=7)mesesDisp[r.dataHora.substring(0,7)]=true;});
+  var mesesList=Object.keys(mesesDisp).sort();
+  var MESES_LABEL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  function labelMesR(m){var p=m.split('-');return MESES_LABEL[parseInt(p[1])-1]+'/'+p[0];}
+
+  var mesSel=mesFiltro==='todos'?null:mesFiltro==='atual'?mesAtualStr:mesFiltro;
+  var mesSelectHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">'
+    +'<button id="btn-reu-todos" style="padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid '+(mesFiltro==='todos'?'var(--accent)':'var(--border2)')+';background:'+(mesFiltro==='todos'?'var(--accent-light)':'transparent')+';color:'+(mesFiltro==='todos'?'var(--accent)':'var(--text2)')+'">Todos</button>'
+    +'<select id="sel-mes-reu" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;">'
+    +mesesList.map(function(m){return'<option value="'+m+'"'+(mesSel===m?' selected':'')+'>'+labelMesR(m)+'</option>';}).join('')
+    +'</select>'
+    +'</div>';
+
+  var reunioes=state.reunioes.filter(function(r){
+    if(mesFiltro==='todos')return true;
+    var mes=r.dataHora?r.dataHora.substring(0,7):'';
+    return mes===(mesSel||mesAtualStr);
+  }).slice().sort(function(a,b){return a.dataHora>b.dataHora?1:-1;});
 
   var grupos={};
   reunioes.forEach(function(r){
@@ -1169,7 +1197,8 @@ function renderReunioesPage(){
     +'<button class="btn-sec" onclick="state.reuniaoCarregada=false;render()">\u27f3 Atualizar</button>'
     +'<button class="btn-save" onclick="abrirModalReuniao(null,\'novo\')">+ Nova Reuni\u00e3o</button>'
     +'</div></div>'
-    +'<div style="margin-top:20px">'+diasHTML+'</div>'
+    +mesSelectHTML
+    +'<div style="margin-top:8px">'+diasHTML+'</div>'
     +'</div>'+modalHTML;
 
   return content;
@@ -1948,7 +1977,7 @@ function renderPlanejamentoPage(){
     var items=colCards.map(function(p){
       var prioColor=p.prioridade==='alta'?'#f87171':p.prioridade==='media'?'#fbbf24':'#4ade80';
       var criadoPorU=USUARIOS[p.criadoPor]||{nome:p.criadoPor,cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
-      return '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer" id="plan-card-'+p.id+'">'
+      return '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab" id="plan-card-'+p.id+'" data-plan-id="'+p.id+'">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
           +'<span style="font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:'+(p.prioridade==='alta'?'rgba(248,113,113,.15)':p.prioridade==='media'?'rgba(251,191,36,.12)':'rgba(74,222,128,.12)')+';color:'+prioColor+'">'+prioLabel(p.prioridade)+'</span>'
           +prazoHTML(p.dataEntrega,p.status,null)
@@ -1967,7 +1996,7 @@ function renderPlanejamentoPage(){
     var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma tarefa</div>':'';
     return '<div class="kanban-col">'
       +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+colCards.length+'</span></div>'
-      +'<div class="kanban-col-body">'+items+emptyMsg+'</div>'
+      +'<div class="kanban-col-body plan-col-'+st+'" data-plan-status="'+st+'">'+items+emptyMsg+'</div>'
       +'</div>';
   }).join('');
 
@@ -2006,6 +2035,32 @@ function renderPlanejamentoPage(){
 
 function prioLabel(p){return p==='alta'?'Alta':p==='media'?'M\u00e9dia':'Baixa';}
 
+function initPlanejamentoDnd(){
+  var cols=['aberto','em_andamento','feito'];
+  cols.forEach(function(st){
+    var el=document.querySelector('.kanban-col-body.plan-col-'+st);
+    if(!el||el._sortable)return;
+    el._sortable=Sortable.create(el,{
+      group:'planejamento',
+      animation:150,
+      ghostClass:'sortable-ghost',
+      dragClass:'sortable-drag',
+      onEnd:function(evt){
+        var id=evt.item.dataset.planId;
+        var novoStatus=evt.to.dataset.planStatus;
+        if(!id||!novoStatus)return;
+        var idx=state.planejamento.findIndex(function(p){return p.id===id;});
+        if(idx<0)return;
+        if(state.planejamento[idx].status===novoStatus)return;
+        state.planejamento[idx].status=novoStatus;
+        setStore('planejamento',state.planejamento);
+        apiPost({action:'salvarPlanejamento',id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana||'',status:novoStatus,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
+        showToast('✓ Status: '+statusLabel(novoStatus));
+      }
+    });
+  });
+}
+
 function bindPlanejamento(){
   // Tabs
   CONSULTORES_PLAN.forEach(function(c){
@@ -2019,6 +2074,8 @@ function bindPlanejamento(){
   // Salvar
   var btnSalvar=document.getElementById('btn-salvar-plan');
   if(btnSalvar)btnSalvar.onclick=salvarPlanejamentoCard;
+  // Init drag and drop
+  setTimeout(initPlanejamentoDnd, 50);
   // Cards - mover status ao clicar
   (state.planejamento||[]).filter(function(p){return p.consultor===state.planejamentoAba;}).forEach(function(p){
     var card=document.getElementById('plan-card-'+p.id);
@@ -2954,6 +3011,11 @@ function bindCommon(){
 function bindGestor(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  // Bind reunioes month selector
+  var btnTodos=document.getElementById('btn-reu-todos');
+  if(btnTodos)btnTodos.onclick=function(){state.reuniaoMesFiltro='todos';render();};
+  var selMes=document.getElementById('sel-mes-reu');
+  if(selMes)selMes.onchange=function(){state.reuniaoMesFiltro=this.value;render();};
   // Bind analise viz buttons
   var bLista=document.getElementById('btn-viz-lista');
   var bKpis=document.getElementById('btn-viz-kpis');
@@ -3009,6 +3071,10 @@ function bindGestor(){
 function bindConsultor(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  var btnTodosC=document.getElementById('btn-reu-todos');
+  if(btnTodosC)btnTodosC.onclick=function(){state.reuniaoMesFiltro='todos';render();};
+  var selMesC=document.getElementById('sel-mes-reu');
+  if(selMesC)selMesC.onchange=function(){state.reuniaoMesFiltro=this.value;render();};
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.clienteSelecionado=null;state.lucasCardAberto=null;render();};
   });
