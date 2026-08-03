@@ -424,7 +424,13 @@ var state={
   analiseAtividadeExpandida:null,
   analiseConsultorFiltro:'todos',
   analiseVisualizacao:'lista',
-  kpiModal:null, // {ativNome, consNome, cor, label, clientes:[{cliente,preenchimento}]}
+  kpiModal:null,
+  // Planejamento
+  planejamento:[],
+  planejamentoCarregado:false,
+  planejamentoModal:false,
+  planejamentoModalData:{},
+  planejamentoAba:'gestor', // {ativNome, consNome, cor, label, clientes:[{cliente,preenchimento}]}
 };
 
 // ============================================================
@@ -743,13 +749,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
+    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento']];
   }else if(state.role==='lucas'){
-    pages=[['lucas','Demandas'],['jean','Jean']];
+    pages=[['lucas','Demandas'],['jean','Jean'],['planejamento','Planejamento']];
   }else if(state.role==='jean'){
-    pages=[['jean','Demandas']];
+    pages=[['jean','Demandas'],['planejamento','Planejamento']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento']];
   }
 
   var nav=pages.map(function(p){
@@ -818,6 +824,7 @@ function renderGestor(){
   if(state.paginaGestor==='historico')  return renderHistoricoPage();
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
   if(state.paginaGestor==='analise')     return renderAnalisePage();
+  if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   return'';
 }
 
@@ -1869,6 +1876,213 @@ function bindModalCardJean(){
   };
 }
 
+
+// ============================================================
+// PLANEJAMENTO SEMANAL
+// ============================================================
+var CONSULTORES_PLAN = ['gestor','igor','felipe','paula','ramon'];
+
+function semanaISO(date){
+  var d = new Date(date||Date.now());
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+4-(d.getDay()||7));
+  var yearStart = new Date(d.getFullYear(),0,1);
+  return d.getFullYear()+'-S'+String(Math.ceil((((d-yearStart)/86400000)+1)/7)).padStart(2,'0');
+}
+
+function semanasDoMes(mesAno){
+  var parts=mesAno.split('-');
+  var ano=parseInt(parts[0]),mes=parseInt(parts[1])-1;
+  var semanas=[], seen={};
+  var dias=new Date(ano,mes+1,0).getDate();
+  for(var d=1;d<=dias;d++){
+    var s=semanaISO(new Date(ano,mes,d));
+    if(!seen[s]){seen[s]=true;semanas.push(s);}
+  }
+  return semanas;
+}
+
+async function carregarPlanejamento(){
+  var res=await apiCall({action:'getPlanejamento',mesAno:state.mesAtual});
+  if(res&&!res.erro&&Array.isArray(res)){
+    state.planejamento=res;
+    setStore('planejamento',res);
+  } else {
+    state.planejamento=getStore('planejamento',[]);
+  }
+  state.planejamentoCarregado=true;
+  render();
+}
+
+function renderPlanejamentoPage(){
+  if(!state.planejamentoCarregado){
+    carregarPlanejamento();
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando planejamento...</div></div>';
+  }
+
+  var m=state.mesAtual;
+  var abaAtual=state.planejamentoAba||'gestor';
+  var semanas=semanasDoMes(m);
+  var semanaAtual=semanaISO();
+  var semanaSel=state.planejamentoSemana||(semanas.indexOf(semanaAtual)>=0?semanaAtual:semanas[0]||semanaAtual);
+
+  // Tabs consultores
+  var tabsHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">'
+    +CONSULTORES_PLAN.map(function(c){
+      var u=USUARIOS[c]||{nome:c,cor:'#8b90a8'};
+      var ativo=abaAtual===c;
+      return '<button id="plan-tab-'+c+'" style="padding:7px 16px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid '+(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':u.cor)+'">'+u.nome+'</button>';
+    }).join('')
+    +'</div>';
+
+  // Filtro semana
+  var semanaHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">'
+    +semanas.map(function(s){
+      var ativo=semanaSel===s;
+      var label=s.replace('-','·');
+      return '<button id="plan-sem-'+s+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text3)')+'">'+label+'</button>';
+    }).join('')
+    +'</div>';
+
+  // Cards do consultor selecionado na semana
+  var cards=state.planejamento.filter(function(p){return p.consultor===abaAtual&&p.mesAno===m&&p.semana===semanaSel;});
+  var ordem={alta:0,media:1,baixa:2};
+  cards.sort(function(a,b){return(ordem[a.prioridade]||1)-(ordem[b.prioridade]||1);});
+
+  var cols=['aberto','em_andamento','feito'];
+  var kanbanHTML=cols.map(function(st){
+    var colCards=cards.filter(function(c){return c.status===st;});
+    var items=colCards.map(function(p){
+      var prioColor=p.prioridade==='alta'?'#f87171':p.prioridade==='media'?'#fbbf24':'#4ade80';
+      var criadoPorU=USUARIOS[p.criadoPor]||{nome:p.criadoPor,cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+      return '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer" id="plan-card-'+p.id+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          +'<span style="font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:'+(p.prioridade==='alta'?'rgba(248,113,113,.15)':p.prioridade==='media'?'rgba(251,191,36,.12)':'rgba(74,222,128,.12)')+';color:'+prioColor+'">'+prioLabel(p.prioridade)+'</span>'
+          +prazoHTML(p.dataEntrega,p.status,null)
+        +'</div>'
+        +'<div style="font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.3">'+p.titulo+'</div>'
+        +(p.descricao?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px">'+p.descricao+'</div>':'')
+        +'<div style="display:flex;align-items:center;justify-content:space-between">'
+          +'<div style="display:flex;align-items:center;gap:5px">'
+            +'<div style="width:18px;height:18px;border-radius:50%;background:'+criadoPorU.corBg+';color:'+criadoPorU.cor+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+criadoPorU.nome[0]+'</div>'
+            +'<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+criadoPorU.nome+'</span>'
+          +'</div>'
+          +'<button id="plan-del-'+p.id+'" style="padding:2px 7px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:5px;font-size:10px;color:#f87171;cursor:pointer">\u2715</button>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+    var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma tarefa</div>':'';
+    return '<div class="kanban-col">'
+      +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+colCards.length+'</span></div>'
+      +'<div class="kanban-col-body">'+items+emptyMsg+'</div>'
+      +'</div>';
+  }).join('');
+
+  // Modal
+  var modalHTML='';
+  if(state.planejamentoModal){
+    var d=state.planejamentoModalData;
+    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.planejamentoModal=false;render();}">'
+      +'<div class="modal-box">'
+      +'<div class="modal-title">Nova Tarefa</div>'
+      +'<div class="modal-field"><label>T\u00cdTULO *</label><input type="text" id="pl-titulo" placeholder="Descreva a tarefa..." value="'+(d.titulo||'')+'"></div>'
+      +'<div class="modal-field"><label>DESCRI\u00c7\u00c3O</label><textarea id="pl-desc" rows="2" placeholder="Detalhes...">'+(d.descricao||'')+'</textarea></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        +'<div class="modal-field"><label>PRIORIDADE</label><select id="pl-prioridade"><option value="alta">Alta</option><option value="media" selected>M\u00e9dia</option><option value="baixa">Baixa</option></select></div>'
+        +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="pl-data"></div>'
+      +'</div>'
+      +'<div class="modal-actions">'
+        +'<button class="btn-sec" onclick="state.planejamentoModal=false;render()">Cancelar</button>'
+        +'<button class="btn-save" id="btn-salvar-plan">Salvar</button>'
+      +'</div></div></div>';
+  }
+
+  return '<div class="page page-fade">'
+    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
+      +'<div><div class="page-title">Planejamento Semanal</div><div class="page-sub">'+m+'</div></div>'
+      +'<div style="display:flex;gap:8px">'
+        +'<button class="btn-sec" onclick="state.planejamentoCarregado=false;render()">\u27f3 Atualizar</button>'
+        +'<button class="btn-save" id="btn-nova-tarefa">+ Nova Tarefa</button>'
+      +'</div>'
+    +'</div>'
+    +tabsHTML
+    +semanaHTML
+    +'<div class="kanban-wrap">'+kanbanHTML+'</div>'
+    +'</div>'+modalHTML;
+}
+
+function prioLabel(p){return p==='alta'?'Alta':p==='media'?'M\u00e9dia':'Baixa';}
+
+function bindPlanejamento(){
+  // Tabs
+  CONSULTORES_PLAN.forEach(function(c){
+    var btn=document.getElementById('plan-tab-'+c);
+    if(btn)btn.onclick=function(){state.planejamentoAba=c;render();};
+  });
+  // Semanas
+  var semanas=semanasDoMes(state.mesAtual);
+  semanas.forEach(function(s){
+    var btn=document.getElementById('plan-sem-'+s);
+    if(btn)btn.onclick=function(){state.planejamentoSemana=s;render();};
+  });
+  // Nova tarefa
+  var btnNova=document.getElementById('btn-nova-tarefa');
+  if(btnNova)btnNova.onclick=function(){state.planejamentoModal=true;state.planejamentoModalData={};render();};
+  // Salvar
+  var btnSalvar=document.getElementById('btn-salvar-plan');
+  if(btnSalvar)btnSalvar.onclick=salvarPlanejamentoCard;
+  // Cards - mover status ao clicar
+  (state.planejamento||[]).filter(function(p){return p.consultor===state.planejamentoAba;}).forEach(function(p){
+    var card=document.getElementById('plan-card-'+p.id);
+    if(card)card.onclick=function(e){if(!e.target.id.startsWith('plan-del'))moverPlanCard(p.id);};
+    var del=document.getElementById('plan-del-'+p.id);
+    if(del)del.onclick=function(e){e.stopPropagation();deletarPlanCard(p.id);};
+  });
+}
+
+async function salvarPlanejamentoCard(){
+  var titulo=(document.getElementById('pl-titulo')||{}).value||'';
+  if(!titulo){showToast('Informe o t\u00edtulo');return;}
+  var descricao=(document.getElementById('pl-desc')||{}).value||'';
+  var prioridade=(document.getElementById('pl-prioridade')||{}).value||'media';
+  var dataEntrega=(document.getElementById('pl-data')||{}).value||'';
+  var semana=state.planejamentoSemana||semanaISO();
+  var payload={action:'salvarPlanejamento',titulo:titulo,descricao:descricao,consultor:state.planejamentoAba||'gestor',
+    criadoPor:state.usuario,mesAno:state.mesAtual,semana:semana,status:'aberto',
+    prioridade:prioridade,dataEntrega:dataEntrega};
+  showToast('Salvando...');
+  var res=await apiPost(payload);
+  if(res&&res.ok){
+    showToast('\u2713 Tarefa criada!');
+    state.planejamentoModal=false;
+    state.planejamentoCarregado=false;
+    render();
+  } else {showToast('Erro ao salvar');}
+}
+
+async function moverPlanCard(id){
+  var cols=['aberto','em_andamento','feito'];
+  var idx=state.planejamento.findIndex(function(p){return p.id===id;});
+  if(idx<0)return;
+  var cur=state.planejamento[idx].status;
+  var next=cols[(cols.indexOf(cur)+1)%cols.length];
+  state.planejamento[idx].status=next;
+  setStore('planejamento',state.planejamento);
+  apiPost({action:'salvarPlanejamento',id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana,status:next,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
+  render();
+}
+
+async function deletarPlanCard(id){
+  if(!confirm('Remover esta tarefa?'))return;
+  showToast('Removendo...');
+  var res=await apiPost({action:'deletarPlanejamento',id:id});
+  if(res&&res.ok){
+    showToast('\u2713 Removido!');
+    state.planejamentoCarregado=false;
+    render();
+  } else {showToast('Erro ao remover');}
+}
+
 function renderDashboard(){
   var m=state.mesAtual;
   var cs=['igor','felipe','paula','ramon'];
@@ -2108,6 +2322,7 @@ function renderConsultor(){
   if(state.paginaGestor==='historico') return renderHistoricoPage();
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
   if(state.paginaGestor==='jean')     return renderJeanPage();
+  if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   return renderClientesConsultor();
 }
 
@@ -2295,11 +2510,13 @@ function renderLucasPage(){
 // Lucas como role principal
 function renderLucas(){
   if(state.paginaGestor==='jean') return renderJeanPage();
+  if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   return renderLucasPage();
 }
 
 function renderJeanShell(){
   if(state.paginaGestor==='lucas') return renderLucasPage();
+  if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   return renderJeanPage();
 }
 
@@ -2745,6 +2962,7 @@ function bindCommon(){
 
 function bindGestor(){
   bindCommon();
+  if(state.paginaGestor==='planejamento')bindPlanejamento();
   // Bind analise viz buttons
   var bLista=document.getElementById('btn-viz-lista');
   var bKpis=document.getElementById('btn-viz-kpis');
@@ -2799,6 +3017,7 @@ function bindGestor(){
 
 function bindConsultor(){
   bindCommon();
+  if(state.paginaGestor==='planejamento')bindPlanejamento();
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.clienteSelecionado=null;state.lucasCardAberto=null;render();};
   });
@@ -2818,6 +3037,7 @@ function bindConsultor(){
 
 function bindLucas(){
   bindCommon();
+  if(state.paginaGestor==='planejamento')bindPlanejamento();
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
