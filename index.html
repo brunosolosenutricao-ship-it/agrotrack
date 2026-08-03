@@ -1935,17 +1935,10 @@ function renderPlanejamentoPage(){
     }).join('')
     +'</div>';
 
-  // Filtro semana
-  var semanaHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">'
-    +semanas.map(function(s){
-      var ativo=semanaSel===s;
-      var label=s.replace('-','·');
-      return '<button id="plan-sem-'+s+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text3)')+'">'+label+'</button>';
-    }).join('')
-    +'</div>';
+  var semanaHTML='';
 
   // Cards do consultor selecionado na semana
-  var cards=state.planejamento.filter(function(p){return p.consultor===abaAtual&&p.mesAno===m&&p.semana===semanaSel;});
+  var cards=state.planejamento.filter(function(p){return p.consultor===abaAtual&&p.mesAno===m;});
   var ordem={alta:0,media:1,baixa:2};
   cards.sort(function(a,b){return(ordem[a.prioridade]||1)-(ordem[b.prioridade]||1);});
 
@@ -2019,12 +2012,7 @@ function bindPlanejamento(){
     var btn=document.getElementById('plan-tab-'+c);
     if(btn)btn.onclick=function(){state.planejamentoAba=c;render();};
   });
-  // Semanas
-  var semanas=semanasDoMes(state.mesAtual);
-  semanas.forEach(function(s){
-    var btn=document.getElementById('plan-sem-'+s);
-    if(btn)btn.onclick=function(){state.planejamentoSemana=s;render();};
-  });
+
   // Nova tarefa
   var btnNova=document.getElementById('btn-nova-tarefa');
   if(btnNova)btnNova.onclick=function(){state.planejamentoModal=true;state.planejamentoModalData={};render();};
@@ -2200,7 +2188,8 @@ function renderConsultoresPage(){
       var n=calcNota(c,cl.id,m);
       var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,cl.id);});
       var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
-      var prog=ativs.length?Math.round((regs.length/ativs.length)*100):0;
+      var feitas_a=ativs.filter(function(a){return regs.find(function(r){return r.atividadeId===a.id;});}).length;
+      var prog=ativs.length?Math.round((feitas_a/ativs.length)*100):0;
       var eid=c+'_'+cl.id;var isOpen=ek===eid;
       var exp=isOpen?('<tr><td colspan="6" style="padding:0;background:var(--surface2)">'
         +'<table style="width:100%;border-collapse:collapse">'
@@ -2388,8 +2377,10 @@ function renderProgressoConsultor(){
     var n=calcNota(c,cl.id,m);
     var ativs=getAtividades().filter(function(a){return a.mesAno===m&&a.ativo&&escopoInclui(a.escopo,cl.id);});
     var regs=getRegistros().filter(function(r){return r.consultor===c&&r.clienteId===cl.id&&r.mesAno===m;});
-    var p2=ativs.length?Math.round((regs.length/ativs.length)*100):0;
-    return'<tr><td style="font-weight:500;">'+cl.nome+'</td>'
+    var feitas_b=ativs.filter(function(a){return regs.find(function(r){return r.atividadeId===a.id;});}).length;
+    var p2=ativs.length?Math.round((feitas_b/ativs.length)*100):0;
+    var feitas_b=ativs.filter(function(a){return regs.find(function(r){return r.atividadeId===a.id;});}).length;
+    var p2=ativs.length?Math.round((feitas_b/ativs.length)*100):0;
       +'<td><span class="badge badge-gray">'+cl.regiao+'</span></td>'
       +'<td style="font-family:var(--mono);font-weight:500;color:'+notaColor(n||0)+'">'+( n!==null?n+'%':'—')+'</td>'
       +'<td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:'+p2+'%;background:'+notaColor(p2)+'"></div></div>'
