@@ -2179,7 +2179,7 @@ function bindPlanejamento(){
     var del=document.getElementById('plan-del-'+p.id);
     if(del)del.onclick=function(e){e.stopPropagation();deletarPlanCard(p.id);};
     var edit=document.getElementById('plan-edit-'+p.id);
-    if(edit)(function(pp){edit.onclick=function(e){e.stopPropagation();state.planejamentoModal=true;state.planejamentoModalData={id:pp.id,titulo:pp.titulo,descricao:pp.descricao,prioridade:pp.prioridade,dataEntrega:pp.dataEntrega,consultor:pp.consultor,criadoPor:pp.criadoPor,mesAno:pp.mesAno,semana:pp.semana||'',status:pp.status};render();};})(p);
+    if(edit)(function(pp){edit.onclick=function(e){e.stopPropagation();state.planejamentoModal=true;state.planejamentoModalData={id:pp.id,titulo:pp.titulo,descricao:pp.descricao,prioridade:pp.prioridade,dataEntrega:pp.dataEntrega,consultor:pp.consultor,criadoPor:pp.criadoPor,mesAno:pp.mesAno,semana:pp.semana||'',status:pp.status,consultoresSel:[pp.consultor]};render();};})(p);
   });
 }
 
@@ -2193,7 +2193,7 @@ async function salvarPlanejamentoCard(){
   // Pega dados do modal
   var d2=state.planejamentoModalData||{};
   var isEdit2=!!d2.id;
-  var consultoresSel=(!isEdit2&&d2.consultoresSel&&d2.consultoresSel.length)?d2.consultoresSel:[isEdit2?d2.consultor:(state.planejamentoAba||'gestor')];
+  var consultoresSel=(d2.consultoresSel&&d2.consultoresSel.length)?d2.consultoresSel:[isEdit2?d2.consultor:(state.planejamentoAba||'gestor')];
 
   var payload={action:'salvarPlanejamento',
     titulo:titulo,descricao:descricao,
@@ -2218,6 +2218,19 @@ async function salvarPlanejamentoCard(){
         state.planejamento[idx2].prioridade=prioridade;
         state.planejamento[idx2].dataEntrega=dataEntrega;
       }
+      // Adicionar novos consultores que não tinham card
+      var novosConss=consultoresSel.filter(function(c){return c!==d2.consultor;});
+      novosConss.forEach(function(cons){
+        state.planejamento.push({
+          id:'pl'+Date.now()+cons,titulo:titulo,descricao:descricao,consultor:cons,
+          criadoPor:state.usuario,mesAno:d2.mesAno,semana:d2.semana||'',
+          status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega,
+          criadoEm:new Date().toISOString()
+        });
+        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,
+          consultor:cons,criadoPor:state.usuario,mesAno:d2.mesAno,
+          semana:d2.semana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
+      });
     } else {
       consultoresSel.forEach(function(cons,ci){
         state.planejamento.push({
