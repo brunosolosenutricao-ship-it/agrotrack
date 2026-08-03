@@ -145,6 +145,17 @@ tr:hover td{background:var(--surface2)!important;}
 .sortable-ghost{opacity:0.3;}
 .kanban-col-body.sortable-over .plan-empty{display:none;}
 .sortable-drag{opacity:0.9;transform:rotate(2deg);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+/* Progress bar de carregamento */
+.progress-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9998;}
+.progress-screen-title{font-size:22px;font-weight:700;color:#4ade80;font-family:var(--sans);}
+.progress-screen-sub{font-size:12px;font-family:var(--mono);color:var(--text3);min-height:16px;}
+.progress-bar-wrap{width:280px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,#4ade80,#60a5fa);border-radius:3px;transition:width .3s ease;}
+/* Barra de salvando no topo */
+.saving-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:transparent;}
+.saving-bar.active{background:linear-gradient(90deg,#4ade80,#60a5fa,#4ade80);background-size:200% 100%;animation:savingAnim 1s linear infinite;}
+@keyframes savingAnim{0%{background-position:0% 0%;}100%{background-position:200% 0%;}}
+
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;font-family:var(--mono);opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:9999;}
 .toast.show{opacity:1;transform:translateY(0);}
 /* MODAL */
@@ -459,10 +470,12 @@ async function apiCall(p){
 
 async function apiPost(body){
   if(!APPS_SCRIPT_URL)return null;
+  showSavingBar();
   try{
     var r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow'});
     return JSON.parse(await r.text());
   }catch(e){console.warn('API POST:',e);return null;}
+  finally{hideSavingBar();}
 }
 
 async function sincronizarDoSheets(){
@@ -470,10 +483,16 @@ async function sincronizarDoSheets(){
   if(_sincronizando)return false;
   _sincronizando=true;
   try{
-    showToast('Carregando...');
+    showProgress(5,'Conectando ao servidor...');
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
-    var res=await Promise.all([apiCall({action:'getAtividades'}),apiCall({action:'getRegistros'}),apiCall({action:'getCards'})]);
-    var aR=res[0],rR=res[1],cR=res[2],ok=false;
+    showProgress(15,'Buscando atividades...');
+    var aR=await apiCall({action:'getAtividades'});
+    showProgress(40,'Buscando registros...');
+    var rR=await apiCall({action:'getRegistros'});
+    showProgress(70,'Buscando demandas...');
+    var cR=await apiCall({action:'getCards'});
+    showProgress(90,'Finalizando...');
+    var ok=false;
     if(aR&&!aR.erro&&Array.isArray(aR)&&aR.length>0){
       var n=aR.map(function(a){return Object.assign({},a,{ativo:a.ativo===true||String(a.ativo).toUpperCase()==='TRUE'});});
       setStore('atividades',n);_cacheAtividades=n;ok=true;
@@ -485,8 +504,10 @@ async function sincronizarDoSheets(){
     if(cR&&!cR.erro&&Array.isArray(cR)){
       setStore('cards',cR);_cacheCards=cR;ok=true;
     }
+    showProgress(100,'Pronto!');
+    setTimeout(hideProgress,500);
     showToast(ok?'✓ Atualizado!':'⚠ Sem dados');return ok;
-  }catch(e){showToast('Erro ao sincronizar');return false;}
+  }catch(e){hideProgress();showToast('Erro ao sincronizar');return false;}
   finally{_sincronizando=false;}
 }
 
@@ -510,6 +531,29 @@ function notaColor(n){return n>=80?'#4ade80':n>=50?'#fbbf24':'#f87171';}
 function notaRowClass(n){return n===10?'nota-dez':n===5?'nota-cinco':'nota-zero';}
 function codigoCls(c){var x=CODIGOS.find(function(cd){return cd.codigo===c;});return x?x.cls:'';}
 function atualizarCorSelect(sel){CODIGOS.forEach(function(c){sel.classList.remove(c.cls);});if(sel.value)sel.classList.add(codigoCls(sel.value));}
+function showSavingBar(){var b=document.getElementById('saving-bar');if(b)b.classList.add('active');}
+function hideSavingBar(){var b=document.getElementById('saving-bar');if(b)b.classList.remove('active');}
+
+function showProgress(pct,msg){
+  var el=document.getElementById('progress-screen');
+  if(!el){
+    el=document.createElement('div');
+    el.id='progress-screen';
+    el.className='progress-screen';
+    el.innerHTML='<div class="progress-screen-title">AgroTrack</div>'
+      +'<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>'
+      +'<div class="progress-screen-sub" id="progress-sub">Iniciando...</div>';
+    document.body.appendChild(el);
+  }
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-sub').textContent=msg||'';
+}
+
+function hideProgress(){
+  var el=document.getElementById('progress-screen');
+  if(el){el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(function(){el.remove();},400);}
+}
+
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
 function prioridadeLabel(p){return p==='alta'?'ALTA':p==='media'?'MÉDIA':'BAIXA';}
 function prioridadeCls(p){return p==='alta'?'prioridade-alta':p==='media'?'prioridade-media':'prioridade-baixa';}
@@ -743,8 +787,10 @@ function bindLogin(){
     state.paginaGestor=d.role==='gestor'||d.role==='diretor'?'dashboard':d.role==='lucas'?'lucas':d.role==='jean'?'jean':'clientes';
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
     localStorage.removeItem('atividades');localStorage.removeItem('registros');localStorage.removeItem('cards');
-    document.getElementById('root').innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px"><div style="font-size:18px;font-weight:600;color:#4ade80">AgroTrack</div><div style="font-size:13px;font-family:monospace;color:#555a75">Carregando...</div></div>';
-    await sincronizarDoSheets();render();
+    showProgress(0,'Iniciando AgroTrack...');
+    await sincronizarDoSheets();
+    hideProgress();
+    render();
   };
   document.getElementById('l-senha').onkeydown=function(e){if(e.key==='Enter')document.getElementById('l-btn').click();};
 }
@@ -799,7 +845,7 @@ function renderApp(content){
     +'<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M10 11l3-3-3-3M13 8H6"/></svg>'
     +'<span>Sair</span></div>';
 
-  return'<div class="app">'
+  return'<div id="saving-bar" class="saving-bar"></div><div class="app">'
     +'<div class="sidebar">'
     +'<div class="sidebar-logo">Sistema<strong>AgroTrack</strong></div>'
     +'<div class="sidebar-user"><div class="sidebar-user-name">'+u.nome+'</div><div class="sidebar-user-role">'+state.role+'</div></div>'
