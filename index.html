@@ -2196,8 +2196,10 @@ function bindPlanejamento(){
 }
 
 async function salvarPlanejamentoCard(){
+  if(window._salvandoPlan)return;
+  window._salvandoPlan=true;
   var titulo=(document.getElementById('pl-titulo')||{}).value||'';
-  if(!titulo){showToast('Informe o título');return;}
+  if(!titulo){window._salvandoPlan=false;showToast('Informe o título');return;}
   var descricao=(document.getElementById('pl-desc')||{}).value||'';
   var prioridade=(document.getElementById('pl-prioridade')||{}).value||'media';
   var dataEntrega=(document.getElementById('pl-data')||{}).value||'';
@@ -2264,6 +2266,7 @@ async function salvarPlanejamentoCard(){
     setStore('planejamento',state.planejamento);
     render();
   } else {showToast('Erro ao salvar');}
+  window._salvandoPlan=false;
 }
 
 async function moverPlanCard(id){
