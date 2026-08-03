@@ -423,6 +423,7 @@ var state={
   // Prioridades
   prioridades:[],
   prioridadesCarregadas:false,
+  prioFiltro:'todos',
   prioridadeModal:false,
   prioridadeModalData:{},
   prioridadeReunioPopup:false,
@@ -1619,13 +1620,26 @@ function renderPrioridadesPage(){
     return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando prioridades...</div></div>';
   }
   var ordem={alta:0,media:1,baixa:2};
-  var lista=state.prioridades.slice().sort(function(a,b){
-    var po=(ordem[a.prioridade]||2)-(ordem[b.prioridade]||2);
-    if(po!==0)return po;
-    if(a.status==='pendente'&&b.status!=='pendente')return-1;
-    if(b.status==='pendente'&&a.status!=='pendente')return 1;
-    return 0;
-  });
+  var filtro=state.prioFiltro||'todos';
+  var lista=state.prioridades.slice()
+    .filter(function(p){return filtro==='todos'||p.prioridade===filtro;})
+    .sort(function(a,b){
+      var po=(ordem[a.prioridade]||2)-(ordem[b.prioridade]||2);
+      if(po!==0)return po;
+      if(a.status==='pendente'&&b.status!=='pendente')return-1;
+      if(b.status==='pendente'&&a.status!=='pendente')return 1;
+      return 0;
+    });
+
+  var filtroHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
+    +['todos','alta','media','baixa'].map(function(f){
+      var ativo=filtro===f;
+      var label=f==='todos'?'Todos':f==='alta'?'🔴 Alta':f==='media'?'🟡 Média':'🟢 Baixa';
+      var cor=f==='alta'?'#f87171':f==='media'?'#fbbf24':f==='baixa'?'#4ade80':'var(--accent)';
+      return '<button id="prio-filtro-'+f+'" style="padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid '+(ativo?cor:'var(--border2)')+';background:'+(ativo?'rgba(0,0,0,.15)':'transparent')+';color:'+(ativo?cor:'var(--text2)')+'">'+label+'</button>';
+    }).join('')
+    +'</div>';
+
   var cards=lista.map(function(p){
     var u=USUARIOS[p.consultor]||{nome:p.consultor||'\u2014',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
     var cor=prioridadeCor(p.prioridade);
@@ -1734,7 +1748,8 @@ function renderPrioridadesPage(){
         +'<button class="btn-save" onclick="abrirModalPrioridade(null)">+ Nova Demanda</button>'
       +'</div>'
     +'</div>'
-    +'<div style="margin-top:20px">'+cards+'</div>'
+    +filtroHTML
+    +'<div style="margin-top:8px">'+cards+'</div>'
     +'</div>'+modalHTML;
 }
 
@@ -1990,6 +2005,7 @@ function renderPlanejamentoPage(){
             +'<div style="width:18px;height:18px;border-radius:50%;background:'+criadoPorU.corBg+';color:'+criadoPorU.cor+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+criadoPorU.nome[0]+'</div>'
             +'<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+criadoPorU.nome+'</span>'
           +'</div>'
+          +'<button id="plan-edit-'+p.id+'" style="padding:2px 7px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">\u270e</button>'
           +'<button id="plan-del-'+p.id+'" style="padding:2px 7px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:5px;font-size:10px;color:#f87171;cursor:pointer">\u2715</button>'
         +'</div>'
         +'</div>';
@@ -2005,14 +2021,19 @@ function renderPlanejamentoPage(){
   var modalHTML='';
   if(state.planejamentoModal){
     var d=state.planejamentoModalData;
+    var isEdit=!!d.id;
     modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.planejamentoModal=false;render();}">'
       +'<div class="modal-box">'
-      +'<div class="modal-title">Nova Tarefa</div>'
+      +'<div class="modal-title">'+(isEdit?'Editar Tarefa':'Nova Tarefa')+'</div>'
       +'<div class="modal-field"><label>T\u00cdTULO *</label><input type="text" id="pl-titulo" placeholder="Descreva a tarefa..." value="'+(d.titulo||'')+'"></div>'
       +'<div class="modal-field"><label>DESCRI\u00c7\u00c3O</label><textarea id="pl-desc" rows="2" placeholder="Detalhes...">'+(d.descricao||'')+'</textarea></div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-        +'<div class="modal-field"><label>PRIORIDADE</label><select id="pl-prioridade"><option value="alta">Alta</option><option value="media" selected>M\u00e9dia</option><option value="baixa">Baixa</option></select></div>'
-        +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="pl-data"></div>'
+        +'<div class="modal-field"><label>PRIORIDADE</label><select id="pl-prioridade">'
+          +'<option value="alta"'+(d.prioridade==='alta'?' selected':'')+'>Alta</option>'
+          +'<option value="media"'+(!d.prioridade||d.prioridade==='media'?' selected':'')+'>M\u00e9dia</option>'
+          +'<option value="baixa"'+(d.prioridade==='baixa'?' selected':'')+'>Baixa</option>'
+        +'</select></div>'
+        +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="pl-data" value="'+(d.dataEntrega||'')+'"></div>'
       +'</div>'
       +'<div class="modal-actions">'
         +'<button class="btn-sec" onclick="state.planejamentoModal=false;render()">Cancelar</button>'
@@ -2055,11 +2076,12 @@ function initPlanejamentoDnd(){
         if(!id||!novoStatus)return;
         var idx=state.planejamento.findIndex(function(p){return p.id===id;});
         if(idx<0)return;
-        if(state.planejamento[idx].status===novoStatus)return;
+        if(state.planejamento[idx].status===novoStatus){render();return;}
         state.planejamento[idx].status=novoStatus;
         setStore('planejamento',state.planejamento);
         apiPost({action:'salvarPlanejamento',id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana||'',status:novoStatus,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
         showToast('✓ Status: '+statusLabel(novoStatus));
+        render();
       }
     });
   });
@@ -2086,6 +2108,8 @@ function bindPlanejamento(){
     if(card)card.onclick=function(e){if(!e.target.id.startsWith('plan-del'))moverPlanCard(p.id);};
     var del=document.getElementById('plan-del-'+p.id);
     if(del)del.onclick=function(e){e.stopPropagation();deletarPlanCard(p.id);};
+    var edit=document.getElementById('plan-edit-'+p.id);
+    if(edit)(function(pp){edit.onclick=function(e){e.stopPropagation();state.planejamentoModal=true;state.planejamentoModalData={id:pp.id,titulo:pp.titulo,descricao:pp.descricao,prioridade:pp.prioridade,dataEntrega:pp.dataEntrega,consultor:pp.consultor,criadoPor:pp.criadoPor,mesAno:pp.mesAno,semana:pp.semana||'',status:pp.status};render();};})(p);
   });
 }
 
@@ -2102,7 +2126,7 @@ async function salvarPlanejamentoCard(){
   showToast('Salvando...');
   var res=await apiPost(payload);
   if(res&&res.ok){
-    showToast('\u2713 Tarefa criada!');
+    showToast(isEdit2?'\u2713 Tarefa atualizada!':'\u2713 Tarefa criada!');
     state.planejamentoModal=false;
     state.planejamentoCarregado=false;
     render();
@@ -3016,6 +3040,11 @@ function bindGestor(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   // Bind reunioes month selector
+  // Bind prioridade filter
+  ['todos','alta','media','baixa'].forEach(function(f){
+    var btn=document.getElementById('prio-filtro-'+f);
+    if(btn)btn.onclick=function(){state.prioFiltro=f;render();};
+  });
   var btnTodos=document.getElementById('btn-reu-todos');
   if(btnTodos)btnTodos.onclick=function(){state.reuniaoMesFiltro='todos';render();};
   var selMes=document.getElementById('sel-mes-reu');
