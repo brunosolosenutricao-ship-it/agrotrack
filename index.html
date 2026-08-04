@@ -3317,20 +3317,24 @@ function initLucasJeanDnd(prefix){
         render();
       }
     });
-    // Lapis button opens detail
-    el.querySelectorAll('button[data-open-id]').forEach(function(btn){
-      btn.onclick=function(e){
-        e.stopPropagation();
-        abrirCardDetalhe(btn.dataset.openId);
-      };
-    });
+
   });
 }
 
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
-  setTimeout(function(){initLucasJeanDnd('lucas');initLucasJeanDnd('jean');},100);
+  setTimeout(function(){
+    initLucasJeanDnd('lucas');
+    initLucasJeanDnd('jean');
+    // Bind lapis buttons for Lucas and Jean
+    document.querySelectorAll('button[data-open-id]').forEach(function(btn){
+      btn.onclick=function(e){
+        e.stopPropagation();
+        abrirCardDetalhe(btn.dataset.openId);
+      };
+    });
+  },100);
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
