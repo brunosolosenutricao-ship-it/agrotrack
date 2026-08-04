@@ -3283,6 +3283,8 @@ function initLucasJeanDnd(prefix){
       animation:150,
       ghostClass:'sortable-ghost',
       dragClass:'sortable-drag',
+      filter:'button',
+      preventOnFilter:false,
       onStart:function(evt){evt.item._dragging=true;},
       onEnd:function(evt){
         var id=evt.item.dataset.cardId;
