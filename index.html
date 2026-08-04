@@ -1884,7 +1884,7 @@ function renderJeanPage(){
       var u=USUARIOS[c.criadoPor]||{cor:'#a78bfa',nome:'Jean'};
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      return'<div class="kanban-card" data-card-id="'+c.id+'" style="cursor:grab">'
+      return'<div class="kanban-card" onclick="moverStatusCard(\''+c.id+'\',getNextStatus(c.status))" style="cursor:pointer">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
@@ -3029,6 +3029,7 @@ document.getElementById('root').insertAdjacentHTML('beforeend',html);
   };
 }
 
+function getNextStatus(s){var c=["aberto","em_andamento","feito"];return c[(c.indexOf(s)+1)%c.length];}
 function moverStatusCard(cardId,novoStatus){
   var cards=getCards();
   var idx=cards.findIndex(function(c){return c.id===cardId;});
@@ -3324,10 +3325,8 @@ function initLucasJeanDnd(prefix){
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  // Bind lapis buttons
   setTimeout(function(){
-    initLucasJeanDnd('lucas');
-    initLucasJeanDnd('jean');
-    // Bind lapis buttons for Lucas and Jean
     document.querySelectorAll('button[data-open-id]').forEach(function(btn){
       btn.onclick=function(e){
         e.stopPropagation();
