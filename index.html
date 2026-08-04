@@ -2680,6 +2680,7 @@ function renderLucasPage(){
         +'</div>'
         +'<div class="kanban-card-footer">'
         +'<span class="kanban-card-autor" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome+'</span>'
+        +'<button data-open-id="'+c.id+'" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
         +notaHTML
         +'</div>'
         +'</div>';
@@ -3293,11 +3294,11 @@ function initLucasJeanDnd(prefix){
         render();
       }
     });
-    // Click to open detail (only if not dragging)
-    el.querySelectorAll('[data-open-id]').forEach(function(card){
-      card.onclick=function(){
-        if(card._dragging)return;
-        abrirCardDetalhe(card.dataset.openId);
+    // Lapis button opens detail
+    el.querySelectorAll('button[data-open-id]').forEach(function(btn){
+      btn.onclick=function(e){
+        e.stopPropagation();
+        abrirCardDetalhe(btn.dataset.openId);
       };
     });
   });
