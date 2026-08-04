@@ -1896,7 +1896,7 @@ function renderJeanPage(){
     var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma demanda</div>':'';
     return'<div class="kanban-col">'
       +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+colCards.length+'</span></div>'
-      +'<div class="kanban-col-body lucas-col-'+st+'" data-card-status="'+st+'">'+colItems+emptyMsg+'</div>'
+      +'<div class="kanban-col-body jean-col-'+st+'" data-card-status="'+st+'">'+colItems+emptyMsg+'</div>'
       +'</div>';
   }).join('');
 
@@ -2687,7 +2687,7 @@ function renderLucasPage(){
     var emptyMsg=colCards.length===0?'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma demanda</div>':'';
     return'<div class="kanban-col">'
       +'<div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+cnt+'</span></div>'
-      +'<div class="kanban-col-body">'+colItems+emptyMsg+'</div>'
+      +'<div class="kanban-col-body lucas-col-'+st+'" data-card-status="'+st+'">'+colItems+emptyMsg+'</div>'
       +'</div>';
   }).join('');
 
@@ -3270,10 +3270,13 @@ function bindConsultor(){
 }
 
 function initLucasJeanDnd(prefix){
+  if(typeof Sortable==='undefined')return;
   var cols=['aberto','em_andamento','feito'];
   cols.forEach(function(st){
     var el=document.querySelector('.kanban-col-body.'+prefix+'-col-'+st);
-    if(!el||el._sortable)return;
+    if(!el)return;
+    // Destroy existing sortable if present
+    if(el._sortable){el._sortable.destroy();el._sortable=null;}
     el._sortable=Sortable.create(el,{
       group:prefix+'-kanban',
       animation:150,
@@ -3284,6 +3287,7 @@ function initLucasJeanDnd(prefix){
         var novoStatus=evt.to.dataset.cardStatus;
         if(!id||!novoStatus)return;
         moverStatusCard(id,novoStatus);
+        render();
       }
     });
   });
@@ -3292,7 +3296,7 @@ function initLucasJeanDnd(prefix){
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
-  setTimeout(function(){initLucasJeanDnd('lucas');initLucasJeanDnd('jean');},50);
+  setTimeout(function(){initLucasJeanDnd('lucas');initLucasJeanDnd('jean');},100);
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
