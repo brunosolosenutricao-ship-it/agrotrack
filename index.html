@@ -330,7 +330,7 @@ body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(-
 
 <script>
 // ============================================================
-// DADOS ESTÁTICOS
+// DADOS ESTATICOS
 // ============================================================
 var USUARIOS={
   'gestor':{senha:'gestor1234',role:'gestor',  nome:'Gestor',cor:'#4ade80',corBg:'rgba(74,222,128,.15)'},
@@ -420,13 +420,13 @@ var state={
   lucasFiltroConsultor:'todos',
   lucasCardAnexos:{},         // cache de anexos por cardId
   lucasUploadQueue:[],        // arquivos selecionados antes de salvar
-  // Reuniões
+  // Reunies
   reunioes:[],
   reuniaoModal:false,
   reuniaoModalData:{},
   reuniaoCarregada:false,
   reuniaoMesFiltro:'atual',
-  // Histórico
+  // Histrico
   historico:[],
   historicoCarregado:false,
   historicoModal:false,
@@ -438,7 +438,7 @@ var state={
   prioridadeModal:false,
   prioridadeModalData:{},
   prioridadeReunioPopup:false,
-  // Análise
+  // Anlise
   analiseAtividadeExpandida:null,
   analiseConsultorFiltro:'todos',
   analiseVisualizacao:'lista',
@@ -830,7 +830,7 @@ function renderApp(content){
       +'<span>'+p[1]+'</span>'+badge+'</div>';
   }).join('');
 
-  // Item Lucas para gestor e consultores (sempre visível)
+  // Item Lucas para gestor e consultores (sempre visvel)
   var lucasNavItem='';
   if(state.role!=='lucas'){
     var isLucasActive=state.paginaGestor==='lucas';
@@ -890,7 +890,7 @@ function renderGestor(){
 
 
 // ============================================================
-// HISTÓRICO DE NOTAS
+// HISTRICO DE NOTAS
 // ============================================================
 async function carregarHistorico(){
   var res=await apiCall({action:'getHistorico'});
@@ -1054,7 +1054,7 @@ async function deletarNotaHistorico(id){
 }
 
 // ============================================================
-// REUNIÕES
+// REUNIES
 // ============================================================
 async function carregarReunioes(){
   var res=await apiCall({action:'getReunioes'});
@@ -1102,7 +1102,7 @@ function renderReunioesPage(){
   var mesFiltro=state.reuniaoMesFiltro||'atual';
   var mesAtualStr=state.mesAtual;
 
-  // Gerar seletor de mês — meses únicos das reuniões + mês atual
+  // Gerar seletor de ms  meses nicos das reunies + ms atual
   var mesesDisp={};
   mesesDisp[mesAtualStr]=true;
   state.reunioes.forEach(function(r){if(r.dataHora&&r.dataHora.length>=7)mesesDisp[r.dataHora.substring(0,7)]=true;});
@@ -1407,7 +1407,7 @@ async function deletarReuniao(id){
 
 
 // ============================================================
-// ANÁLISE POR ATIVIDADE
+// ANLISE POR ATIVIDADE
 // ============================================================
 function setAnaliseFiltro(c){state.analiseConsultorFiltro=c;state.analiseAtividadeExpandida=null;render();}
 function setAnaliseViz(v){state.analiseVisualizacao=v;render();}
@@ -2179,7 +2179,7 @@ function bindPlanejamento(){
         this.style.background='rgba(0,0,0,.2)';
         this.style.color=u.cor;
       }
-      // NÃO chama render() para não apagar o que o usuário digitou
+      // NO chama render() para no apagar o que o usurio digitou
     };
   });
   // Init drag and drop
@@ -2232,7 +2232,7 @@ async function salvarPlanejamentoCard(){
         state.planejamento[idx2].prioridade=prioridade;
         state.planejamento[idx2].dataEntrega=dataEntrega;
       }
-      // Adicionar novos consultores que não tinham card
+      // Adicionar novos consultores que no tinham card
       var novosConss=consultoresSel.filter(function(c){return c!==d2.consultor;});
       novosConss.forEach(function(cons){
         state.planejamento.push({
@@ -2282,15 +2282,35 @@ async function moverPlanCard(id){
 }
 
 async function deletarPlanCard(id){
-  if(!confirm('Remover esta tarefa?'))return;
+  var card=state.planejamento.find(function(p){return p.id===id;});
+  if(!card)return;
+  var irmaos=state.planejamento.filter(function(p){
+    return p.id!==id&&p.titulo===card.titulo&&p.descricao===card.descricao&&p.mesAno===card.mesAno&&p.criadoPor===card.criadoPor;
+  });
+  var deletarTodos=false;
+  if(irmaos.length>0){
+    var nomes=irmaos.map(function(p){var u=USUARIOS[p.consultor];return u?u.nome:p.consultor;}).join(', ');
+    deletarTodos=confirm('Esta tarefa foi compartilhada com '+nomes+'.\n\nOK = Excluir para TODOS\nCancelar = Excluir so daqui');
+  } else {
+    if(!confirm('Remover esta tarefa?'))return;
+  }
   showToast('Removendo...');
   var res=await apiPost({action:'deletarPlanejamento',id:id});
   if(res&&res.ok){
-    showToast('\u2713 Removido!');
-    state.planejamentoCarregado=false;
+    state.planejamento=state.planejamento.filter(function(p){return p.id!==id;});
+    if(deletarTodos&&irmaos.length>0){
+      for(var i=0;i<irmaos.length;i++){
+        await apiPost({action:'deletarPlanejamento',id:irmaos[i].id});
+      }
+      var idsRemover=irmaos.map(function(p){return p.id;});
+      state.planejamento=state.planejamento.filter(function(p){return idsRemover.indexOf(p.id)<0;});
+    }
+    setStore('planejamento',state.planejamento);
+    showToast('✓ Removido!');
     render();
   } else {showToast('Erro ao remover');}
 }
+
 
 function renderDashboard(){
   var m=state.mesAtual;
@@ -2622,7 +2642,7 @@ function renderProgressoConsultor(){
 }
 
 // ============================================================
-// LUCAS — PÁGINA COMPARTILHADA (gestor, consultores, lucas)
+// LUCAS  PGINA COMPARTILHADA (gestor, consultores, lucas)
 // ============================================================
 function renderLucasPage(){
   var m=state.mesAtual;
@@ -2746,7 +2766,7 @@ function renderCardDetalhe(cardId){
   var canMoveStatus=isLucas||state.role==='gestor'||state.role==='diretor'||state.role==='jean';
   var u=USUARIOS[card.criadoPor]||{cor:'#8b90a8',corBg:'var(--surface2)',nome:card.criadoPor};
 
-  // Botões status
+  // Botes status
   var statusBtns=['aberto','em_andamento','feito'].map(function(s){
     var disabled=!canMoveStatus;
     return'<button class="status-btn '+s+(card.status===s?' active':'')+'"'
@@ -2767,7 +2787,7 @@ function renderCardDetalhe(cardId){
     notaBtns=card.nota?'<span style="font-size:18px;font-weight:600;color:'+notaColor(Number(card.nota)*10)+'">'+card.nota+'/10</span>':'<span style="color:var(--text3);font-size:13px">Aguardando avaliação</span>';
   }
 
-  // Anexos da memória local
+  // Anexos da memria local
   var anexos=state.lucasCardAnexos[cardId]||[];
   var anexosHTML=anexos.length?anexos.map(function(a,i){
     return'<div class="anexo-item">'
@@ -2779,7 +2799,7 @@ function renderCardDetalhe(cardId){
       +'</div>';
   }).join(''):'<div style="font-size:12px;font-family:var(--mono);color:var(--text3);padding:8px 0">Nenhum anexo</div>';
 
-  // Upload area (só quem pode editar)
+  // Upload area (s quem pode editar)
   var uploadHTML='';
   if(canEdit){
     // Arquivos da fila (antes de salvar)
@@ -2863,7 +2883,7 @@ function renderCardDetalhe(cardId){
 }
 
 // ============================================================
-// AÇÕES DOS CARDS
+// AES DOS CARDS
 // ============================================================
 function abrirCardDetalhe(cardId){
   state.lucasCardAberto=cardId;
