@@ -1884,7 +1884,7 @@ function renderJeanPage(){
       var u=USUARIOS[c.criadoPor]||{cor:'#a78bfa',nome:'Jean'};
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      return'<div class="kanban-card" onclick="abrirCardDetalhe(\''+c.id+'\')" data-card-id="'+c.id+'" style="cursor:grab">' 
+      return'<div class="kanban-card" data-card-id="'+c.id+'" data-open-id="'+c.id+'" style="cursor:grab">' 
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
@@ -3282,13 +3282,23 @@ function initLucasJeanDnd(prefix){
       animation:150,
       ghostClass:'sortable-ghost',
       dragClass:'sortable-drag',
+      onStart:function(evt){evt.item._dragging=true;},
       onEnd:function(evt){
         var id=evt.item.dataset.cardId;
         var novoStatus=evt.to.dataset.cardStatus;
+        setTimeout(function(){evt.item._dragging=false;},200);
         if(!id||!novoStatus)return;
+        if(evt.from===evt.to&&evt.oldIndex===evt.newIndex)return;
         moverStatusCard(id,novoStatus);
         render();
       }
+    });
+    // Click to open detail (only if not dragging)
+    el.querySelectorAll('[data-open-id]').forEach(function(card){
+      card.onclick=function(){
+        if(card._dragging)return;
+        abrirCardDetalhe(card.dataset.openId);
+      };
     });
   });
 }
