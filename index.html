@@ -1884,12 +1884,13 @@ function renderJeanPage(){
       var u=USUARIOS[c.criadoPor]||{cor:'#a78bfa',nome:'Jean'};
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      return'<div class="kanban-card" data-card-id="'+c.id+'" data-open-id="'+c.id+'" style="cursor:grab">' 
+      return'<div class="kanban-card" data-card-id="'+c.id+'" style="cursor:grab">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
         +'<div class="kanban-card-footer">'
         +'<span class="kanban-card-autor" style="background:rgba(167,139,250,.15);color:#a78bfa">Jean</span>'
+        +'<button data-open-id="'+c.id+'" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
         +notaHTML+'</div>'
         +'</div>';
     }).join('');
