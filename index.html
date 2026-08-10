@@ -442,6 +442,8 @@ var state={
   analiseAtividadeExpandida:null,
   analiseConsultorFiltro:'todos',
   analiseVisualizacao:'lista',
+  editAtivModal:false,
+  editAtivData:{},
   kpiModal:null,
   // Planejamento
   planejamento:[],
@@ -1906,6 +1908,22 @@ function renderJeanPage(){
 
   var detalheHTML=state.lucasCardAberto?renderCardDetalhe(state.lucasCardAberto):'';
 
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
     +'<div><div class="page-title" style="color:#a78bfa">Demandas — Jean</div>'
@@ -2391,6 +2409,22 @@ function renderDashboard(){
   }
 
   var ss='padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);cursor:pointer;';
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
     +'<div><div class="page-title">Dashboard</div><div class="page-sub">Visão geral da equipe</div></div>'
@@ -2463,6 +2497,22 @@ function renderConsultoresPage(){
       +'</div>'
       +'<div class="table-wrap"><table><tr><th>CLIENTE</th><th>REGIÃO</th><th>ÁREA (ha)</th><th>NOTA</th><th>PROGRESSO</th><th></th></tr>'+linhas+'</table></div></div>';
   }).join('');
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Consultores</div><div class="page-sub">Desempenho por cliente e atividade</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
@@ -2476,6 +2526,7 @@ function renderAtividadesPage(){
     return'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'
       +'<div style="flex:1;font-size:13px;">'+a.nome+'</div>'
       +'<span class="badge badge-gray">'+( a.escopo==='geral'?'Geral':Array.isArray(a.escopo)?a.escopo.length+' clientes':a.escopo)+'</span>'
+      +'<button onclick="abrirEditAtiv(\''+a.id+'\')" style="padding:4px 10px;border:1px solid var(--border2);background:transparent;border-radius:6px;color:var(--text2);font-family:var(--mono);font-size:11px;cursor:pointer;">✎</button>'
       +'<button onclick="removerAtiv(\''+a.id+'\')" style="padding:4px 10px;border:1px solid var(--border2);background:transparent;border-radius:6px;color:var(--danger);font-family:var(--mono);font-size:11px;cursor:pointer;">✕</button>'
       +'</div>';
   }).join('');
@@ -2489,6 +2540,22 @@ function renderAtividadesPage(){
     }).join('');
     return'<div class="scope-group"><div class="scope-group-label">'+u.nome.toUpperCase()+'</div>'+items+'</div>';
   }).join('');
+
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
 
   return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Atividades</div><div class="page-sub">Gerenciar atividades do mês</div></div>'
@@ -2505,7 +2572,77 @@ function renderAtividadesPage(){
     +'</div></div>'
     +'<div class="card"><div class="section-title">ATIVIDADES DO MÊS — '+ativs.length+'</div>'
     +(ativs.length===0?'<div style="padding:20px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:12px">Nenhuma atividade neste mês.</div>':lista)
-    +'</div></div></div>';
+    +'</div></div></div>'
+    +editModalHTML;
+}
+
+function abrirEditAtiv(id){
+  var a=getAtividades().find(function(x){return x.id===id;});
+  if(!a)return;
+  // Convert escopo to object for easy lookup
+  var escopoObj={};
+  if(a.escopo==='geral'){escopoObj='geral';}
+  else if(Array.isArray(a.escopo)){a.escopo.forEach(function(id2){escopoObj[id2]=true;});}
+  else if(typeof a.escopo==='object'){escopoObj=Object.assign({},a.escopo);}
+  state.editAtivData={id:a.id,nome:a.nome,mesAno:a.mesAno,escopo:escopoObj};
+  state.editAtivModal=true;
+  render();
+  // Bind toggle buttons after render
+  setTimeout(function(){
+    document.querySelectorAll('.edit-escopo-btn').forEach(function(btn){
+      btn.onclick=function(){
+        var clid=this.dataset.clid;
+        var cor=this.dataset.ucolor;
+        var ea=state.editAtivData;
+        if(ea.escopo==='geral')return;
+        if(!ea.escopo||typeof ea.escopo!=='object')ea.escopo={};
+        if(ea.escopo[clid]){
+          delete ea.escopo[clid];
+          this.style.borderColor='var(--border2)';
+          this.style.background='transparent';
+          this.style.color='var(--text2)';
+        } else {
+          ea.escopo[clid]=true;
+          this.style.borderColor=cor;
+          this.style.background='rgba(0,0,0,.15)';
+          this.style.color=cor;
+        }
+      };
+    });
+    var btnSalvar=document.getElementById('btn-salvar-edit-ativ');
+    if(btnSalvar)btnSalvar.onclick=salvarEditAtiv;
+  },50);
+}
+
+function toggleEditGeral(el){
+  var wrap=document.getElementById('edit-escopo-clientes');
+  if(el.checked){
+    state.editAtivData.escopo='geral';
+    if(wrap){wrap.style.opacity='.4';wrap.style.pointerEvents='none';}
+  } else {
+    state.editAtivData.escopo={};
+    if(wrap){wrap.style.opacity='1';wrap.style.pointerEvents='auto';}
+  }
+}
+
+async function salvarEditAtiv(){
+  var ea=state.editAtivData;
+  var escopo=ea.escopo;
+  if(typeof escopo==='object'&&escopo!=='geral'){
+    var keys=Object.keys(escopo).filter(function(k){return escopo[k];});
+    escopo=keys.length===0?'geral':keys;
+  }
+  var escopoStr=Array.isArray(escopo)?JSON.stringify(escopo):escopo;
+  // Update local cache
+  var ativs=getAtividades();
+  var idx=ativs.findIndex(function(a){return a.id===ea.id;});
+  if(idx>=0){ativs[idx].escopo=Array.isArray(escopo)?escopo:escopo;}
+  setStore('atividades',ativs);_cacheAtividades=ativs;
+  // Save to Sheets
+  if(APPS_SCRIPT_URL)await apiCall({action:'addAtividade',id:ea.id,nome:ea.nome,mesAno:ea.mesAno,escopo:escopoStr,ativo:'true'});
+  showToast('✓ Escopo atualizado!');
+  state.editAtivModal=false;
+  render();
 }
 
 function removerAtiv(id){
@@ -2539,6 +2676,22 @@ function renderPendenciasPage(){
       +'<td>'+p.cliente+'</td><td style="font-size:12px;color:var(--text2)">'+p.atividade+'</td></tr>';
   }).join('');
   if(!pf.length)rows='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3);font-family:var(--mono)">Nenhuma pendência!</td></tr>';
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Pendências</div><div class="page-sub">'+pf.length+' atividade(s) sem preenchimento</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
@@ -2610,6 +2763,22 @@ function renderClientesConsultor(){
       +'<button class="btn-sec" onclick="state.clienteSelecionado=null;render()">Voltar</button>'
       +'</div></div>';
   }
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Olá, '+u.nome+'</div><div class="page-sub">Selecione um cliente</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
@@ -2632,6 +2801,22 @@ function renderProgressoConsultor(){
       +'<td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:'+p2+'%;background:'+notaColor(p2)+'"></div></div>'
       +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+regs.length+'/'+ativs.length+'</span></div></td></tr>';
   }).join('');
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
+
   return'<div class="page page-fade">'
     +'<div class="page-header"><div class="page-title">Meu Progresso</div><div class="page-sub">'+u.nome+' — '+MESES[parseInt(m.split('-')[1])-1]+'/'+m.split('-')[0]+'</div></div>'
     +'<div class="month-bar"><span style="font-size:12px;font-family:var(--mono);color:var(--text3)">MÊS</span><select id="mes-sel">'+gerarMeses()+'</select></div>'
@@ -2721,6 +2906,22 @@ function renderLucasPage(){
   }
 
   var btnNova=(!isLucas)?'<button class="btn-lucas" onclick="abrirModalNovoCard()">+ Nova Demanda</button>':'';
+
+  // Edit modal
+  var editModalHTML='';
+  if(state.editAtivModal&&state.editAtivData.id){
+    var ea=state.editAtivData;
+    var escopoAtual=ea.escopo||{};
+    var consultores2=['igor','felipe','paula','ramon'];
+    var escopoEditUI=consultores2.map(function(c){
+      var u=USUARIOS[c];
+      return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
+          var sel=escopoInclui(escopoAtual,cl.id);
+          return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
+        }).join('')        +'</div></div>';
+    }).join('');
+    editModalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.editAtivModal=false;render();}">'      +'<div class="modal-box">'      +'<div class="modal-title">Editar Escopo</div>'      +'<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">'+ea.nome+'</div>'      +'<div class="modal-field"><label>CLIENTES NO ESCOPO</label>'      +'<label class="check-item" style="margin-bottom:10px"><input type="checkbox" id="edit-escopo-geral"'+(ea.escopo==="geral"?" checked":"")+' onchange="toggleEditGeral(this)">Todos os clientes (Geral)</label>'      +'<div id="edit-escopo-clientes" style="'+(ea.escopo==="geral"?"opacity:.4;pointer-events:none":"")+'">'+escopoEditUI+'</div>'      +'</div>'      +'<div class="modal-actions">'      +'<button class="btn-sec" onclick="state.editAtivModal=false;render()">Cancelar</button>'      +'<button class="btn-save" id="btn-salvar-edit-ativ">Salvar</button>'      +'</div></div></div>';
+  }
 
   return'<div class="page page-fade">'
     +'<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
