@@ -1380,7 +1380,8 @@ async function salvarReuniao(){
 async function liberarSlot(id){
   if(!confirm('Liberar este slot?'))return;
   showToast('Liberando...');
-  var res=await apiPost({action:'salvarReuniao',id:id,consultor:'',cliente:'',status:'livre',obs:''});
+  var reu=state.reunioes.find(function(r){return r.id===id;});
+  var res=await apiPost({action:'salvarReuniao',id:id,dataHora:reu?reu.dataHora:'',dataFim:reu?reu.dataFim:'',consultor:'',cliente:'',status:'livre',obs:''});
   if(res&&res.ok){
     showToast('✓ Slot liberado!');
     state.reuniaoCarregada=false;
@@ -1890,7 +1891,7 @@ function renderJeanPage(){
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
         +'<div class="kanban-card-footer">'
         +'<span class="kanban-card-autor" style="background:rgba(167,139,250,.15);color:#a78bfa">Jean</span>'
-        +'<button data-open-id="'+c.id+'" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
+        +'<button onclick="event.stopPropagation();abrirCardDetalhe(\''+c.id+'\')" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
         +notaHTML+'</div>'
         +'</div>';
     }).join('');
@@ -2701,7 +2702,7 @@ function renderLucasPage(){
         +'</div>'
         +'<div class="kanban-card-footer">'
         +'<span class="kanban-card-autor" style="background:'+u.corBg+';color:'+u.cor+'">'+u.nome+'</span>'
-        +'<button data-open-id="'+c.id+'" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
+        +'<button onclick="event.stopPropagation();abrirCardDetalhe(\''+c.id+'\')" style="padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">✎</button>'
         +notaHTML
         +'</div>'
         +'</div>';
@@ -3325,15 +3326,7 @@ function initLucasJeanDnd(prefix){
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
-  // Bind lapis buttons
-  setTimeout(function(){
-    document.querySelectorAll('button[data-open-id]').forEach(function(btn){
-      btn.onclick=function(e){
-        e.stopPropagation();
-        abrirCardDetalhe(btn.dataset.openId);
-      };
-    });
-  },100);
+
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
   });
