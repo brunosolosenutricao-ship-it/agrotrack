@@ -1917,7 +1917,7 @@ function renderJeanPage(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2418,7 +2418,7 @@ function renderDashboard(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2506,7 +2506,7 @@ function renderConsultoresPage(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2550,7 +2550,7 @@ function renderAtividadesPage(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2685,7 +2685,7 @@ function renderPendenciasPage(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2772,7 +2772,7 @@ function renderClientesConsultor(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2810,7 +2810,7 @@ function renderProgressoConsultor(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
@@ -2916,7 +2916,7 @@ function renderLucasPage(){
     var escopoEditUI=consultores2.map(function(c){
       var u=USUARIOS[c];
       return'<div style="margin-bottom:12px">'        +'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:'+u.cor+';margin-bottom:6px">'+u.nome.toUpperCase()+'</div>'        +'<div style="display:flex;flex-wrap:wrap;gap:6px">'        +(CLIENTES[c]||[]).map(function(cl){
-          var sel=escopoInclui(escopoAtual,cl.id);
+          var sel=escopoAtual==='geral'||( typeof escopoAtual==='object'&&!Array.isArray(escopoAtual)&&escopoAtual[cl.id])||( Array.isArray(escopoAtual)&&escopoAtual.indexOf(cl.id)>=0);
           return'<button class="edit-escopo-btn" data-clid="'+cl.id+'" data-ucolor="'+u.cor+'" style="padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid '+(sel?u.cor:'var(--border2)')+';background:'+(sel?'rgba(0,0,0,.15)':'transparent')+';color:'+(sel?u.cor:'var(--text2)')+'">'+cl.nome+'</button>';
         }).join('')        +'</div></div>';
     }).join('');
