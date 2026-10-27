@@ -332,72 +332,18 @@ body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(-
 // ============================================================
 // DADOS ESTATICOS
 // ============================================================
-var USUARIOS={
-  'gestor':{senha:'gestor1234',role:'gestor',  nome:'Gestor',cor:'#4ade80',corBg:'rgba(74,222,128,.15)'},
-  'igor':  {senha:'igor123',  role:'consultor',nome:'Igor',  cor:'#4ade80',corBg:'rgba(74,222,128,.15)'},
-  'felipe':{senha:'felipe123',role:'consultor',nome:'Felipe',cor:'#60a5fa',corBg:'rgba(96,165,250,.15)'},
-  'paula': {senha:'paula123', role:'consultor',nome:'Paula', cor:'#c084fc',corBg:'rgba(192,132,252,.15)'},
-  'ramon': {senha:'ramon123', role:'consultor',nome:'Ramon', cor:'#fb923c',corBg:'rgba(251,146,60,.15)'},
-  'lucas': {senha:'lucas123', role:'lucas',    nome:'Lucas', cor:'#f472b6',corBg:'rgba(244,114,182,.15)'},
-  'rafael':{senha:'rafael123',role:'diretor',  nome:'Rafael',cor:'#38bdf8',corBg:'rgba(56,189,248,.15)'},
-  'jean':  {senha:'jean123',  role:'jean',     nome:'Jean',  cor:'#a78bfa',corBg:'rgba(167,139,250,.15)'},
-};
-var CLIENTES={
-  igor:[
-    {id:'i1',nome:'Fábio',regiao:'MS',area:3133},{id:'i2',nome:'Cerro',regiao:'MS',area:3689.85},
-    {id:'i3',nome:'Grimm',regiao:'MS',area:2071},{id:'i4',nome:'Eduardo',regiao:'MS, PY',area:9510},
-    {id:'i5',nome:'Murillo',regiao:'MS, PY',area:1900},{id:'i6',nome:'Fries',regiao:'GO',area:8995.70},
-    {id:'i7',nome:'Augusto',regiao:'GO, MT',area:3130},{id:'i8',nome:'Duarte BJ',regiao:'MS, GO',area:4569.60},
-    {id:'i9',nome:'Duarte SUC',regiao:'MT',area:1172},
-  ],
-  felipe:[
-    {id:'f1',nome:'Patrícia',regiao:'PI',area:2000},
-    {id:'f2',nome:'Insolo',regiao:'MA, PI, TO',area:195000},
-    {id:'f3',nome:'Gees',regiao:'PI, MA',area:50000},
-  ],
-  paula:[
-    {id:'p1',nome:'Camilla',regiao:'GO',area:1898},
-    {id:'p3',nome:'Miro',regiao:'GO, MG',area:4250.60},{id:'p4',nome:'Flávio Vigolo',regiao:'MT',area:1700},
-    {id:'p5',nome:'Hemerson',regiao:'MG',area:550},{id:'p6',nome:'Califórnia',regiao:'GO',area:7237},
-    {id:'p8',nome:'Bonato',regiao:'GO',area:2450},
-    {id:'p9',nome:'Brunetta',regiao:'MT',area:4487.12},{id:'p10',nome:'Tiago',regiao:'MA',area:1700},
-    {id:'p11',nome:'Eduardo Rissate',regiao:'MA',area:1700},
-  ],
-  ramon:[
-    {id:'r1',nome:'Vale Verde',regiao:'GO',area:15032.83},{id:'r2',nome:'Maraney',regiao:'GO/MT',area:13119.69},
-    {id:'r3',nome:'Usina',regiao:'MT',area:5674.50},{id:'r4',nome:'Edson',regiao:'MT',area:1407.60},
-    {id:'r5',nome:'Decisão',regiao:'BA',area:10994},{id:'r6',nome:'Giusti',regiao:'MT',area:19940},
-    {id:'r7',nome:'Dal Bello',regiao:'GO, DF',area:3203},{id:'r8',nome:'Sto. Expedito',regiao:'MG',area:7526.95},
-    {id:'r9',nome:'Produtiva',regiao:'GO/TO/DF/MG/BA',area:30199.14},
-  ]
-};
-var TODOS_CLIENTES_FLAT = Object.entries(CLIENTES).reduce(function(acc,e){
-  e[1].forEach(function(cl){acc.push(Object.assign({},cl,{consultor:e[0]}));});return acc;
-},[]);
+var SUPA_URL='https://zjslzslygnagvucvuocv.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2x6c2x5Z25hZ3Z1Y3Z1b2N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwOTcyMzQsImV4cCI6MjEwODY3MzIzNH0.qx0nBDVIiB7gx55TcYxllymajv6adg6IdggCacnRKK0';
 
-var CODIGOS=[
-  {codigo:'10',              descricao:'Atividade finalizada',            nota:10,cls:'cod-10'},
-  {codigo:'Não se aplica',  descricao:'Não se aplica ao cliente',         nota:10,cls:'cod-nao'},
-  {codigo:'0',               descricao:'Não realizado',                   nota:0, cls:'cod-0'},
-  {codigo:'5-',              descricao:'Realizado parcial',               nota:5, cls:'cod-5'},
-  {codigo:'Enviado para cotação',descricao:'Planilha de cotação enviada', nota:5, cls:'cod-cotacao'},
-  {codigo:'IND',             descricao:'Sem informação',                  nota:10,cls:'cod-ind'},
-  {codigo:'Cliente não executou',descricao:'Sem informação no cliente',   nota:10,cls:'cod-cliente'},
-  {codigo:'Fora de timing',  descricao:'Fora de timing',                  nota:10,cls:'cod-timing'},
-  {codigo:'Sem Resposta',    descricao:'Sem resposta do cliente',         nota:10,cls:'cod-semresp'},
-  {codigo:'5-pad',           descricao:'Padrão de análise lab. enviado, sem laudos recebidos', nota:5, cls:'cod-5'},
-  {codigo:'5-laudo',         descricao:'Laudo recebido — pendente compilação no Atlas',                      nota:5, cls:'cod-cotacao'},
-  {codigo:'n-insumo',        descricao:'Cliente ainda não comprou Insumo',                         nota:10,cls:'cod-nao'},
-  {codigo:'n-rec',           descricao:'Cliente NÃO tem recomendação deste insumo 26.27', nota:10,cls:'cod-nao'},
-  {codigo:'n-analise',       descricao:'Padrão enviado mas cliente não irá fazer análise', nota:10,cls:'cod-nao'},
-  {codigo:'10-ds',           descricao:'Laudo compilado no Atlas',               nota:10,cls:'cod-10'},
-  {codigo:'0-pad',           descricao:'Ainda não enviado padrão de análise para cliente', nota:0, cls:'cod-0'},
-  {codigo:'n-ainda',         descricao:'Especificação enviada — cliente ainda não executou a análise', nota:10,cls:'cod-nao'},
-];
+// Dados em memória — carregados do Supabase no boot
+var USUARIOS={};
+var CLIENTES={};
+var TODOS_CLIENTES_FLAT=[];
+var CODIGOS=[];
+
 var MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var _hoje=new Date();var MES_ATUAL=_hoje.getFullYear()+'-'+String(_hoje.getMonth()+1).padStart(2,'0');
-var APPS_SCRIPT_URL_DEFAULT='https://script.google.com/macros/s/AKfycbzjcf2NA13c34s8RNDY6Jsn-C_iTwWYoD-AqOm6TByXKmsGCb7t9jhBtTrc6qkbJP4Z5Q/exec';
-var APPS_SCRIPT_URL=localStorage.getItem('agro_api_url')||APPS_SCRIPT_URL_DEFAULT;
+
 
 // ============================================================
 // STATE
@@ -462,56 +408,122 @@ var _bufferRegistros={},_bufferTimer=null,_indicadorTimer=null;
 function getStore(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function setStore(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
-async function apiCall(p){
-  if(!APPS_SCRIPT_URL)return null;
-  try{
-    var r=await fetch(APPS_SCRIPT_URL+'?'+new URLSearchParams(p).toString(),{redirect:'follow'});
-    return JSON.parse(await r.text());
-  }catch(e){console.warn('API:',e);return null;}
+// ── SUPABASE API ──────────────────────────────────────────
+async function supa(table, opts){
+  opts = opts||{};
+  var url = SUPA_URL+'/rest/v1/'+table;
+  var params = [];
+  if(opts.select) params.push('select='+opts.select);
+  if(opts.eq) Object.keys(opts.eq).forEach(function(k){ params.push(k+'=eq.'+encodeURIComponent(opts.eq[k])); });
+  if(opts.order) params.push('order='+opts.order);
+  if(opts.limit) params.push('limit='+opts.limit);
+  if(params.length) url += '?'+params.join('&');
+  var r = await fetch(url, {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error('Supa GET '+table+': '+r.status);
+  return r.json();
 }
 
-async function apiPost(body){
-  if(!APPS_SCRIPT_URL)return null;
+async function supaInsert(table, data, upsertOn){
   showSavingBar();
   try{
-    var r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow'});
-    return JSON.parse(await r.text());
-  }catch(e){console.warn('API POST:',e);return null;}
-  finally{hideSavingBar();}
+    var url = SUPA_URL+'/rest/v1/'+table;
+    var headers = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    if(upsertOn) headers['Prefer'] = 'resolution=merge-duplicates,return=representation';
+    var r = await fetch(url, {method:'POST', headers:headers, body:JSON.stringify(Array.isArray(data)?data:[data])});
+    if(!r.ok){var err=await r.text();throw new Error(err);}
+    return r.json();
+  }finally{hideSavingBar();}
 }
 
-async function sincronizarDoSheets(){
-  if(!APPS_SCRIPT_URL)return false;
+async function supaUpdate(table, data, eq){
+  showSavingBar();
+  try{
+    var params = Object.keys(eq).map(function(k){return k+'=eq.'+encodeURIComponent(eq[k]);}).join('&');
+    var url = SUPA_URL+'/rest/v1/'+table+'?'+params;
+    var r = await fetch(url, {method:'PATCH', headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'}, body:JSON.stringify(data)});
+    if(!r.ok){var err=await r.text();throw new Error(err);}
+    return r.json();
+  }finally{hideSavingBar();}
+}
+
+async function supaDelete(table, eq){
+  showSavingBar();
+  try{
+    var params = Object.keys(eq).map(function(k){return k+'=eq.'+encodeURIComponent(eq[k]);}).join('&');
+    var url = SUPA_URL+'/rest/v1/'+table+'?'+params;
+    var r = await fetch(url, {method:'DELETE', headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+    if(!r.ok){var err=await r.text();throw new Error(err);}
+    return {ok:true};
+  }finally{hideSavingBar();}
+}
+
+// Compatibilidade com código antigo que usa apiPost
+async function apiPost(body){
+  // Redireciona para funções Supabase específicas
+  return null;
+}
+
+async function sincronizarDoSupabase(){
   if(_sincronizando)return false;
   _sincronizando=true;
   try{
-    showProgress(5,'Conectando ao servidor...');
-    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
-    showProgress(15,'Buscando atividades...');
-    var aR=await apiCall({action:'getAtividades'});
-    showProgress(40,'Buscando registros...');
-    var rR=await apiCall({action:'getRegistros'});
-    showProgress(70,'Buscando demandas...');
-    var cR=await apiCall({action:'getCards'});
-    showProgress(90,'Finalizando...');
-    var ok=false;
-    if(aR&&!aR.erro&&Array.isArray(aR)&&aR.length>0){
-      var n=aR.map(function(a){return Object.assign({},a,{ativo:a.ativo===true||String(a.ativo).toUpperCase()==='TRUE'});});
-      setStore('atividades',n);_cacheAtividades=n;ok=true;
-    }
-    if(rR&&!rR.erro&&Array.isArray(rR)&&rR.length>0){
-      var nr=rR.map(function(r){return Object.assign({},r,{nota:Number(r.nota)});});
-      setStore('registros',nr);_cacheRegistros=nr;ok=true;
-    }
-    if(cR&&!cR.erro&&Array.isArray(cR)){
-      setStore('cards',cR);_cacheCards=cR;ok=true;
-    }
+    showProgress(5,'Conectando ao Supabase...');
+
+    // Carregar dados estáticos (usuarios, clientes, codigos)
+    showProgress(10,'Carregando usuários...');
+    var usRows = await supa('usuarios',{select:'*'});
+    USUARIOS={};
+    usRows.forEach(function(u){
+      USUARIOS[u.usuario]={senha:u.senha,role:u.role,nome:u.nome,cor:u.cor,corBg:u.cor_bg};
+    });
+
+    showProgress(20,'Carregando clientes...');
+    var clRows = await supa('clientes',{select:'*',eq:{ativo:'true'},order:'nome'});
+    CLIENTES={};
+    clRows.forEach(function(cl){
+      if(!CLIENTES[cl.consultor])CLIENTES[cl.consultor]=[];
+      CLIENTES[cl.consultor].push({id:cl.id,nome:cl.nome,regiao:cl.regiao||'',area:cl.area||0});
+    });
+    TODOS_CLIENTES_FLAT=clRows.map(function(cl){return{id:cl.id,nome:cl.nome,consultor:cl.consultor,regiao:cl.regiao||'',area:cl.area||0};});
+
+    showProgress(30,'Carregando códigos...');
+    var codRows = await supa('codigos',{select:'*',eq:{ativo:'true'}});
+    CODIGOS=codRows.map(function(c){return{codigo:c.codigo,descricao:c.descricao,nota:c.nota,cls:c.cls};});
+
+    showProgress(40,'Buscando atividades...');
+    var aR = await supa('atividades',{select:'*'});
+    var ativs = aR.map(function(a){
+      var escopo = a.escopo;
+      if(typeof escopo==='string') try{escopo=JSON.parse(escopo);}catch(e){}
+      return {id:a.id,nome:a.nome,mesAno:a.mes_ano,escopo:escopo,ativo:a.ativo};
+    });
+    setStore('atividades',ativs);_cacheAtividades=ativs;
+
+    showProgress(65,'Buscando registros...');
+    var rR = await supa('registros',{select:'*'});
+    var regs = rR.map(function(r){return{consultor:r.consultor,clienteId:r.cliente_id,atividadeId:r.atividade_id,codigo:r.codigo,nota:Number(r.nota),mesAno:r.mes_ano,ts:String(r.ts)};});
+    setStore('registros',regs);_cacheRegistros=regs;
+
+    showProgress(85,'Buscando demandas...');
+    var cR = await supa('cards',{select:'*'});
+    var cards = cR.map(function(c){return{id:c.id,titulo:c.titulo,descricao:c.descricao||'',clienteId:c.cliente_id,clienteNome:c.cliente_nome,criadoPor:c.criado_por,mesAno:c.mes_ano,status:c.status||'aberto',nota:c.nota,feedback:c.feedback||'',folderId:c.folder_id||'',folderUrl:c.folder_url||'',criadoEm:c.criado_em,atualizadoEm:c.atualizado_em,prioridade:c.prioridade||'baixa',dataEntrega:c.data_entrega||'',destinatario:c.destinatario||'lucas',dataConclusao:c.data_conclusao||''};});
+    setStore('cards',cards);_cacheCards=cards;
+
     showProgress(100,'Pronto!');
     setTimeout(hideProgress,500);
-    showToast(ok?'✓ Atualizado!':'⚠ Sem dados');return ok;
-  }catch(e){hideProgress();showToast('Erro ao sincronizar');return false;}
-  finally{_sincronizando=false;}
+    showToast('✓ Sincronizado!');
+    return true;
+  }catch(e){
+    hideProgress();
+    showToast('Erro: '+e.message);
+    console.error(e);
+    return false;
+  }finally{_sincronizando=false;}
 }
+
+// Alias para compatibilidade
+var sincronizarDoSheets = sincronizarDoSupabase;
+
 
 function getAtividades(){
   if(_cacheAtividades)return _cacheAtividades;
@@ -707,20 +719,19 @@ async function despejarBuffer(){
   var lote=Object.values(_bufferRegistros);
   if(!lote.length)return;
   _bufferRegistros={};_bufferTimer=null;
-  if(!APPS_SCRIPT_URL)return;
   try{
-    var t=new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},15000);});
-    await Promise.race([apiCall({action:'salvarRegistros',registros:JSON.stringify(lote)}),t]);
+    var rows=lote.map(function(r){return{consultor:r.consultor,cliente_id:r.clienteId,atividade_id:r.atividadeId,codigo:r.codigo,nota:r.nota,mes_ano:r.mesAno,ts:r.ts};});
+    await supaInsert('registros',rows,true);
   }catch(e){
     lote.forEach(function(r){var k=r.consultor+'|'+r.clienteId+'|'+r.atividadeId+'|'+r.mesAno;_bufferRegistros[k]=r;});
     _bufferTimer=setTimeout(function(){despejarBuffer();},5000);
   }
 }
 async function salvarRegistrosLote(lote){
-  if(!APPS_SCRIPT_URL||!lote.length)return;
+  if(!lote.length)return;
   try{
-    var t=new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},15000);});
-    await Promise.race([apiCall({action:'salvarRegistros',registros:JSON.stringify(lote)}),t]);
+    var rows=lote.map(function(r){return{consultor:r.consultor,cliente_id:r.clienteId,atividade_id:r.atividadeId,codigo:r.codigo,nota:r.nota,mes_ano:r.mesAno,ts:r.ts};});
+    await supaInsert('registros',rows,true);
   }catch(e){console.warn('Erro lote:',e);}
 }
 function salvarRegistro(consultor,clienteId,atividadeId,codigo,mesAno){
@@ -736,6 +747,74 @@ function mostrarIndicador(){
   ind.style.opacity='1';
   if(_indicadorTimer)clearTimeout(_indicadorTimer);
   _indicadorTimer=setTimeout(function(){ind.style.opacity='0';},3000);
+}
+
+
+// ── SUPABASE UPSERT HELPERS ───────────────────────────────
+
+async function supaUpsertCard(data){
+  var agora = new Date().toISOString();
+  var row = {
+    id: data.id,
+    titulo: data.titulo||'',
+    descricao: data.descricao||'',
+    cliente_id: data.clienteId||'geral',
+    cliente_nome: data.clienteNome||'Geral',
+    criado_por: data.criadoPor||data.criado_por||'',
+    mes_ano: data.mesAno||data.mes_ano||'',
+    status: data.status||'aberto',
+    nota: data.nota!=null&&data.nota!==''?Number(data.nota):null,
+    feedback: data.feedback||'',
+    folder_id: data.folderId||data.folder_id||'',
+    folder_url: data.folderUrl||data.folder_url||'',
+    prioridade: data.prioridade||'baixa',
+    data_entrega: data.dataEntrega||data.data_entrega||'',
+    destinatario: data.destinatario||'lucas',
+    data_conclusao: data.dataConclusao||data.data_conclusao||'',
+    atualizado_em: agora
+  };
+  if(!row.id) row.id = 'c'+Date.now();
+  var res = await supaInsert('cards', row, true);
+  return {ok:true, id:row.id};
+}
+
+async function supaUpsertReuniao(data){
+  var row = {id:data.id||('r'+Date.now()),data_hora:data.dataHora||'',data_fim:data.dataFim||'',consultor:data.consultor||'',cliente:data.cliente||'',status:data.status||'livre',obs:data.obs||''};
+  await supaInsert('reunioes', row, true);
+  return {ok:true, id:row.id};
+}
+
+async function supaUpsertHistorico(data){
+  var row = {id:data.id||('h'+Date.now()),mes_ano:data.mesAno||'',pessoa:data.pessoa||'',nota:Number(data.nota||0),criado_por:data.criadoPor||'',criado_em:new Date().toISOString()};
+  await supaInsert('historico', row, true);
+  return {ok:true, id:row.id};
+}
+
+async function supaUpsertPrioridade(data){
+  var row = {id:data.id||('p'+Date.now()),cliente:data.cliente||'',consultor:data.consultor||'',tipo:data.tipo||'',prioridade:data.prioridade||'media',status:data.status||'pendente',descricao:data.descricao||'',reuniao_id:data.reuniaoId||'',criado_por:data.criadoPor||''};
+  await supaInsert('prioridades', row, true);
+  return {ok:true, id:row.id};
+}
+
+async function supaUpsertPlanejamento(data){
+  var row = {id:data.id||('pl'+Date.now()),titulo:data.titulo||'',descricao:data.descricao||'',consultor:data.consultor||'',criado_por:data.criadoPor||'',mes_ano:data.mesAno||'',semana:data.semana||'',status:data.status||'aberto',prioridade:data.prioridade||'media',data_entrega:data.dataEntrega||''};
+  await supaInsert('planejamento', row, true);
+  return {ok:true, id:row.id};
+}
+
+async function supaUploadAnexo(data){
+  // Salva apenas metadados no Supabase (arquivo em Drive via link direto)
+  var row = {card_id:data.cardId,nome:data.nome||'',tipo:data.tipo||'',tamanho:String(data.tamanho||''),drive_url:data.driveUrl||'',drive_id:data.driveId||'',enviado_por:data.enviadoPor||''};
+  await supaInsert('cards_anexos', row, false);
+  return {ok:true};
+}
+
+async function supaUpsertAtividade(data){
+  var escopo = data.escopo||'geral';
+  if(typeof escopo==='string'&&escopo.startsWith('[')) try{escopo=JSON.parse(escopo);}catch(e){}
+  var row = {id:data.id||('a'+Date.now()),nome:data.nome||'',mes_ano:data.mesAno||data.mes_ano||'',escopo:escopo,ativo:data.ativo!==false};
+  await supaInsert('atividades', row, true);
+  return {ok:true, id:row.id};
 }
 
 // ============================================================
@@ -783,7 +862,7 @@ function renderLogin(){
     +'<div class="error-msg" id="l-err"></div>'
     +'<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">'
     +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">lucas→lucas123</div>'
-    +'<div style="margin-top:10px;font-size:11px;font-family:var(--mono);padding:8px;border-radius:6px;background:var(--surface2);color:'+(APPS_SCRIPT_URL?'var(--ok)':'var(--text3)')+'">'+( APPS_SCRIPT_URL?'● API configurada':'● Modo offline')+'</div>'
+    +'<div style="margin-top:10px;font-size:11px;font-family:var(--mono);padding:8px;border-radius:6px;background:var(--surface2);color:'+('var(--ok)')+'">'+( '● Supabase conectado')+'</div>'
     +'</div></div></div>';
 }
 function bindLogin(){
@@ -895,13 +974,11 @@ function renderGestor(){
 // HISTRICO DE NOTAS
 // ============================================================
 async function carregarHistorico(){
-  var res=await apiCall({action:'getHistorico'});
-  if(res&&!res.erro&&Array.isArray(res)){
-    state.historico=res;
-    setStore('historico',res);
-  } else {
-    state.historico=getStore('historico',[]);
-  }
+  try{
+    var res=await supa('historico',{select:'*'});
+    state.historico=res.map(function(h){return{id:h.id,mesAno:h.mes_ano,pessoa:h.pessoa,nota:Number(h.nota),criadoPor:h.criado_por,criadoEm:h.criado_em};});
+    setStore('historico',state.historico);
+  }catch(e){state.historico=getStore('historico',[]);}
   state.historicoCarregado=true;
   render();
 }
@@ -1045,7 +1122,7 @@ async function salvarNotaHistorico(){
 async function deletarNotaHistorico(id){
   if(!confirm('Remover esta nota?'))return;
   showToast('Removendo...');
-  var res=await apiPost({action:'deletarNotaHistorico',id:id});
+  var res=await supaDelete('historico',{id:id});
   if(res&&res.ok){
     showToast('✓ Removido!');
     state.historicoCarregado=false;
@@ -1059,7 +1136,7 @@ async function deletarNotaHistorico(id){
 // REUNIES
 // ============================================================
 async function carregarReunioes(){
-  var res=await apiCall({action:'getReunioes'});
+  var res=await supa('reunioes',{select:'*'});
   if(res&&!res.erro&&Array.isArray(res)){
     state.reunioes=res;
     state.reuniaoCarregada=true;
@@ -1337,7 +1414,7 @@ async function salvarReuniaoNova(){
     var s=validos[i];
     var dataHora=dia+'T'+s.inicio;
     var dataFim=s.fim?dia+'T'+s.fim:'';
-    var res=await apiPost({action:'salvarReuniao',dataHora:dataHora,dataFim:dataFim,consultor:'',cliente:'',status:'livre',obs:''});
+    var res=await supaUpsertReuniao({dataHora:dataHora,dataFim:dataFim,consultor:'',cliente:'',status:'livre',obs:''});
     if(!res||!res.ok) erros++;
   }
   showToast(erros===0?'\u2713 '+validos.length+' slot(s) criado(s)!':'Criado com '+erros+' erro(s)');
@@ -1383,7 +1460,7 @@ async function liberarSlot(id){
   if(!confirm('Liberar este slot?'))return;
   showToast('Liberando...');
   var reu=state.reunioes.find(function(r){return r.id===id;});
-  var res=await apiPost({action:'salvarReuniao',id:id,dataHora:reu?reu.dataHora:'',dataFim:reu?reu.dataFim:'',consultor:'',cliente:'',status:'livre',obs:''});
+  var res=await supaUpsertReuniao({id:id,dataHora:reu?reu.dataHora:'',dataFim:reu?reu.dataFim:'',consultor:'',cliente:'',status:'livre',obs:''});
   if(res&&res.ok){
     showToast('✓ Slot liberado!');
     state.reuniaoCarregada=false;
@@ -1396,7 +1473,7 @@ async function liberarSlot(id){
 async function deletarReuniao(id){
   if(!confirm('Remover esta reuni\u00e3o?'))return;
   showToast('Removendo...');
-  var res=await apiPost({action:'deletarReuniao',id:id});
+  var res=await supaDelete('reunioes',{id:id});
   if(res&&res.ok){
     showToast('\u2713 Removido!');
     state.reuniaoCarregada=false;
@@ -1658,7 +1735,7 @@ function renderAnalisePage(){
 var TIPOS_DEMANDA=['Entrega de Safra','Recomendações Safra','Recomendações Inverno','Recomendações Foliares','Ajustes Pontuais','Demanda Extra'];
 
 async function carregarPrioridades(){
-  var res=await apiCall({action:'getPrioridades'});
+  var res=await supa('prioridades',{select:'*'});
   if(res&&!res.erro&&Array.isArray(res)){state.prioridades=res;setStore('prioridades',res);}
   else{state.prioridades=getStore('prioridades',[]);}
   state.prioridadesCarregadas=true;render();
@@ -1860,7 +1937,7 @@ async function salvarPrioridade(){
 async function deletarPrioridade(id){
   if(!confirm('Remover esta demanda?'))return;
   showToast('Removendo...');
-  var res=await apiPost({action:'deletarPrioridade',id:id});
+  var res=await supaDelete('prioridades',{id:id});
   if(res&&res.ok){showToast('\u2713 Removido!');state.prioridadesCarregadas=false;render();}
   else{showToast('Erro ao remover');}
 }
@@ -2021,13 +2098,11 @@ function semanasDoMes(mesAno){
 }
 
 async function carregarPlanejamento(){
-  var res=await apiCall({action:'getPlanejamento',mesAno:state.mesAtual});
-  if(res&&!res.erro&&Array.isArray(res)){
-    state.planejamento=res;
-    setStore('planejamento',res);
-  } else {
-    state.planejamento=getStore('planejamento',[]);
-  }
+  try{
+    var res=await supa('planejamento',{select:'*',eq:{mes_ano:state.mesAtual}});
+    state.planejamento=res.map(function(p){return{id:p.id,titulo:p.titulo,descricao:p.descricao||'',consultor:p.consultor,criadoPor:p.criado_por,mesAno:p.mes_ano,semana:p.semana||'',status:p.status,prioridade:p.prioridade,dataEntrega:p.data_entrega||'',criadoEm:p.criado_em};});
+    setStore('planejamento',state.planejamento);
+  }catch(e){state.planejamento=getStore('planejamento',[]);}
   state.planejamentoCarregado=true;
   render();
 }
@@ -2159,7 +2234,7 @@ function initPlanejamentoDnd(){
         if(state.planejamento[idx].status===novoStatus){render();return;}
         state.planejamento[idx].status=novoStatus;
         setStore('planejamento',state.planejamento);
-        apiPost({action:'salvarPlanejamento',id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana||'',status:novoStatus,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
+        supaUpsertPlanejamento({id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana||'',status:novoStatus,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
         showToast('✓ Status: '+statusLabel(novoStatus));
         render();
       }
@@ -2261,7 +2336,7 @@ async function salvarPlanejamentoCard(){
           status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega,
           criadoEm:new Date().toISOString()
         });
-        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,
+        supaUpsertPlanejamento({titulo:titulo,descricao:descricao,
           consultor:cons,criadoPor:state.usuario,mesAno:d2.mesAno,
           semana:d2.semana||'',status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
       });
@@ -2277,7 +2352,7 @@ async function salvarPlanejamentoCard(){
         });
       });
       for(var ci2=1;ci2<consultoresSel.length;ci2++){
-        apiPost({action:'salvarPlanejamento',titulo:titulo,descricao:descricao,
+        supaUpsertPlanejamento({titulo:titulo,descricao:descricao,
           consultor:consultoresSel[ci2],criadoPor:state.usuario,
           mesAno:state.mesAtual,semana:state.planejamentoSemana||'',
           status:'aberto',prioridade:prioridade,dataEntrega:dataEntrega});
@@ -2297,7 +2372,7 @@ async function moverPlanCard(id){
   var next=cols[(cols.indexOf(cur)+1)%cols.length];
   state.planejamento[idx].status=next;
   setStore('planejamento',state.planejamento);
-  apiPost({action:'salvarPlanejamento',id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana,status:next,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
+  supaUpsertPlanejamento({id:id,titulo:state.planejamento[idx].titulo,descricao:state.planejamento[idx].descricao,consultor:state.planejamento[idx].consultor,criadoPor:state.planejamento[idx].criadoPor,mesAno:state.planejamento[idx].mesAno,semana:state.planejamento[idx].semana,status:next,prioridade:state.planejamento[idx].prioridade,dataEntrega:state.planejamento[idx].dataEntrega});
   render();
 }
 
@@ -2315,12 +2390,12 @@ async function deletarPlanCard(id){
     if(!confirm('Remover esta tarefa?'))return;
   }
   showToast('Removendo...');
-  var res=await apiPost({action:'deletarPlanejamento',id:id});
+  var res=await supaDelete('planejamento',{id:id});
   if(res&&res.ok){
     state.planejamento=state.planejamento.filter(function(p){return p.id!==id;});
     if(deletarTodos&&irmaos.length>0){
       for(var i=0;i<irmaos.length;i++){
-        await apiPost({action:'deletarPlanejamento',id:irmaos[i].id});
+        await supaDelete('planejamento',{id:irmaos[i].id});
       }
       var idsRemover=irmaos.map(function(p){return p.id;});
       state.planejamento=state.planejamento.filter(function(p){return idsRemover.indexOf(p.id)<0;});
@@ -2639,7 +2714,7 @@ async function salvarEditAtiv(){
   if(idx>=0){ativs[idx].escopo=Array.isArray(escopo)?escopo:escopo;}
   setStore('atividades',ativs);_cacheAtividades=ativs;
   // Save to Sheets
-  if(APPS_SCRIPT_URL)await apiCall({action:'addAtividade',id:ea.id,nome:ea.nome,mesAno:ea.mesAno,escopo:escopoStr,ativo:'true'});
+  await supaUpsertAtividade({id:ea.id,nome:ea.nome,mesAno:ea.mesAno,escopo:escopoStr,ativo:'true'});
   showToast('✓ Escopo atualizado!');
   state.editAtivModal=false;
   render();
@@ -2648,7 +2723,7 @@ async function salvarEditAtiv(){
 function removerAtiv(id){
   var ativs=getAtividades().filter(function(a){return a.id!==id;});
   setStore('atividades',ativs);_cacheAtividades=ativs;
-  if(APPS_SCRIPT_URL)apiCall({action:'removerAtividade',id:id});
+  supaDelete('atividades',{id:id});
   showToast('Atividade removida');render();
 }
 
@@ -3094,7 +3169,7 @@ function abrirCardDetalhe(cardId){
   if(!state.lucasCardAnexos[cardId]){
     state.lucasCardAnexos[cardId]=[];
     if(APPS_SCRIPT_URL){
-      apiCall({action:'getAnexos',cardId:cardId}).then(function(res){
+      supa('cards_anexos',{select:'*',eq:{card_id:cardId}}).then(function(res){
         if(res&&Array.isArray(res)){state.lucasCardAnexos[cardId]=res;render();}
       });
     }
@@ -3225,7 +3300,7 @@ document.getElementById('root').insertAdjacentHTML('beforeend',html);
       cards[idx].prioridade=prioridade;cards[idx].dataEntrega=dataEntrega;}
     setStore('cards',cards);_cacheCards=cards;
     // Atualiza Sheets
-    if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,titulo:titulo,descricao:cards[idx].descricao,clienteId:clienteId,clienteNome:clienteNome,prioridade:prioridade,dataEntrega:dataEntrega});
+    supaUpsertCard({id:cardId,titulo:titulo,descricao:cards[idx].descricao,clienteId:clienteId,clienteNome:clienteNome,prioridade:prioridade,dataEntrega:dataEntrega,criadoPor:cards[idx].criadoPor,mesAno:cards[idx].mesAno,status:cards[idx].status,destinatario:cards[idx].destinatario}).catch(function(e){console.warn(e);});
     document.getElementById('modal-editar-card').remove();
     showToast('✓ Demanda atualizada!');render();
   };
@@ -3244,7 +3319,7 @@ function moverStatusCard(cardId,novoStatus){
     payload.dataConclusao=cards[idx].dataConclusao;
   }
   setStore('cards',cards);_cacheCards=cards;
-  if(APPS_SCRIPT_URL)apiCall(payload);
+  supaUpsertAtividade(payload).catch(function(e){console.warn(e);});
   showToast('Status: '+statusLabel(novoStatus));render();
 }
 
@@ -3255,7 +3330,7 @@ function atribuirNota(cardId,nota){
   cards[idx].nota=nota;
   cards[idx].atualizadoEm=new Date().toISOString();
   setStore('cards',cards);_cacheCards=cards;
-  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,nota:String(nota)});
+  supaUpdate('cards',{nota:Number(nota),atualizado_em:new Date().toISOString()},{id:cardId}).catch(function(e){console.warn(e);});
   showToast('Nota '+nota+'/10 atribuída!');render();
 }
 
@@ -3266,7 +3341,7 @@ async function transferirCard(cardId, novoDestino){
   var idx=cards.findIndex(function(c){return c.id===cardId;});
   if(idx>=0)cards[idx].destinatario=novoDestino;
   setStore('cards',cards);_cacheCards=cards;
-  var res=await apiPost({action:'salvarCard',id:cardId,destinatario:novoDestino});
+  var res=await supaUpsertCard({id:cardId,destinatario:novoDestino});
   if(res&&res.ok){
     showToast('✓ Transferido para '+novoDestino+'!');
     state.lucasCardAberto=null;
@@ -3285,7 +3360,7 @@ function salvarFeedback(cardId){
   if(idx<0)return;
   cards[idx].feedback=texto;
   setStore('cards',cards);_cacheCards=cards;
-  if(APPS_SCRIPT_URL)apiCall({action:'salvarCard',id:cardId,feedback:texto});
+  supaUpdate('cards',{feedback:texto,atualizado_em:new Date().toISOString()},{id:cardId}).catch(function(e){console.warn(e);});
   showToast('✓ Feedback salvo!');render();
 }
 
@@ -3294,7 +3369,7 @@ function deletarCard(cardId){
   var cards=getCards().filter(function(c){return c.id!==cardId;});
   setStore('cards',cards);_cacheCards=cards;
   state.lucasCardAberto=null;
-  if(APPS_SCRIPT_URL)apiCall({action:'deletarCard',id:cardId});
+  supaDelete('cards',{id:cardId}).catch(function(e){console.warn(e);});
   showToast('Demanda excluída');render();
 }
 
@@ -3327,7 +3402,7 @@ async function enviarAnexosFila(cardId){
     var f=fila[i];
     try{
       var base64=await lerBase64(f);
-      var res=await apiPost({action:'uploadAnexo',cardId:cardId,folderId:folderId,
+      var res=await supaUploadAnexo({cardId:cardId,folderId:folderId,
         nome:f.name,tipo:f.type,tamanho:String(f.size),base64:base64,enviadoPor:state.usuario});
       if(res&&res.ok){
         if(!state.lucasCardAnexos[cardId])state.lucasCardAnexos[cardId]=[];
@@ -3358,7 +3433,7 @@ function removerAnexo(cardId,idx){
   if(!anexo)return;
   if(!confirm('Remover "'+anexo.nome+'" do Drive?'))return;
   if(APPS_SCRIPT_URL&&anexo.driveId){
-    apiCall({action:'deletarAnexo',driveId:anexo.driveId,cardId:cardId});
+    supaDelete('cards_anexos',{drive_id:anexo.driveId}).catch(function(e){console.warn(e);});
   }
   state.lucasCardAnexos[cardId].splice(idx,1);
   showToast('Anexo removido');render();
@@ -3380,18 +3455,18 @@ function bindCommon(){
   var mbn=document.getElementById('btn-logout-nav');
   if(mbn)mbn.onclick=function(){state.tela='login';state.usuario=null;state.role=null;_cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();};
   var msn=document.getElementById('btn-sincronizar-nav');
-  if(msn)msn.onclick=async function(){await sincronizarDoSheets();render();};
+  if(msn)msn.onclick=async function(){await sincronizarDoSupabase();render();};
   var ms=document.getElementById('mes-sel');
   if(ms)ms.onchange=async function(e){
     state.mesAtual=e.target.value;state.lucasCardAberto=null;
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();
-    await sincronizarDoSheets();render();
+    await sincronizarDoSupabase();render();
   };
   document.getElementById('btn-sincronizar').onclick=async function(){
-    await sincronizarDoSheets();render();
+    await sincronizarDoSupabase();render();
   };
   document.getElementById('btn-config-api').onclick=function(){
-    var url=prompt('Cole a URL do Apps Script (deixe vazio para usar o padrão):',APPS_SCRIPT_URL||'');
+    // Config API removido - usando Supabase
     if(url!==null){
       APPS_SCRIPT_URL=(url.trim()||APPS_SCRIPT_URL_DEFAULT);
       localStorage.setItem('agro_api_url',APPS_SCRIPT_URL);
@@ -3448,15 +3523,15 @@ function bindGestor(){
     var id='a'+Date.now();var ativs=getAtividades();
     ativs.push({id:id,nome:nome,mesAno:state.mesAtual,escopo:escopo,ativo:true});
     setStore('atividades',ativs);_cacheAtividades=ativs;
-    if(APPS_SCRIPT_URL){var es=typeof escopo==='object'?JSON.stringify(escopo):escopo;apiCall({action:'addAtividade',id:id,nome:nome,mesAno:state.mesAtual,escopo:es,ativo:'true'});}
+    var es=typeof escopo==='object'?JSON.stringify(escopo):escopo;supaUpsertAtividade({id:id,nome:nome,mesAno:state.mesAtual,escopo:es,ativo:'true'});
     state.novaAtivEscopo={geral:true};showToast('Atividade adicionada!');render();
   };
   var bSA=document.getElementById('btn-salvar-atividades');
   if(bSA)bSA.onclick=async function(){
-    if(!APPS_SCRIPT_URL){showToast('API não configurada');return;}
+    
     bSA.disabled=true;bSA.textContent='Salvando...';
     var ativs=getAtividades().filter(function(a){return a.mesAno===state.mesAtual;});
-    var ok=0;for(var i=0;i<ativs.length;i++){var a=ativs[i];var es=typeof a.escopo==='object'?JSON.stringify(a.escopo):a.escopo;var res=await apiCall({action:'addAtividade',id:a.id,nome:a.nome,mesAno:a.mesAno,escopo:es,ativo:'true'});if(res&&res.ok)ok++;}
+    var ok=0;for(var i=0;i<ativs.length;i++){var a=ativs[i];var es=typeof a.escopo==='object'?JSON.stringify(a.escopo):a.escopo;var res=await supaUpsertAtividade({id:a.id,nome:a.nome,mesAno:a.mesAno,escopo:es,ativo:'true'});if(res&&res.ok)ok++;}
     showToast(ok+'/'+ativs.length+' salvas!');bSA.disabled=false;bSA.textContent='↑ Salvar no Sheets';
   };
   var bCM=document.getElementById('btn-criar-mes');
