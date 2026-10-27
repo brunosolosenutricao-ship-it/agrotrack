@@ -418,7 +418,10 @@ async function supa(table, opts){
   if(opts.order) params.push('order='+opts.order);
   if(opts.limit) params.push('limit='+opts.limit);
   if(params.length) url += '?'+params.join('&');
-  var r = await fetch(url, {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}});
+  var headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+  // Use Range header to get all rows (bypass 1000 row limit)
+  if(!opts.limit) headers['Range']='0-9999';
+  var r = await fetch(url, {headers:headers});
   if(!r.ok) throw new Error('Supa GET '+table+': '+r.status);
   return r.json();
 }
