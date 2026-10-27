@@ -2009,7 +2009,7 @@ function renderJeanPage(){
       var u=USUARIOS[c.criadoPor]||{cor:'#a78bfa',nome:'Jean'};
       var notaHTML=c.nota!==null&&c.nota!==''?'<span style="font-size:12px;font-family:var(--mono);font-weight:600;color:'+notaColor(Number(c.nota)*10)+'">'+c.nota+'/10</span>':'';
       var prioHTML=c.prioridade?'<span class="prioridade-badge '+prioridadeCls(c.prioridade)+'">'+prioridadeLabel(c.prioridade)+'</span>':'';
-      return'<div class="kanban-card" onclick="moverStatusCard(\''+c.id+'\',getNextStatus(c.status))" style="cursor:pointer">'
+      return'<div class="kanban-card" data-card-id="'+c.id+'" onclick="if(!this._dragging)moverStatusCard(\''+c.id+'\',getNextStatus(c.status))" style="cursor:pointer">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+prioHTML+prazoHTML(c.dataEntrega,c.status,c.dataConclusao)+'</div>'
         +'<div class="kanban-card-title">'+c.titulo+'</div>'
         +'<div class="kanban-card-meta"><span>'+c.clienteNome+'</span></div>'
@@ -2190,7 +2190,10 @@ function renderPlanejamentoPage(){
       return '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab" id="plan-card-'+p.id+'" data-plan-id="'+p.id+'">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
           +'<span style="font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:'+(p.prioridade==='alta'?'rgba(248,113,113,.15)':p.prioridade==='media'?'rgba(251,191,36,.12)':'rgba(74,222,128,.12)')+';color:'+prioColor+'">'+prioLabel(p.prioridade)+'</span>'
+          +'<div style="text-align:right">'
           +prazoHTML(p.dataEntrega,p.status,null)
+          +(p.status==='feito'&&p.dataEntrega?'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:2px">'+(function(d){var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;})(p.dataEntrega)+'</div>':'')
+          +'</div>'
         +'</div>'
         +'<div style="font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.3">'+p.titulo+'</div>'
         +(p.descricao?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:6px">'+p.descricao+'</div>':'')
@@ -2242,7 +2245,7 @@ function renderPlanejamentoPage(){
       +'</div></div></div>';
   }
 
-  return '<div class="page page-fade">'
+  return '<div class="page page-fade">'+mesSel
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
       +'<div><div class="page-title">Planejamento Semanal</div><div class="page-sub">'+m+'</div></div>'
       +'<div style="display:flex;gap:8px">'
@@ -3664,6 +3667,15 @@ function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   if(state.paginaGestor==='cadastros')bindCadastros();
+  // Init DnD para Lucas ou Jean
+  setTimeout(function(){
+    // Detect which columns exist in the DOM
+    if(document.querySelector('.kanban-col-body.jean-col-aberto')){
+      initLucasJeanDnd('jean');
+    } else if(document.querySelector('.kanban-col-body.lucas-col-aberto')){
+      initLucasJeanDnd('lucas');
+    }
+  },200);
 
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();if(el.dataset.page==='cadastros')bindCadastros();};
