@@ -323,6 +323,8 @@ body.light-mode .theme-toggle{background:var(--accent-light);}
 body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(--accent);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -389,6 +391,12 @@ var state={
   analiseConsultorFiltro:'todos',
   analiseVisualizacao:'lista',
   editAtivModal:false,
+  cadastrosCarregado:false,
+  fazendas:[],
+  modalCliente:false,
+  modalClienteData:{},
+  modalFazenda:false,
+  modalFazendaData:{},
   editAtivData:{},
   kpiModal:null,
   // Planejamento
@@ -920,13 +928,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento']];
+    pages=[['dashboard','Dashboard'],['analise','Análise'],['consultores','Consultores'],['atividades','Atividades'],['pendencias','Pendências'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento'],['cadastros','Cadastros']];
   }else if(state.role==='lucas'){
-    pages=[['lucas','Demandas'],['jean','Jean'],['planejamento','Planejamento']];
+    pages=[['lucas','Demandas'],['jean','Jean'],['planejamento','Planejamento'],['cadastros','Cadastros']];
   }else if(state.role==='jean'){
-    pages=[['jean','Demandas'],['planejamento','Planejamento']];
+    pages=[['jean','Demandas'],['planejamento','Planejamento'],['cadastros','Cadastros']];
   }else{
-    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento']];
+    pages=[['clientes','Meus Clientes'],['progresso','Meu Progresso'],['reunioes','Reuniões'],['historico','Histórico'],['prioridades','Prioridades'],['planejamento','Planejamento'],['cadastros','Cadastros']];
   }
 
   var nav=pages.map(function(p){
@@ -996,6 +1004,7 @@ function renderGestor(){
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
   if(state.paginaGestor==='analise')     return renderAnalisePage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
+  if(state.paginaGestor==='cadastros') return renderCadastrosPage();
   return'';
 }
 
@@ -2816,6 +2825,7 @@ function renderConsultor(){
   if(state.paginaGestor==='prioridades') return renderPrioridadesPage();
   if(state.paginaGestor==='jean')     return renderJeanPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
+  if(state.paginaGestor==='cadastros') return renderCadastrosPage();
   return renderClientesConsultor();
 }
 
@@ -3055,12 +3065,14 @@ function renderLucasPage(){
 function renderLucas(){
   if(state.paginaGestor==='jean') return renderJeanPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
+  if(state.paginaGestor==='cadastros') return renderCadastrosPage();
   return renderLucasPage();
 }
 
 function renderJeanShell(){
   if(state.paginaGestor==='lucas') return renderLucasPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
+  if(state.paginaGestor==='cadastros') return renderCadastrosPage();
   return renderJeanPage();
 }
 
@@ -3641,6 +3653,7 @@ function initLucasJeanDnd(prefix){
 function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  if(state.paginaGestor==='cadastros')bindCadastros();
 
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el){
     el.onclick=function(){state.paginaGestor=el.dataset.page;state.lucasCardAberto=null;render();};
