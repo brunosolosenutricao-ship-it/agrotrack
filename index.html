@@ -411,19 +411,30 @@ function setStore(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}
 // ── SUPABASE API ──────────────────────────────────────────
 async function supa(table, opts){
   opts = opts||{};
-  var url = SUPA_URL+'/rest/v1/'+table;
-  var params = [];
-  if(opts.select) params.push('select='+opts.select);
-  if(opts.eq) Object.keys(opts.eq).forEach(function(k){ params.push(k+'=eq.'+encodeURIComponent(opts.eq[k])); });
-  if(opts.order) params.push('order='+opts.order);
-  if(opts.limit) params.push('limit='+opts.limit);
-  if(params.length) url += '?'+params.join('&');
-  var headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
-  // Use Range header to get all rows (bypass 1000 row limit)
-  if(!opts.limit) headers['Range']='0-9999';
-  var r = await fetch(url, {headers:headers});
-  if(!r.ok) throw new Error('Supa GET '+table+': '+r.status);
-  return r.json();
+  var baseParams = [];
+  if(opts.select) baseParams.push('select='+opts.select);
+  if(opts.eq) Object.keys(opts.eq).forEach(function(k){ baseParams.push(k+'=eq.'+encodeURIComponent(opts.eq[k])); });
+  if(opts.order) baseParams.push('order='+opts.order);
+  if(opts.limit){
+    baseParams.push('limit='+opts.limit);
+    var url = SUPA_URL+'/rest/v1/'+table+'?'+baseParams.join('&');
+    var r = await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+    if(!r.ok) throw new Error('Supa GET '+table+': '+r.status);
+    return r.json();
+  }
+  // Paginate to get all rows
+  var all=[], offset=0, pageSize=1000;
+  while(true){
+    var params=baseParams.concat(['limit='+pageSize,'offset='+offset]);
+    var url=SUPA_URL+'/rest/v1/'+table+'?'+params.join('&');
+    var r=await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+    if(!r.ok) throw new Error('Supa GET '+table+': '+r.status);
+    var page=await r.json();
+    all=all.concat(page);
+    if(page.length<pageSize) break;
+    offset+=pageSize;
+  }
+  return all;
 }
 
 async function supaInsert(table, data, upsertOn){
@@ -466,55 +477,70 @@ async function apiPost(body){
   return null;
 }
 
-async function sincronizarDoSupabase(){
+async function sincronizarDoSupabase(mesAno){
   if(_sincronizando)return false;
   _sincronizando=true;
+  var mes = mesAno || state.mesAtual;
   try{
     showProgress(5,'Conectando ao Supabase...');
 
-    // Carregar dados estáticos (usuarios, clientes, codigos)
-    showProgress(10,'Carregando usuários...');
-    var usRows = await supa('usuarios',{select:'*'});
-    USUARIOS={};
-    usRows.forEach(function(u){
-      USUARIOS[u.usuario]={senha:u.senha,role:u.role,nome:u.nome,cor:u.cor,corBg:u.cor_bg};
-    });
+    // Boot data (só na primeira vez)
+    if(!Object.keys(USUARIOS).length){
+      showProgress(10,'Carregando usuários...');
+      var usRows = await supa('usuarios',{select:'*'});
+      USUARIOS={};
+      usRows.forEach(function(u){
+        USUARIOS[u.usuario]={senha:u.senha,role:u.role,nome:u.nome,cor:u.cor,corBg:u.cor_bg};
+      });
+    }
+    if(!TODOS_CLIENTES_FLAT.length){
+      showProgress(20,'Carregando clientes...');
+      var clRows = await supa('clientes',{select:'*',eq:{ativo:'true'},order:'nome'});
+      CLIENTES={};
+      clRows.forEach(function(cl){
+        if(!CLIENTES[cl.consultor])CLIENTES[cl.consultor]=[];
+        CLIENTES[cl.consultor].push({id:cl.id,nome:cl.nome,regiao:cl.regiao||'',area:cl.area||0});
+      });
+      TODOS_CLIENTES_FLAT=clRows.map(function(cl){return{id:cl.id,nome:cl.nome,consultor:cl.consultor,regiao:cl.regiao||'',area:cl.area||0};});
+    }
+    if(!CODIGOS.length){
+      showProgress(25,'Carregando códigos...');
+      var codRows = await supa('codigos',{select:'*',eq:{ativo:'true'}});
+      CODIGOS=codRows.map(function(c){return{codigo:c.codigo,descricao:c.descricao,nota:c.nota,cls:c.cls};});
+    }
 
-    showProgress(20,'Carregando clientes...');
-    var clRows = await supa('clientes',{select:'*',eq:{ativo:'true'},order:'nome'});
-    CLIENTES={};
-    clRows.forEach(function(cl){
-      if(!CLIENTES[cl.consultor])CLIENTES[cl.consultor]=[];
-      CLIENTES[cl.consultor].push({id:cl.id,nome:cl.nome,regiao:cl.regiao||'',area:cl.area||0});
-    });
-    TODOS_CLIENTES_FLAT=clRows.map(function(cl){return{id:cl.id,nome:cl.nome,consultor:cl.consultor,regiao:cl.regiao||'',area:cl.area||0};});
-
-    showProgress(30,'Carregando códigos...');
-    var codRows = await supa('codigos',{select:'*',eq:{ativo:'true'}});
-    CODIGOS=codRows.map(function(c){return{codigo:c.codigo,descricao:c.descricao,nota:c.nota,cls:c.cls};});
-
-    showProgress(40,'Buscando atividades...');
-    var aR = await supa('atividades',{select:'*'});
+    // Dados do mês — sempre filtra por mes_ano
+    showProgress(40,'Buscando atividades de '+mes+'...');
+    var aR = await supa('atividades',{select:'*',eq:{mes_ano:mes}});
     var ativs = aR.map(function(a){
       var escopo = a.escopo;
       if(typeof escopo==='string') try{escopo=JSON.parse(escopo);}catch(e){}
       return {id:a.id,nome:a.nome,mesAno:a.mes_ano,escopo:escopo,ativo:a.ativo};
     });
-    setStore('atividades',ativs);_cacheAtividades=ativs;
+    // Merge com cache de outros meses
+    var cacheAtivs = getStore('atividades',[]).filter(function(a){return a.mesAno!==mes;});
+    var mergedAtivs = cacheAtivs.concat(ativs);
+    setStore('atividades',mergedAtivs);_cacheAtividades=mergedAtivs;
 
-    showProgress(65,'Buscando registros...');
-    var rR = await supa('registros',{select:'*'});
+    showProgress(60,'Buscando registros de '+mes+'...');
+    var rR = await supa('registros',{select:'*',eq:{mes_ano:mes}});
     var regs = rR.map(function(r){return{consultor:r.consultor,clienteId:r.cliente_id,atividadeId:r.atividade_id,codigo:r.codigo,nota:Number(r.nota),mesAno:r.mes_ano,ts:String(r.ts)};});
-    setStore('registros',regs);_cacheRegistros=regs;
+    // Merge com cache de outros meses
+    var cacheRegs = getStore('registros',[]).filter(function(r){return r.mesAno!==mes;});
+    var mergedRegs = cacheRegs.concat(regs);
+    setStore('registros',mergedRegs);_cacheRegistros=mergedRegs;
 
-    showProgress(85,'Buscando demandas...');
-    var cR = await supa('cards',{select:'*'});
+    showProgress(80,'Buscando demandas de '+mes+'...');
+    var cR = await supa('cards',{select:'*',eq:{mes_ano:mes}});
     var cards = cR.map(function(c){return{id:c.id,titulo:c.titulo,descricao:c.descricao||'',clienteId:c.cliente_id,clienteNome:c.cliente_nome,criadoPor:c.criado_por,mesAno:c.mes_ano,status:c.status||'aberto',nota:c.nota,feedback:c.feedback||'',folderId:c.folder_id||'',folderUrl:c.folder_url||'',criadoEm:c.criado_em,atualizadoEm:c.atualizado_em,prioridade:c.prioridade||'baixa',dataEntrega:c.data_entrega||'',destinatario:c.destinatario||'lucas',dataConclusao:c.data_conclusao||''};});
-    setStore('cards',cards);_cacheCards=cards;
+    // Merge com cache de outros meses
+    var cacheCards = getStore('cards',[]).filter(function(c){return c.mesAno!==mes;});
+    var mergedCards = cacheCards.concat(cards);
+    setStore('cards',mergedCards);_cacheCards=mergedCards;
 
     showProgress(100,'Pronto!');
     setTimeout(hideProgress,500);
-    showToast('✓ Sincronizado!');
+    showToast('✓ '+mes+' sincronizado!');
     return true;
   }catch(e){
     hideProgress();
@@ -523,6 +549,7 @@ async function sincronizarDoSupabase(){
     return false;
   }finally{_sincronizando=false;}
 }
+
 
 // Alias para compatibilidade
 var sincronizarDoSheets = sincronizarDoSupabase;
@@ -879,7 +906,7 @@ function bindLogin(){
     _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
     localStorage.removeItem('atividades');localStorage.removeItem('registros');localStorage.removeItem('cards');
     showProgress(0,'Iniciando AgroTrack...');
-    await sincronizarDoSheets();
+    await sincronizarDoSupabase(state.mesAtual);
     hideProgress();
     render();
   };
@@ -3458,15 +3485,24 @@ function bindCommon(){
   var mbn=document.getElementById('btn-logout-nav');
   if(mbn)mbn.onclick=function(){state.tela='login';state.usuario=null;state.role=null;_cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();};
   var msn=document.getElementById('btn-sincronizar-nav');
-  if(msn)msn.onclick=async function(){await sincronizarDoSupabase();render();};
+  if(msn)msn.onclick=async function(){await sincronizarDoSupabase(state.mesAtual);render();};
   var ms=document.getElementById('mes-sel');
   if(ms)ms.onchange=async function(e){
-    state.mesAtual=e.target.value;state.lucasCardAberto=null;
-    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;render();
-    await sincronizarDoSupabase();render();
+    var novoMes=e.target.value;
+    state.mesAtual=novoMes;state.lucasCardAberto=null;
+    _cacheAtividades=null;_cacheRegistros=null;_cacheCards=null;
+    // Check if already cached
+    var temDados=getStore('registros',[]).some(function(r){return r.mesAno===novoMes;});
+    if(temDados){
+      render();
+    } else {
+      render();
+      await sincronizarDoSupabase(novoMes);
+      render();
+    }
   };
   document.getElementById('btn-sincronizar').onclick=async function(){
-    await sincronizarDoSupabase();render();
+    await sincronizarDoSupabase(state.mesAtual);render();
   };
   document.getElementById('btn-config-api').onclick=function(){
     // Config API removido - usando Supabase
