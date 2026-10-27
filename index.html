@@ -3608,10 +3608,19 @@ function bindLucas(){
   });
 }
 
-render();
-
 // Restaurar tema salvo
 if(localStorage.getItem('agro_theme')==='light'){document.body.classList.add('light-mode');}
+
+// Inicializar app — carregar usuários do Supabase antes do primeiro render
+(async function(){
+  try{
+    var usRows = await supa('usuarios',{select:'*'});
+    usRows.forEach(function(u){
+      USUARIOS[u.usuario]={senha:u.senha,role:u.role,nome:u.nome,cor:u.cor,corBg:u.cor_bg};
+    });
+  }catch(e){console.warn('Erro ao carregar usuários:',e);}
+  render();
+})();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
