@@ -4425,6 +4425,9 @@ function renderCadastrosPage(){
   var consOpts='<option value="todos">Todos</option>'+cons.map(function(c){var u=USUARIOS[c]||{nome:c};return'<option value="'+c+'"'+(_mapaFiltros.consultor===c?' selected':'')+'>'+u.nome+'</option>';}).join('');
   var estOpts='<option value="todos">Todos os estados</option>'+estados.map(function(e){return'<option value="'+e+'"'+(_mapaFiltros.estado===e?' selected':'')+'>'+e+'</option>';}).join('');
 
+  // Define _fazendasAll for filter dropdowns
+  var _fazendasAll=state.fazendas||[];
+
   // Cliente options from filtered fazendas
   var clientesDisp=[...new Set(_fazendasAll.filter(function(f){
     if(_mapaFiltros.consultor!=='todos'){var cl=TODOS_CLIENTES_FLAT.find(function(c){return c.id===f.cliente_id;});if(!cl||cl.consultor!==_mapaFiltros.consultor)return false;}
