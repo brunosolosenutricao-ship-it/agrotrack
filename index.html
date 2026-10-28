@@ -383,6 +383,7 @@ body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(-
 .mapa-geral-wrap{position:relative;flex:1;min-height:0;overflow:hidden;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 </head>
@@ -1858,6 +1859,71 @@ function prioridadeLabel(p){return p==='alta'?'Alta':p==='media'?'Média':'Baixa
 function statusPrioLabel(s){return s==='marcado'?'Marcado':'Pendente de Agenda';}
 function statusPrioCls(s){return s==='marcado'?'badge-ok':'badge-warn';}
 
+async function exportarPrioridadesPNG(){
+  if(typeof html2canvas==='undefined'){showToast('Aguarde o carregamento');return;}
+  var ordem={alta:0,media:1,baixa:2};
+  var lista=(state.prioridades||[]).slice().sort(function(a,b){return (ordem[a.prioridade]||2)-(ordem[b.prioridade]||2);});
+  var MESES_LABEL=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var partes=(state.mesAtual||'').split('-');
+  var mesLabel=partes.length===2?MESES_LABEL[parseInt(partes[1])-1]+' '+partes[0]:state.mesAtual;
+
+  var corPrio=function(p){return p==='alta'?'#f87171':p==='media'?'#fbbf24':'#4ade80';};
+  var bgPrio=function(p){return p==='alta'?'rgba(248,113,113,.15)':p==='media'?'rgba(251,191,36,.15)':'rgba(74,222,128,.15)';};
+  var labelPrio=function(p){return p==='alta'?'ALTA':p==='media'?'MÉDIA':'BAIXA';};
+
+  var cardsHTML=lista.map(function(p){
+    var u=USUARIOS[p.consultor]||{nome:p.consultor||'—',cor:'#8b90a8'};
+    var cor=corPrio(p.prioridade);
+    var bg=bgPrio(p.prioridade);
+    var statusBg=p.status==='marcado'?'rgba(74,222,128,.15)':'rgba(251,191,36,.15)';
+    var statusCor=p.status==='marcado'?'#4ade80':'#fbbf24';
+    var statusLabel=p.status==='marcado'?'Marcado':'Pendente';
+    var reuniaoStr='';
+    if(p.status==='marcado'&&p.reuniaoId){
+      var reu=(state.reunioes||[]).find(function(r){return r.id===p.reuniaoId;});
+      if(reu){var hi=reu.dataHora&&reu.dataHora.length>=16?reu.dataHora.substring(11,16):'';reuniaoStr='<div style="font-size:11px;color:#60a5fa;margin-top:4px;">📅 '+reu.dataHora.substring(0,10)+' '+hi+'</div>';}
+    }
+    return '<div style="background:#1e2030;border:1px solid #2a2d3e;border-left:4px solid '+cor+';border-radius:10px;padding:14px 16px;break-inside:avoid;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+      +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:'+bg+';color:'+cor+';font-family:monospace;">'+labelPrio(p.prioridade)+'</span>'
+      +'<span style="font-size:10px;padding:2px 8px;border-radius:4px;background:'+statusBg+';color:'+statusCor+';font-family:monospace;">'+statusLabel+'</span>'
+      +'<span style="font-size:11px;color:#8b90a8;margin-left:auto;">'+p.tipo+'</span>'
+      +'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">'+p.cliente+'</div>'
+      +(p.descricao?'<div style="font-size:12px;color:#8b90a8;margin-bottom:6px;">'+p.descricao+'</div>':'')
+      +'<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">'
+      +'<div style="width:20px;height:20px;border-radius:50%;background:'+u.corBg+';color:'+u.cor+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">'+u.nome[0]+'</div>'
+      +'<span style="font-size:12px;color:#a0aec0;">'+u.nome+'</span>'
+      +'</div>'
+      +reuniaoStr
+      +'</div>';
+  }).join('');
+
+  var wrapper=document.createElement('div');
+  wrapper.style.cssText='position:fixed;left:-9999px;top:0;width:860px;background:#13141a;padding:32px;font-family:system-ui,sans-serif;box-sizing:border-box;';
+  wrapper.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    +'<div><div style="font-size:22px;font-weight:700;color:#e2e8f0;">Central de Prioridades</div>'
+    +'<div style="font-size:13px;color:#8b90a8;margin-top:2px;">'+mesLabel+' · '+lista.length+' demanda(s) · Grower Consultoria</div></div>'
+    +'<div style="font-size:11px;color:#4a4f6a;font-family:monospace;">AgroTrack</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+cardsHTML+'</div>'
+    +'<div style="margin-top:20px;border-top:1px solid #2a2d3e;padding-top:12px;font-size:10px;color:#4a4f6a;font-family:monospace;display:flex;justify-content:space-between;">'
+    +'<span>Grower Consultoria Agronômica</span><span>Exportado em '+new Date().toLocaleDateString('pt-BR')+'</span>'
+    +'</div>';
+  document.body.appendChild(wrapper);
+
+  showToast('Gerando PNG...');
+  try{
+    var canvas=await html2canvas(wrapper,{backgroundColor:'#13141a',scale:2,useCORS:true,logging:false,width:860});
+    var link=document.createElement('a');
+    link.download='prioridades-'+state.mesAtual+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('✓ PNG exportado!');
+  }catch(e){showToast('Erro: '+e.message);}
+  document.body.removeChild(wrapper);
+}
+
 function renderPrioridadesPage(){
   if(!state.prioridadesCarregadas){
     carregarPrioridades();
@@ -1990,10 +2056,13 @@ function renderPrioridadesPage(){
       +'<div style="display:flex;gap:8px">'
         +'<button class="btn-sec" onclick="state.prioridadesCarregadas=false;render()">\u27f3 Atualizar</button>'
         +'<button class="btn-save" onclick="abrirModalPrioridade(null)">+ Nova Demanda</button>'
+        +'<button onclick="exportarPrioridadesPNG()" style="padding:7px 14px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:#fff;font-size:12px;cursor:pointer;">&#11123; Exportar PNG</button>'
       +'</div>'
     +'</div>'
+    +'<div id="prioridades-export-area" style="border-radius:12px;">'
     +filtroHTML
     +'<div style="margin-top:8px">'+cards+'</div>'
+    +'</div>'
     +'</div>'+modalHTML;
 }
 
