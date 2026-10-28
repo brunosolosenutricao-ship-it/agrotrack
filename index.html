@@ -3566,27 +3566,21 @@ function bindModalCard(){
     var data={action:'salvarCard',titulo:titulo,descricao:document.getElementById('nc-desc').value.trim(),
       clienteId:clienteId,clienteNome:clienteNome,criadoPor:state.usuario,mesAno:state.mesAtual,
       prioridade:prioridade,dataEntrega:dataEntrega,destinatario:destinatario};
-    var res=await apiCall(data);
-    if(res&&res.ok){
-      // Salva localmente
-      var cards=getCards();
-      cards.push({id:res.id,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
-        criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
-        prioridade:prioridade,dataEntrega:dataEntrega,destinatario:destinatario,
-        folderId:res.folderId||'',folderUrl:res.folderUrl||'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
-      setStore('cards',cards);_cacheCards=cards;
-      showToast('✓ Demanda criada! Pasta no Drive criada.');
-    }else{
-      // Offline: salva local
-      var id='c'+Date.now();
-      var cards=getCards();
-      cards.push({id:id,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
-        criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
-        prioridade:prioridade,dataEntrega:dataEntrega,
-        folderId:'',folderUrl:'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
-      setStore('cards',cards);_cacheCards=cards;
-      showToast('⚠ Salvo localmente (sem API)');
-    }
+    var novoId='c'+Date.now();
+    try{
+      await supaInsert('cards',{id:novoId,titulo:titulo,descricao:data.descricao,
+        cliente_id:clienteId,cliente_nome:clienteNome,criado_por:state.usuario,
+        mes_ano:state.mesAtual,status:'aberto',nota:null,feedback:'',
+        prioridade:prioridade,data_entrega:dataEntrega,destinatario:destinatario,
+        folder_id:'',folder_url:'',criado_em:new Date().toISOString(),atualizado_em:new Date().toISOString()},true);
+    }catch(e){console.warn('Supabase card insert:',e);}
+    var cards=getCards();
+    cards.push({id:novoId,titulo:titulo,descricao:data.descricao,clienteId:clienteId,clienteNome:clienteNome,
+      criadoPor:state.usuario,mesAno:state.mesAtual,status:'aberto',nota:null,feedback:'',
+      prioridade:prioridade,dataEntrega:dataEntrega,destinatario:destinatario,
+      folderId:'',folderUrl:'',criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()});
+    setStore('cards',cards);_cacheCards=cards;
+    showToast('✓ Demanda criada!');
     fecharModalCard();render();
   };
 }
