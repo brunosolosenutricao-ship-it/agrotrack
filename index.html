@@ -381,6 +381,22 @@ body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(-
 .mapa-zoom-btn{width:28px;height:28px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
 .mapa-zoom-btn:hover{background:var(--surface3);color:var(--text);}
 .mapa-geral-wrap{position:relative;flex:1;min-height:0;overflow:hidden;}
+/* Fundo animado — linhas de plantio */
+#root{position:relative;z-index:1}
+.fx-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.fx-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(60% 50% at 88% 0%,rgba(74,222,128,.19),transparent 70%)}
+.fx-rows{position:absolute;inset:0;-webkit-mask-image:linear-gradient(to top,#000 10%,transparent 85%);mask-image:linear-gradient(to top,#000 10%,transparent 85%)}
+.fx-rows svg{width:100%;height:100%;display:block}
+.fx-rows path{fill:none;stroke:rgba(74,222,128,.21);stroke-width:1}
+.fx-rows path.hz{stroke:rgba(74,222,128,.34)}
+.fx-rows path.p{stroke:#4ade80;stroke-width:1.6;stroke-dasharray:55 945;animation:fxRun 16s linear infinite}
+@keyframes fxRun{to{stroke-dashoffset:-1000}}
+body.light-mode .fx-bg,body.no-fx .fx-bg{display:none}
+@media (prefers-reduced-motion:reduce){.fx-rows path.p{animation:none;display:none}}
+#btn-fx{background:var(--accent-light)}
+#btn-fx::after{transform:translateX(16px);background:var(--accent)}
+body.no-fx #btn-fx{background:var(--surface3)}
+body.no-fx #btn-fx::after{transform:none;background:var(--text2)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -388,6 +404,7 @@ body.light-mode .theme-toggle::after{transform:translateX(16px);background:var(-
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 </head>
 <body>
+<div class="fx-bg" aria-hidden="true"><div class="fx-rows"><svg id="fx-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"></svg></div></div>
 <div id="root"></div>
 <div class="toast" id="toast"></div>
 
@@ -451,7 +468,8 @@ var state={
   // Anlise
   analiseAtividadeExpandida:null,
   analiseConsultorFiltro:'todos',
-  analiseVisualizacao:'lista',
+  analiseVisualizacao:'resumo',
+  analiseGrupoFiltro:'todos',
   editAtivModal:false,
   cadastrosCarregado:false,
   fazendas:[],
@@ -574,7 +592,7 @@ async function sincronizarDoSupabase(mesAno){
     var ativs = aR.map(function(a){
       var escopo = a.escopo;
       if(typeof escopo==='string') try{escopo=JSON.parse(escopo);}catch(e){}
-      return {id:a.id,nome:a.nome,mesAno:a.mes_ano,escopo:escopo,ativo:a.ativo};
+      return {id:a.id,nome:a.nome,mesAno:a.mes_ano,escopo:escopo,ativo:a.ativo,grupo:a.grupo||'banco'};
     });
     // Merge com cache de outros meses
     var cacheAtivs = getStore('atividades',[]).filter(function(a){return a.mesAno!==mes;});
@@ -1060,7 +1078,7 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['analise','Análise'],['dashboard','Dashboard'],['historico','Histórico']];
+    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['dashboard','Dashboard'],['historico','Histórico']];
   }else if(state.role==='lucas'){
     pages=[['cadastros','Cadastros'],['atividades','Atividades'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
   }else if(state.role==='jean'){
@@ -1113,6 +1131,10 @@ function renderApp(content){
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:4px">'
     +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">Tema claro</span>'
     +'<div class="theme-toggle" id="btn-theme" onclick="toggleTheme()"></div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:4px">'
+    +'<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">Fundo animado</span>'
+    +'<div class="theme-toggle" id="btn-fx" onclick="toggleFx()"></div>'
     +'</div>'
     +'<button class="btn-logout" id="btn-sincronizar">⟳ Sincronizar</button>'
     +'<button class="btn-logout" id="btn-config-api">⚙ Config API</button>'
@@ -1768,21 +1790,155 @@ function renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML){
 }
 
 
+function setAnaliseGrupo(g){state.analiseGrupoFiltro=g;render();}
+function abrirAnaliseLista(id){state.analiseAtividadeExpandida=id;state.analiseVisualizacao='lista';render();}
+function grupoDaAtividade(a){
+  if(a.grupo)return a.grupo;
+  var t=(window._cacheTodasAtividades||[]).find(function(x){return x.id===a.id;});
+  return (t&&t.grupo)||'banco';
+}
+
+function renderAnaliseResumo(atividades, registros, mesAno, vizTabsHTML){
+  if(!window._cacheTodasAtividades&&!window._anaGrpTentou){
+    window._anaGrpTentou=true;
+    carregarTodasAtividades().then(function(){render();});
+  }
+  var consultores=['igor','felipe','paula','ramon'];
+  var filtroGrupo=state.analiseGrupoFiltro||'todos';
+  var COR={verde:'#4ade80',amarelo:'#fbbf24',vermelho:'#f87171',cinza:'#555a75'};
+  var pct=function(n,d){return d?Math.round(n/d*100):0;};
+  var tot={total:0,verde:0,amarelo:0,vermelho:0,cinza:0};
+  var porCons={};
+  consultores.forEach(function(c){porCons[c]={total:0,preench:0,pend:0};});
+  var cards=[];
+
+  atividades.forEach(function(atv){
+    var grupo=grupoDaAtividade(atv);
+    if(filtroGrupo!=='todos'&&grupo!==filtroGrupo)return;
+    var a={total:0,verde:0,amarelo:0,vermelho:0,cinza:0};
+    consultores.forEach(function(cons){
+      (CLIENTES[cons]||[]).forEach(function(cl){
+        if(!escopoInclui(atv.escopo,cl.id))return;
+        var reg=registros.find(function(r){return r.consultor===cons&&r.clienteId===cl.id&&r.atividadeId===atv.id;});
+        var k;
+        if(!reg||!reg.codigo){k='cinza';}
+        else{
+          var co=CODIGOS.find(function(c){return c.codigo===reg.codigo;});
+          var nota=co?co.nota:0;
+          k=nota>=10?'verde':nota>=5?'amarelo':'vermelho';
+        }
+        a[k]++;a.total++;tot[k]++;tot.total++;
+        porCons[cons].total++;
+        if(k==='cinza')porCons[cons].pend++;else porCons[cons].preench++;
+      });
+    });
+    if(a.total)cards.push({atv:atv,grupo:grupo,c:a});
+  });
+
+  cards.sort(function(x,y){
+    var d=(y.c.cinza/y.c.total)-(x.c.cinza/x.c.total);
+    return d!==0?d:String(x.atv.nome).localeCompare(String(y.atv.nome));
+  });
+
+  var chipBase='display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:16px;font-size:11px;font-family:var(--mono);cursor:pointer;border:1px solid ';
+  var chip=function(id,label,cor){
+    var ativo=filtroGrupo===id;
+    return '<button onclick="setAnaliseGrupo(\''+id+'\')" style="'+chipBase+(ativo?'var(--accent)':'var(--border2)')+';background:'+(ativo?'var(--accent-light)':'transparent')+';color:'+(ativo?'var(--accent)':'var(--text2)')+'">'
+      +(cor?'<span style="width:10px;height:10px;border-radius:2px;background:'+cor+';display:inline-block"></span>':'')+label+'</button>';
+  };
+  var chipsHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">'
+    +chip('todos','Todos','')
+    +Object.keys(GRUPO_COR).map(function(g){return chip(g,GRUPO_COR[g].label,GRUPO_COR[g].border);}).join('')
+    +'</div>';
+
+  var kpi=function(label,valor,sub,cor){
+    return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px">'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:6px">'+label+'</div>'
+      +'<div style="font-size:26px;font-weight:700;color:'+(cor||'var(--text)')+'">'+valor+'</div>'
+      +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:2px">'+sub+'</div>'
+      +'</div>';
+  };
+  var preench=tot.total-tot.cinza;
+  var kpisHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px">'
+    +kpi('PREENCHIMENTO',pct(preench,tot.total)+'%',preench+' de '+tot.total,'')
+    +kpi('NOTA 5 OU MAIS',pct(tot.verde+tot.amarelo,tot.total)+'%',(tot.verde+tot.amarelo)+' registros','')
+    +kpi('PENDÊNCIAS',tot.cinza,'sem preenchimento',tot.cinza?COR.amarelo:'')
+    +kpi('NÃO REALIZADO',tot.vermelho,'nota abaixo de 5',tot.vermelho?COR.vermelho:'')
+    +'</div>';
+
+  var rank=consultores.filter(function(c){return porCons[c].total>0;}).sort(function(x,y){
+    return pct(porCons[y].preench,porCons[y].total)-pct(porCons[x].preench,porCons[x].total);
+  });
+  var rankHTML=rank.length?('<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 18px;margin-bottom:16px">'
+    +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:12px">PREENCHIMENTO POR CONSULTOR</div>'
+    +rank.map(function(c){
+      var p=porCons[c],v=pct(p.preench,p.total),u=USUARIOS[c];
+      return '<div style="display:grid;grid-template-columns:70px 1fr 42px 96px;align-items:center;gap:10px;margin-bottom:8px;font-size:12px">'
+        +'<span style="color:var(--text)">'+(u?u.nome:c)+'</span>'
+        +'<div style="height:6px;background:var(--surface3);border-radius:3px"><div style="width:'+v+'%;height:100%;background:var(--accent);border-radius:3px"></div></div>'
+        +'<span style="font-family:var(--mono);color:var(--text);text-align:right">'+v+'%</span>'
+        +'<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">'+p.pend+(p.pend===1?' pendente':' pendentes')+'</span>'
+        +'</div>';
+    }).join('')
+    +'</div>'):'';
+
+  var legHTML='<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);color:var(--text2);margin-bottom:10px">'
+    +[['verde','Concluído'],['amarelo','Parcial'],['vermelho','Não realizado'],['cinza','Sem preenchimento']].map(function(x){
+      return '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:'+COR[x[0]]+';display:inline-block"></span>'+x[1]+'</span>';
+    }).join('')
+    +'<span style="color:var(--text3)">· clique em um card para ver os clientes</span>'
+    +'</div>';
+
+  var cardsHTML=cards.map(function(cd){
+    var gc=GRUPO_COR[cd.grupo]||GRUPO_COR.banco, c=cd.c;
+    var warn=c.cinza/c.total>=0.4;
+    var barra='<div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
+      +['verde','amarelo','vermelho','cinza'].filter(function(k){return c[k]>0;}).map(function(k){
+        return '<div style="flex:'+c[k]+';background:'+COR[k]+'"></div>';
+      }).join('')+'</div>';
+    return '<div onclick="abrirAnaliseLista(\''+cd.atv.id+'\')" style="cursor:pointer;min-width:0;background:var(--surface2);border:1px solid '+(warn?'rgba(251,191,36,.5)':'var(--border2)')+';border-radius:12px;padding:12px 14px">'
+      +'<div style="display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:4px"><span style="width:10px;height:10px;border-radius:2px;background:'+gc.border+';display:inline-block"></span>'+gc.label+'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.3">'+cd.atv.nome+'</div>'
+      +barra
+      +'<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;font-family:var(--mono)">'
+        +'<span style="color:var(--text2)">'+pct(c.verde+c.amarelo,c.total)+'% nota ≥ 5</span>'
+        +'<span style="color:'+(warn?COR.amarelo:'var(--text3)')+'">'+(warn?'⚠ ':'')+c.cinza+(c.cinza===1?' pendente':' pendentes')+'</span>'
+      +'</div></div>';
+  }).join('');
+  if(!cardsHTML)cardsHTML=emptyState('&#128203;','Nenhuma atividade neste filtro','Troque o grupo ou sincronize os dados.');
+
+  return '<div class="page page-fade">'
+    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
+      +'<div><div class="page-title">Análise por Atividade</div><div class="page-sub">'+mesAno+' · Resumo · '+cards.length+' atividades</div></div>'
+    +'</div>'
+    +(vizTabsHTML||'')
+    +chipsHTML
+    +kpisHTML
+    +rankHTML
+    +legHTML
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px">'+cardsHTML+'</div>'
+    +'</div>';
+}
+
+
 function renderAnalisePage(){
   var mesAno=state.mesAtual;
   var registros=getRegistros().filter(function(r){return r.mesAno===mesAno;});
   var atividades=getAtividades().filter(function(a){return a.mesAno===mesAno&&a.ativo;});
   var filtroConsultor=state.analiseConsultorFiltro||'todos';
-  var visualizacao=state.analiseVisualizacao||'lista';
+  var visualizacao=state.analiseVisualizacao||'resumo';
+  var aResumo=visualizacao==='resumo';
   var aLista=visualizacao==='lista';
-  var aKpis=!aLista;
+  var aKpis=visualizacao==='kpis';
 
   var btnStyle='padding:7px 18px;border-radius:20px;font-size:12px;font-family:var(--mono);cursor:pointer;';
   var vizTabsHTML='<div style="display:flex;gap:8px;margin-bottom:16px">'
+    +'<button id="btn-viz-resumo" onclick="setAnaliseViz(\'resumo\')" style="'+btnStyle+'border:1px solid '+(aResumo?'var(--accent)':'var(--border2)')+';background:'+(aResumo?'var(--accent-light)':'transparent')+';color:'+(aResumo?'var(--accent)':'var(--text2)')+'">&#128200; Resumo</button>'
     +'<button id="btn-viz-lista" style="'+btnStyle+'border:1px solid '+(aLista?'var(--accent)':'var(--border2)')+';background:'+(aLista?'var(--accent-light)':'transparent')+';color:'+(aLista?'var(--accent)':'var(--text2)')+'">&#128203; Lista</button>'
     +'<button id="btn-viz-kpis" style="'+btnStyle+'border:1px solid '+(aKpis?'var(--accent)':'var(--border2)')+';background:'+(aKpis?'var(--accent-light)':'transparent')+';color:'+(aKpis?'var(--accent)':'var(--text2)')+'">&#128202; KPIs</button>'
     +'</div>';
 
+  if(aResumo) return renderAnaliseResumo(atividades, registros, mesAno, vizTabsHTML);
   if(aKpis) return renderAnaliseKPIs(atividades, registros, mesAno, vizTabsHTML);
 
   var consultores=['todos','igor','felipe','paula','ramon'];
@@ -4313,8 +4469,8 @@ function bindConsultor(){
   // Toggle viz KPIs/lista
   var bk=document.getElementById('btn-viz-kpis');
   var bl=document.getElementById('btn-viz-lista');
-  if(bk)bk.onclick=function(){state.vizMode='kpis';render();};
-  if(bl)bl.onclick=function(){state.vizMode='lista';render();};
+  if(bk)bk.onclick=function(){state.analiseVisualizacao='kpis';render();};
+  if(bl)bl.onclick=function(){state.analiseVisualizacao='lista';render();};
   // Seletor de ano
   var as=document.getElementById('ano-sel');
   if(as)as.onchange=function(){state.anoSel=this.value;render();};
@@ -4387,8 +4543,8 @@ function bindLucas(){
   // Toggle viz KPIs/lista
   var bk=document.getElementById('btn-viz-kpis');
   var bl=document.getElementById('btn-viz-lista');
-  if(bk)bk.onclick=function(){state.vizMode='kpis';render();};
-  if(bl)bl.onclick=function(){state.vizMode='lista';render();};
+  if(bk)bk.onclick=function(){state.analiseVisualizacao='kpis';render();};
+  if(bl)bl.onclick=function(){state.analiseVisualizacao='lista';render();};
   // Seletor de ano
   var as=document.getElementById('ano-sel');
   if(as)as.onchange=function(){state.anoSel=this.value;render();};
@@ -4415,6 +4571,27 @@ function bindLucas(){
 
 // Restaurar tema salvo
 if(localStorage.getItem('agro_theme')==='light'){document.body.classList.add('light-mode');}
+
+// Fundo animado (linhas de plantio): linhas fixas + 6 pulsos de luz em direção ao horizonte
+function toggleFx(){
+  document.body.classList.toggle('no-fx');
+  localStorage.setItem('agro_fx',document.body.classList.contains('no-fx')?'off':'on');
+}
+(function(){
+  var el=document.getElementById('fx-svg');
+  if(el){
+    var pulsos={'-11':[8.4,3],'-7':[9.6,7],'-3':[7.2,1],'2':[10,5],'6':[8,9],'10':[9,4]};
+    var h='<path class="hz" d="M0 230L1600 230"/>';
+    for(var i=-13;i<=13;i++){
+      var d='M'+(800+i*170)+' 900L800 230';
+      h+='<path d="'+d+'" pathLength="1000"/>';
+      var p=pulsos[i];
+      if(p)h+='<path class="p" d="'+d+'" pathLength="1000" style="animation-duration:'+p[0]+'s;animation-delay:-'+p[1]+'s"/>';
+    }
+    el.innerHTML=h;
+  }
+  if(localStorage.getItem('agro_fx')==='off')document.body.classList.add('no-fx');
+})();
 
 // Inicializar app — carregar usuários do Supabase antes do primeiro render
 // ============================================================
