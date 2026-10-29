@@ -3826,13 +3826,13 @@ function moverStatusCard(cardId,novoStatus){
   if(idx<0)return;
   cards[idx].status=novoStatus;
   cards[idx].atualizadoEm=new Date().toISOString();
-  var payload={action:'salvarCard',id:cardId,status:novoStatus};
+  var payload={status:novoStatus,atualizado_em:cards[idx].atualizadoEm};
   if(novoStatus==='feito'&&!cards[idx].dataConclusao){
     cards[idx].dataConclusao=new Date().toISOString();
-    payload.dataConclusao=cards[idx].dataConclusao;
+    payload.data_conclusao=cards[idx].dataConclusao;
   }
   setStore('cards',cards);_cacheCards=cards;
-  supaUpsertAtividade(payload).catch(function(e){console.warn(e);});
+  supaUpdate('cards',payload,{id:cardId}).catch(function(e){console.warn(e);showToast('Erro ao salvar o status no servidor');});
   showToast('Status: '+statusLabel(novoStatus));render();
 }
 
