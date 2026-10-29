@@ -222,29 +222,43 @@ tr:hover td{background:var(--surface2)!important;}
 .nota-btn:hover{border-color:var(--accent);color:var(--accent);}
 .nota-btn.active{background:rgba(74,222,128,.2);border-color:var(--accent);color:var(--accent);font-weight:700;}
 /* RESPONSIVO MOBILE */
+.menu-handle,.menu-scrim{display:none}
 @media(max-width:768px){
   .app{flex-direction:column;}
   .sidebar{
-    width:100%;height:60px;flex-direction:row;
-    position:fixed;bottom:0;left:0;right:0;
-    padding:0;z-index:100;
-    border-right:none;border-top:1px solid var(--border2);
-    background:var(--surface);
+    width:270px;max-width:84vw;flex-direction:column;
+    position:fixed;top:0;bottom:0;left:0;right:auto;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 0 calc(16px + env(safe-area-inset-bottom,0px));
+    z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    border-right:1px solid var(--border2);border-top:none;
+    background:rgba(26,29,39,.9);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
     display:flex;align-items:stretch;
+    transform:translateX(-105%);transition:transform .28s ease;
   }
-  .sidebar-logo,.sidebar-user,.sidebar-bottom{display:none!important;}
-  .nav-item{
-    flex:1;flex-direction:column;
-    padding:8px 4px 6px;gap:3px;
-    border-left:none!important;border-top:3px solid transparent;
-    justify-content:center;align-items:center;
-    font-size:10px;min-width:0;
-  }
-  .nav-item.active{border-top-color:var(--accent);background:var(--accent-light);}
-  .nav-item.nav-lucas.active{border-top-color:var(--lucas);background:var(--lucas-bg);}
-  .nav-item span{display:block;font-size:9px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  body.menu-open .sidebar{transform:none;box-shadow:14px 0 40px rgba(0,0,0,.5);}
+  body.menu-open{overflow:hidden;}
+  body.light-mode .sidebar{background:rgba(255,255,255,.92);}
+  .sidebar-bottom .btn-logout{display:none!important;}
+  #btn-sincronizar-nav,#btn-logout-nav{flex:none!important;flex-direction:row!important;padding:10px 20px!important;gap:10px!important;justify-content:flex-start!important;align-items:center!important;}
   .nav-icon{width:20px;height:20px;opacity:1;flex-shrink:0;}
-  .main{padding-bottom:72px;width:100%;}
+  .menu-handle{display:flex;position:fixed;left:0;top:42%;width:20px;height:60px;align-items:center;justify-content:center;z-index:250;border-radius:0 14px 14px 0;background:rgba(26,29,39,.82);border:1px solid var(--border2);border-left:none;color:var(--accent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;transition:opacity .2s;}
+  body.light-mode .menu-handle{background:rgba(255,255,255,.9);}
+  .menu-scrim{display:block;position:fixed;inset:0;z-index:290;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .28s;}
+  body.menu-open .menu-scrim{opacity:1;pointer-events:auto;}
+  body.menu-open .menu-handle{opacity:0;pointer-events:none;}
+  .main{padding-bottom:24px;width:100%;}
+  /* Cadastros no celular: mapa principal em cima, mapas dos consultores embaixo (2x2) */
+  .cad-grid{grid-template-columns:1fr!important;height:auto!important;}
+  .cad-map-card{height:auto!important;overflow:visible!important;}
+  .cad-map-card .mapa-geral-wrap{flex:none!important;height:auto!important;}
+  #mapa-geral{height:auto!important;touch-action:pan-y!important;}
+  .cad-kpis{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
+  .cad-kpi-v{font-size:18px!important;overflow-wrap:anywhere;}
+  .mapa-filtros select{flex:1 1 calc(50% - 6px);min-width:0;font-size:10.5px!important;padding:5px 6px!important;}
+  .cad-minis{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;height:auto!important;overflow:visible!important;}
+  .cad-minis>div{flex:none!important;}
+  .cad-minis svg{flex:none!important;height:auto!important;}
   .page{padding:16px;}
   .cards-grid.cols-4{grid-template-columns:repeat(2,1fr);}
   .cards-grid.cols-2{grid-template-columns:1fr;}
@@ -929,6 +943,7 @@ async function carregarTodasAtividades(){
     return ativs;
   }catch(e){
     console.warn('Erro ao carregar atividades:',e);
+    window._cacheTodasAtividadesFalhou=Date.now();
     return getAtividades();
   }
 }
@@ -973,6 +988,7 @@ function render(){
   else if(state.role==='jean'){root.innerHTML=renderApp(renderJeanShell());bindLucas();}
   else{root.innerHTML=renderApp(renderConsultor());bindConsultor();}
   if(tlScroll>0){var tlNew=document.getElementById('timeline-scroll');if(tlNew)tlNew.scrollLeft=tlScroll;}
+  if(window._fecharMenuDepois){window._fecharMenuDepois=false;requestAnimationFrame(function(){requestAnimationFrame(fecharMenu);});}
 }
 
 // ============================================================
@@ -1122,6 +1138,8 @@ function renderApp(content){
     +'<span>Sair</span></div>';
 
   return'<div id="saving-bar" class="saving-bar"></div><div class="app">'
+    +'<div class="menu-handle" id="menu-handle" onclick="abrirMenu()" aria-label="Abrir menu"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>'
+    +'<div class="menu-scrim" id="menu-scrim" onclick="fecharMenu()"></div>'
     +'<div class="sidebar">'
     +'<div class="sidebar-logo">Sistema<strong>AgroTrack</strong></div>'
     +'<div class="sidebar-user"><div class="sidebar-user-name">'+u.nome+'</div></div>'
@@ -3028,11 +3046,11 @@ function toggleNovaAtivGeral(cb){
 }
 function renderAtividadesPage(){
   var isReadOnly=state.role!=='gestor'&&state.role!=='diretor';
-  if(!window._cacheTodasAtividades){
+  if(!window._cacheTodasAtividades&&(!window._cacheTodasAtividadesFalhou||Date.now()-window._cacheTodasAtividadesFalhou>15000)){
     carregarTodasAtividades().then(function(){render();});
     return'<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando atividades...</div></div>';
   }
-  var allAtivs=(window._cacheTodasAtividades||[]).filter(function(a){return a.ativo&&a.mesAno;});
+  var allAtivs=(window._cacheTodasAtividades||getAtividades()||[]).filter(function(a){return a.ativo&&a.mesAno;});
   var anoAtual=new Date().getFullYear();
   var anos=[...new Set(allAtivs.map(function(a){return a.mesAno.split('-')[0];}).filter(Boolean))].sort();
   if(anos.indexOf(String(anoAtual))<0)anos.push(String(anoAtual));
@@ -4573,6 +4591,26 @@ function bindLucas(){
 if(localStorage.getItem('agro_theme')==='light'){document.body.classList.add('light-mode');}
 
 // Fundo animado (linhas de plantio): linhas fixas + 6 pulsos de luz em direção ao horizonte
+// Menu lateral no celular (gaveta que desliza da esquerda)
+function abrirMenu(){document.body.classList.add('menu-open');}
+function fecharMenu(){document.body.classList.remove('menu-open');}
+document.addEventListener('click',function(e){
+  if(!document.body.classList.contains('menu-open')||!e.target.closest)return;
+  if(e.target.closest('#btn-sincronizar-nav,#btn-logout-nav,.sidebar .btn-logout'))fecharMenu();
+  else if(e.target.closest('.sidebar .nav-item'))window._fecharMenuDepois=true;
+},true);
+(function(){
+  var sx=null;
+  document.addEventListener('touchstart',function(e){
+    sx=(document.body.classList.contains('menu-open')&&e.target.closest&&e.target.closest('.sidebar'))?e.touches[0].clientX:null;
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(sx===null)return;
+    if(e.changedTouches[0].clientX-sx<-60)fecharMenu();
+    sx=null;
+  },{passive:true});
+})();
+
 function toggleFx(){
   document.body.classList.toggle('no-fx');
   localStorage.setItem('agro_fx',document.body.classList.contains('no-fx')?'off':'on');
@@ -4722,19 +4760,19 @@ function renderCadastrosPage(){
   var totalFazendas=_fazendasFilt.length;
   var totalEstados=[...new Set(_fazendasFilt.map(function(f){return f.estado||'';}).filter(Boolean))].length;
 
-  var kpisHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">'
+  var kpisHTML='<div class="cad-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">'
     +[['Area Total',''+totalArea.toLocaleString('pt-BR')+' ha','#4ade80'],
       ['Clientes',''+totalClientes,'#60a5fa'],
       ['Fazendas',''+totalFazendas,'#c084fc'],
       ['Estados',''+totalEstados,'#fb923c']].map(function(k){
         return '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;">'
           +'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;margin-bottom:6px;">'+k[0].toUpperCase()+'</div>'
-          +'<div style="font-size:22px;font-weight:700;color:'+k[2]+'">'+k[1]+'</div>'
+          +'<div class="cad-kpi-v" style="font-size:22px;font-weight:700;color:'+k[2]+'">'+k[1]+'</div>'
           +'</div>';
     }).join('')
     +'</div>';
 
-  var mapaHTML='<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;">'
+  var mapaHTML='<div class="cad-map-card" style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;">'
     +'<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">Mapa — todos os clientes</div>'
     +kpisHTML
     +filtrosHTML
@@ -4818,7 +4856,7 @@ function renderCadastrosPage(){
   }
 
   // Mini mapas dos consultores — altura total = mapa geral, dividida em 4
-  var miniMapasHTML='<div style="display:flex;flex-direction:column;gap:8px;height:100%;min-height:0;overflow:hidden;">'
+  var miniMapasHTML='<div class="cad-minis" style="display:flex;flex-direction:column;gap:8px;height:100%;min-height:0;overflow:hidden;">'
     +['igor','felipe','paula','ramon'].map(function(c){
       var u=USUARIOS[c]||{nome:c,cor:CORES[c]||'#8b90a8',corBg:'rgba(139,144,168,.1)'};
       var cls=CLIENTES[c]||[];
@@ -4838,7 +4876,7 @@ function renderCadastrosPage(){
     +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
     +'<div><div class="page-title">Cadastros</div><div class="page-sub">Clientes e fazendas</div></div>'
     +'<button class="btn-sec" onclick="state.cadastrosCarregado=false;render()">⟳ Atualizar</button></div>'
-    +'<div style="display:grid;grid-template-columns:3fr 1fr;gap:14px;height:774px;">'
+    +'<div class="cad-grid" style="display:grid;grid-template-columns:3fr 1fr;gap:14px;height:774px;">'
     +mapaHTML
     +miniMapasHTML
     +'</div>'
