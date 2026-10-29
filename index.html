@@ -903,7 +903,9 @@ async function carregarTodasAtividades(){
   try{
     var rows=await supa('atividades',{select:'*'});
     var ativs=rows.filter(function(a){return a.ativo!==false&&a.ativo!=='false';}).map(function(a){
-      return {id:a.id,nome:a.nome||'',mesAno:a.mes_ano||'',escopo:a.escopo||'geral',ativo:true,grupo:a.grupo||'banco'};
+      var esc=a.escopo||'geral';
+      if(typeof esc==='string'&&esc!=='geral'&&esc.startsWith('[')){try{esc=JSON.parse(esc);}catch(e){esc='geral';}}
+      return {id:a.id,nome:a.nome||'',mesAno:a.mes_ano||'',escopo:esc,ativo:true,grupo:a.grupo||'banco'};
     });
     window._cacheTodasAtividades=ativs;
     return ativs;
@@ -914,9 +916,11 @@ async function carregarTodasAtividades(){
 }
 
 async function supaUpsertAtividade(data){
-  var escopo = data.escopo||'geral';
-  if(typeof escopo==='string'&&escopo.startsWith('[')) try{escopo=JSON.parse(escopo);}catch(e){}
-  var row = {id:data.id||('a'+Date.now()),nome:data.nome||'',mes_ano:data.mesAno||data.mes_ano||'',escopo:escopo,ativo:data.ativo!==false};
+  var escopo=data.escopo||'geral';
+  // Normalize to string for Supabase
+  if(Array.isArray(escopo))escopo=JSON.stringify(escopo);
+  else if(typeof escopo==='object'&&escopo!=='geral')escopo=JSON.stringify(Object.keys(escopo).filter(function(k){return escopo[k];}));
+  var row = {id:data.id||('a'+Date.now()),nome:data.nome||'',mes_ano:data.mesAno||data.mes_ano||'',escopo:escopo,grupo:data.grupo||'banco',ativo:data.ativo!==false};
   await supaInsert('atividades', row, true);
   return {ok:true, id:row.id};
 }
@@ -3135,31 +3139,35 @@ function abrirEditAtiv(id){
   state.editAtivData={id:a.id,nome:a.nome,mesAno:a.mesAno,escopo:escopoObj,grupo:a.grupo||'banco'};
   state.editAtivModal=true;
   render();
-  // Bind toggle buttons after render
+  // Bind pill toggles after modal renders
   setTimeout(function(){
+    var geralCb=document.getElementById('edit-escopo-geral');
+    if(geralCb){
+      geralCb.onchange=function(){toggleEditGeral(this);};
+    }
     document.querySelectorAll('.edit-escopo-btn').forEach(function(btn){
+      var isActive=btn.dataset.selected==='1';
+      if(isActive)btn.classList.add('sel-ativo');
       btn.onclick=function(){
-        var clid=this.dataset.clid;
-        var cor=this.dataset.ucolor;
         var ea=state.editAtivData;
-        if(ea.escopo==='geral')return;
-        if(!ea.escopo||typeof ea.escopo!=='object')ea.escopo={};
-        if(ea.escopo[clid]){
-          delete ea.escopo[clid];
-          this.style.borderColor='var(--border2)';
-          this.style.background='transparent';
-          this.style.color='var(--text2)';
-        } else {
-          ea.escopo[clid]=true;
-          this.style.borderColor=cor;
-          this.style.background='rgba(0,0,0,.15)';
-          this.style.color=cor;
+        if(!ea||ea.escopo==='geral')return;
+        if(!ea.escopo||typeof ea.escopo!=='object'||Array.isArray(ea.escopo)){
+          // Convert array to object
+          var obj={};
+          if(Array.isArray(ea.escopo))ea.escopo.forEach(function(k){obj[k]=true;});
+          ea.escopo=obj;
         }
+        var clid=this.dataset.clid;
+        var active=this.classList.toggle('sel-ativo');
+        if(active){ea.escopo[clid]=true;}else{delete ea.escopo[clid];}
+        this.style.borderColor=active?this.dataset.ucolor:'var(--border2)';
+        this.style.color=active?this.dataset.ucolor:'var(--text2)';
+        this.style.background=active?'rgba(0,0,0,.15)':'transparent';
       };
     });
     var btnSalvar=document.getElementById('btn-salvar-edit-ativ');
     if(btnSalvar)btnSalvar.onclick=salvarEditAtiv;
-  },50);
+  },80);
 }
 
 function toggleEditGeral(el){
@@ -3168,8 +3176,16 @@ function toggleEditGeral(el){
     state.editAtivData.escopo='geral';
     if(wrap){wrap.style.opacity='.4';wrap.style.pointerEvents='none';}
   } else {
+    // Start with empty object so pills can be toggled
     state.editAtivData.escopo={};
     if(wrap){wrap.style.opacity='1';wrap.style.pointerEvents='auto';}
+    // Re-bind pills now that they're active
+    document.querySelectorAll('.edit-escopo-btn').forEach(function(btn){
+      btn.classList.remove('sel-ativo');
+      btn.style.borderColor='var(--border2)';
+      btn.style.color='var(--text2)';
+      btn.style.background='transparent';
+    });
   }
 }
 
@@ -4097,8 +4113,17 @@ function bindAtividades(){
         this.style.borderColor=active?this.dataset.ucolor:'var(--border2)';
         this.style.color=active?this.dataset.ucolor:'var(--text2)';
         this.style.background=active?'rgba(0,0,0,.15)':'transparent';
+        // Also sync state.editAtivData.escopo
+        var ea=state.editAtivData;
+        if(ea&&ea.escopo!=='geral'){
+          if(!ea.escopo||typeof ea.escopo!=='object')ea.escopo={};
+          if(active)ea.escopo[this.dataset.clid]=true;
+          else delete ea.escopo[this.dataset.clid];
+        }
       };
     });
+    var btnSalvarEdit=document.getElementById('btn-salvar-edit-ativ');
+    if(btnSalvarEdit)btnSalvarEdit.onclick=salvarEditAtiv;
   }
   var btnConfDup=document.getElementById('btn-confirmar-duplicar');
   if(btnConfDup){
@@ -4267,6 +4292,26 @@ function bindGestor(){
 function bindConsultor(){
   bindCommon();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  if(state.paginaGestor==='atividades')bindAtividades();
+  if(state.paginaGestor==='cadastros')bindCadastros();
+  // Filtros de prioridade
+  ['todos','alta','media','baixa'].forEach(function(f){
+    var btn=document.getElementById('prio-filtro-'+f);
+    if(btn)btn.onclick=function(){state.prioFiltro=f;render();};
+  });
+  // Toggle viz KPIs/lista
+  var bk=document.getElementById('btn-viz-kpis');
+  var bl=document.getElementById('btn-viz-lista');
+  if(bk)bk.onclick=function(){state.vizMode='kpis';render();};
+  if(bl)bl.onclick=function(){state.vizMode='lista';render();};
+  // Seletor de ano
+  var as=document.getElementById('ano-sel');
+  if(as)as.onchange=function(){state.anoSel=this.value;render();};
+  // Filtros reuniões
+  var btnTodosR=document.getElementById('btn-reu-todos');
+  if(btnTodosR)btnTodosR.onclick=function(){state.reuniaoMesFiltro='todos';render();};
+  var selMesR=document.getElementById('sel-mes-reu');
+  if(selMesR)selMesR.onchange=function(){state.reuniaoMesFiltro=this.value;render();};
   var btnTodosC=document.getElementById('btn-reu-todos');
   if(btnTodosC)btnTodosC.onclick=function(){state.reuniaoMesFiltro='todos';render();};
   var selMesC=document.getElementById('sel-mes-reu');
@@ -4322,6 +4367,25 @@ function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
+  if(state.paginaGestor==='cadastros')bindCadastros();
+  // Filtros de prioridade
+  ['todos','alta','media','baixa'].forEach(function(f){
+    var btn=document.getElementById('prio-filtro-'+f);
+    if(btn)btn.onclick=function(){state.prioFiltro=f;render();};
+  });
+  // Toggle viz KPIs/lista
+  var bk=document.getElementById('btn-viz-kpis');
+  var bl=document.getElementById('btn-viz-lista');
+  if(bk)bk.onclick=function(){state.vizMode='kpis';render();};
+  if(bl)bl.onclick=function(){state.vizMode='lista';render();};
+  // Seletor de ano
+  var as=document.getElementById('ano-sel');
+  if(as)as.onchange=function(){state.anoSel=this.value;render();};
+  // Filtros reuniões
+  var btnTodosR=document.getElementById('btn-reu-todos');
+  if(btnTodosR)btnTodosR.onclick=function(){state.reuniaoMesFiltro='todos';render();};
+  var selMesR=document.getElementById('sel-mes-reu');
+  if(selMesR)selMesR.onchange=function(){state.reuniaoMesFiltro=this.value;render();};
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Init DnD para Lucas ou Jean
   setTimeout(function(){
