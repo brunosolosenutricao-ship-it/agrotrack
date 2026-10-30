@@ -2084,10 +2084,12 @@ function renderAnalisePage(){
 // ============================================================
 var TIPOS_DEMANDA=['Entrega de Safra','Recomendações Safra','Recomendações Inverno','Recomendações Foliares','Ajustes Pontuais','Demanda Extra'];
 
+function normPrioridade(r){return Object.assign({},r,{reuniaoId:r.reuniaoId||r.reuniao_id||'',criadoPor:r.criadoPor||r.criado_por||''});}
 async function carregarPrioridades(){
-  var res=await supa('prioridades',{select:'*'});
-  if(res&&!res.erro&&Array.isArray(res)){state.prioridades=res;setStore('prioridades',res);}
-  else{state.prioridades=getStore('prioridades',[]);}
+  var res=null;
+  try{res=await supa('prioridades',{select:'*'});}catch(e){console.warn('Erro ao carregar prioridades:',e);}
+  if(res&&!res.erro&&Array.isArray(res)){state.prioridades=res.map(normPrioridade);setStore('prioridades',res);}
+  else{state.prioridades=getStore('prioridades',[]).map(normPrioridade);}
   state.prioridadesCarregadas=true;render();
 }
 
@@ -2167,6 +2169,7 @@ function renderPrioridadesPage(){
     carregarPrioridades();
     return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando prioridades...</div></div>';
   }
+  if(!state.reuniaoCarregada)carregarReunioes();
   var ordem={alta:0,media:1,baixa:2};
   var filtro=state.prioFiltro||'todos';
   var lista=state.prioridades.slice()
@@ -2238,7 +2241,7 @@ function renderPrioridadesPage(){
     var tipoOpts=TIPOS_DEMANDA.map(function(t){return '<option value="'+t+'"'+(d.tipo===t?' selected':'')+'>'+t+'</option>';}).join('');
     var reunioesPopupHTML='';
     if(state.prioridadeReunioPopup){
-      var livres=state.reunioes.filter(function(r){return r.status==='livre'||r.status==='marcada';});
+      var livres=state.reunioes.filter(function(r){return r.status==='livre'||r.id===d.reuniaoId;});
       var optsReu=livres.map(function(r){
         var hi=r.dataHora&&r.dataHora.length>=16?r.dataHora.substring(11,16):'';
         var hf=r.dataFim&&r.dataFim.length>=16?r.dataFim.substring(11,16):'';
