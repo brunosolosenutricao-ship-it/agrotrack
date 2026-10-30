@@ -1531,6 +1531,7 @@ function renderReunioesPage(){
             +'<input type="time" id="r-fim" value="'+fimVal+'" style="flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;padding:8px;color:var(--text1);font-family:var(--mono);font-size:13px">'
           +'</div>'
         +'</div>'
+        +'<div class="modal-field"><label>DEMANDA (OPCIONAL)</label>'+prioSlotListaHTML(d)+'</div>'
         +'<div class="modal-field"><label>CLIENTE</label><input type="text" id="r-cliente" placeholder="Nome do cliente" value="'+(d.cliente||'')+'"></div>'
         +'<div class="modal-field"><label>STATUS</label><select id="r-status">'
           +'<option value="aguardando"'+(d.status==='aguardando'?' selected':'')+'>Aguardando resposta</option>'
@@ -1614,6 +1615,7 @@ function abrirModalReuniao(id, modo){
   state.reuniaoModal=true;
   state.reuniaoModalData=data;
   render();
+  if(!state.prioridadesCarregadas)garantirPrioridades().then(function(){if(state.reuniaoModal)render();});
 }
 
 async function salvarReuniaoNova(){
@@ -1659,12 +1661,17 @@ async function salvarReuniao(){
   var id=d.id||('r'+Date.now());
   showToast('Salvando...');
   try{
+    await garantirPrioridades();
+    var prioSel=(state.prioridades||[]).find(function(p){return p.id===prioSelAtual(d);})||null;
+    if(prioSel)cliente=prioSel.cliente;
     await supaUpsertReuniao({id:id,dataHora:dataHora,dataFim:dataFim,consultor:consultor,cliente:cliente,status:status,obs:obs});
     // Update local cache
     var novaReu={id:id,dataHora:dataHora,dataFim:dataFim,consultor:consultor,cliente:cliente,status:status,obs:obs};
     var idx=state.reunioes.findIndex(function(r){return r.id===id;});
     if(idx>=0)state.reunioes[idx]=novaReu;else state.reunioes.push(novaReu);
     setStore('reunioes',state.reunioes);
+    try{await sincronizarVinculoSlot(id,status,prioSel);}
+    catch(e2){console.warn(e2);showToast('Slot salvo, mas a demanda n\u00e3o atualizou: '+e2.message);state.reuniaoModal=false;render();return;}
     showToast('\u2713 Reuni\u00e3o salva!');
     state.reuniaoModal=false;
     render();
@@ -1677,6 +1684,7 @@ async function liberarSlot(id){
   var reu=state.reunioes.find(function(r){return r.id===id;});
   var res=await supaUpsertReuniao({id:id,dataHora:reu?reu.dataHora:'',dataFim:reu?reu.dataFim:'',consultor:'',cliente:'',status:'livre',obs:''});
   if(res&&res.ok){
+    try{await desvincularDemandasDoSlot(id,'');}catch(e){console.warn(e);}
     showToast('✓ Slot liberado!');
     state.reuniaoCarregada=false;
     render();
@@ -1690,6 +1698,7 @@ async function deletarReuniao(id){
   showToast('Removendo...');
   var res=await supaDelete('reunioes',{id:id});
   if(res&&res.ok){
+    try{await desvincularDemandasDoSlot(id,'');}catch(e){console.warn(e);}
     showToast('\u2713 Removido!');
     state.reuniaoCarregada=false;
     render();
@@ -2084,6 +2093,99 @@ function renderAnalisePage(){
 // ============================================================
 var TIPOS_DEMANDA=['Entrega de Safra','Recomendações Safra','Recomendações Inverno','Recomendações Foliares','Ajustes Pontuais','Demanda Extra'];
 
+// ===== Vínculo entre Slots (reuniões) e Prioridades =====
+function normNome(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');}
+function _idNum(id){var n=parseInt(String(id).replace(/\D/g,''),10);return isNaN(n)?0:n;}
+function _attrPrio(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+async function garantirPrioridades(){
+  if(state.prioridadesCarregadas)return;
+  var res=null;
+  try{res=await supa('prioridades',{select:'*'});}catch(e){console.warn('Erro ao carregar prioridades:',e);}
+  if(res&&!res.erro&&Array.isArray(res)){state.prioridades=res.map(normPrioridade);setStore('prioridades',res);}
+  else{state.prioridades=getStore('prioridades',[]).map(normPrioridade);}
+  state.prioridadesCarregadas=true;
+}
+async function prioSetLink(prioId,status,reuniaoId){
+  await supaUpdate('prioridades',{status:status,reuniao_id:reuniaoId},{id:prioId});
+  var p=(state.prioridades||[]).find(function(x){return x.id===prioId;});
+  if(p){p.status=status;p.reuniaoId=reuniaoId;p.reuniao_id=reuniaoId;}
+  setStore('prioridades',state.prioridades);
+}
+async function slotOcupar(slotId,cliente,consultor,status){
+  await supaUpdate('reunioes',{cliente:cliente,consultor:consultor,status:status},{id:slotId});
+  var r=(state.reunioes||[]).find(function(x){return x.id===slotId;});
+  if(r){r.cliente=cliente;r.consultor=consultor;r.status=status;}
+  setStore('reunioes',state.reunioes);
+}
+// Libera o slot só se ele ainda for dessa demanda (mesmo cliente): nunca desfaz o agendamento de outra pessoa
+async function slotLiberarVinculo(slotId,cliente){
+  var r=(state.reunioes||[]).find(function(x){return x.id===slotId;});
+  if(!r||r.status==='livre')return;
+  if(normNome(r.cliente)!==normNome(cliente))return;
+  await supaUpdate('reunioes',{cliente:'',consultor:'',status:'livre',obs:''},{id:slotId});
+  r.cliente='';r.consultor='';r.status='livre';r.obs='';
+  setStore('reunioes',state.reunioes);
+}
+// Demandas presas a este slot voltam para "pendente de agenda"
+async function desvincularDemandasDoSlot(slotId,exceptPrioId){
+  await garantirPrioridades();
+  var lista=(state.prioridades||[]).filter(function(p){return p.reuniaoId===slotId&&p.id!==exceptPrioId;});
+  for(var i=0;i<lista.length;i++)await prioSetLink(lista[i].id,'pendente','');
+}
+// Ao salvar o slot (aba Slots): liga/desliga a demanda escolhida
+async function sincronizarVinculoSlot(slotId,statusSlot,prioSel){
+  await desvincularDemandasDoSlot(slotId,prioSel?prioSel.id:'');
+  if(!prioSel)return;
+  if(prioSel.reuniaoId&&prioSel.reuniaoId!==slotId)await slotLiberarVinculo(prioSel.reuniaoId,prioSel.cliente);
+  await prioSetLink(prioSel.id,statusSlot==='marcada'?'marcado':'pendente',slotId);
+}
+// Ao salvar a demanda (aba Prioridades): ocupa o slot novo e libera o antigo
+async function sincronizarVinculoPrioridade(o){
+  if(!state.reuniaoCarregada)await carregarReunioes();
+  if(o.reuniaoAntiga&&o.reuniaoAntiga!==o.reuniaoId)await slotLiberarVinculo(o.reuniaoAntiga,o.clienteAntigo);
+  if(o.status==='marcado'&&o.reuniaoId)await slotOcupar(o.reuniaoId,o.cliente,o.consultor||state.usuario,'marcada');
+}
+// Lista de demandas na janela de agendar o slot
+function prioSelAtual(d){
+  var vinc=(state.prioridades||[]).find(function(p){return p.reuniaoId&&p.reuniaoId===d.id;});
+  return d.prioridadeSel!==undefined?d.prioridadeSel:(vinc?vinc.id:'');
+}
+function prioSlotListaHTML(d){
+  if(!state.prioridadesCarregadas)return '<div style="font-size:12px;color:var(--text3);padding:8px 0">Carregando demandas...</div>';
+  var ordem={alta:0,media:1,baixa:2};
+  var todas=state.prioridades||[];
+  var sel=prioSelAtual(d);
+  var lista=todas.filter(function(p){return (p.status==='pendente'&&!p.reuniaoId)||p.id===sel||(p.reuniaoId&&p.reuniaoId===d.id);})
+    .sort(function(a,b){
+      var pa=ordem[a.prioridade]===undefined?2:ordem[a.prioridade],pb=ordem[b.prioridade]===undefined?2:ordem[b.prioridade];
+      return pa!==pb?pa-pb:_idNum(a.id)-_idNum(b.id);
+    });
+  if(!lista.length)return '<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhuma demanda pendente de agenda.</div>';
+  return '<div id="r-prio-lista" style="max-height:170px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;padding:6px;background:var(--surface)">'
+    +lista.map(function(p){
+      var u=USUARIOS[p.consultor]||{nome:p.consultor||'\u2014'};
+      var on=p.id===sel;
+      return '<div class="r-prio-item" data-id="'+_attrPrio(p.id)+'" data-cliente="'+_attrPrio(p.cliente)+'" onclick="selecionarPrioSlot(this)" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;margin-bottom:4px;cursor:pointer;border:1px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent-light)':'var(--surface2)')+'">'
+        +'<span style="width:9px;height:9px;border-radius:50%;background:'+prioridadeCor(p.prioridade)+';flex-shrink:0"></span>'
+        +'<div style="min-width:0"><div style="font-size:13px;font-weight:500">'+p.cliente+'</div>'
+        +'<div style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+prioridadeLabel(p.prioridade)+' \u00b7 '+(p.tipo||'')+' \u00b7 '+u.nome+'</div></div></div>';
+    }).join('')+'</div>';
+}
+function selecionarPrioSlot(el){
+  var d=state.reuniaoModalData;
+  var id=el.getAttribute('data-id');
+  var novo=prioSelAtual(d)===id?'':id;
+  d.prioridadeSel=novo;
+  document.querySelectorAll('#r-prio-lista .r-prio-item').forEach(function(it){
+    var on=it.getAttribute('data-id')===novo;
+    it.style.borderColor=on?'var(--accent)':'var(--border)';
+    it.style.background=on?'var(--accent-light)':'var(--surface2)';
+  });
+  if(novo){var ci=document.getElementById('r-cliente');if(ci)ci.value=el.getAttribute('data-cliente')||'';}
+}
+
+
 function normPrioridade(r){return Object.assign({},r,{reuniaoId:r.reuniaoId||r.reuniao_id||'',criadoPor:r.criadoPor||r.criado_por||''});}
 async function carregarPrioridades(){
   var res=null;
@@ -2119,9 +2221,10 @@ async function exportarPrioridadesPNG(){
     var statusCor=p.status==='marcado'?'#4ade80':'#fbbf24';
     var statusLabel=p.status==='marcado'?'Marcado':'Pendente';
     var reuniaoStr='';
-    if(p.status==='marcado'&&p.reuniaoId){
+    if(p.reuniaoId&&(p.status==='marcado'||p.status==='pendente')){
       var reu=(state.reunioes||[]).find(function(r){return r.id===p.reuniaoId;});
-      if(reu){var hi=reu.dataHora&&reu.dataHora.length>=16?reu.dataHora.substring(11,16):'';reuniaoStr='<div style="font-size:11px;color:#60a5fa;margin-top:4px;">📅 '+reu.dataHora.substring(0,10)+' '+hi+'</div>';}
+      var aguard=p.status==='pendente';
+      if(reu&&reu.dataHora&&(!aguard||reu.status==='aguardando')){var hi=reu.dataHora.length>=16?reu.dataHora.substring(11,16):'';reuniaoStr='<div style="font-size:11px;color:'+(aguard?'#fbbf24':'#60a5fa')+';margin-top:4px;">'+(aguard?'⏳ aguardando resposta · ':'📅 ')+reu.dataHora.substring(0,10)+' '+hi+'</div>';}
     }
     return '<div style="background:#1e2030;border:1px solid #2a2d3e;border-left:4px solid '+cor+';border-radius:10px;padding:14px 16px;break-inside:avoid;">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
@@ -2196,15 +2299,16 @@ function renderPrioridadesPage(){
     var cor=prioridadeCor(p.prioridade);
     var bg=prioridadeBg(p.prioridade);
     var reuniaoInfo='';
-    if(p.status==='marcado'&&p.reuniaoId){
+    if(p.reuniaoId&&(p.status==='marcado'||p.status==='pendente')){
       var reu=state.reunioes.find(function(r){return r.id===p.reuniaoId;});
-      if(reu){
+      var aguard=p.status==='pendente';
+      if(reu&&(!aguard||reu.status==='aguardando')){
         var hi=reu.dataHora&&reu.dataHora.length>=16?reu.dataHora.substring(11,16):'';
         var hf=reu.dataFim&&reu.dataFim.length>=16?reu.dataFim.substring(11,16):'';
         var dia=reu.dataHora?reu.dataHora.substring(0,10):'';
         var dFmt='';
         try{var dd=new Date(dia+'T00:00:00');dFmt=String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0');}catch(e){dFmt=dia;}
-        reuniaoInfo='<div style="font-size:11px;font-family:var(--mono);color:#60a5fa;margin-top:4px">\uD83D\uDCC5 '+dFmt+' '+hi+(hf?' \u2013 '+hf:'')+'</div>';
+        reuniaoInfo='<div style="font-size:11px;font-family:var(--mono);color:'+(aguard?'#fbbf24':'#60a5fa')+';margin-top:4px">'+(aguard?'\u23F3 aguardando resposta \u00b7 ':'\uD83D\uDCC5 ')+dFmt+' '+hi+(hf?' \u2013 '+hf:'')+'</div>';
       }
     }
     return '<div style="background:var(--surface2);border:1px solid var(--border2);border-left:3px solid '+cor+';border-radius:10px;padding:14px 16px;margin-bottom:10px">'
@@ -2308,8 +2412,9 @@ function renderPrioridadesPage(){
 }
 
 function setStatusPrio(status){
+  var anterior=state.prioridadeModalData.status;
   state.prioridadeModalData.status=status;
-  if(status!=='marcado')state.prioridadeModalData.reuniaoId='';
+  if(status!=='marcado'&&anterior==='marcado')state.prioridadeModalData.reuniaoId='';
   state.prioridadeReunioPopup=false;
   render();
 }
@@ -2342,11 +2447,14 @@ async function salvarPrioridade(){
   if(!cliente){showToast('Informe o cliente');return;}
   if(!consultor){showToast('Informe o consultor');return;}
   var id=d.id||('p'+Date.now());
+  var antigo=d.id?(state.prioridades||[]).find(function(p){return p.id===d.id;}):null;
   showToast('Salvando...');
   try{
     await supaInsert('prioridades',{id:id,cliente:cliente,consultor:consultor,tipo:tipo,
       prioridade:prioridade,status:status,descricao:descricao,
       reuniao_id:reuniaoId,criado_por:state.usuario},true);
+    try{await sincronizarVinculoPrioridade({cliente:cliente,consultor:consultor,status:status,reuniaoId:reuniaoId,reuniaoAntiga:antigo?(antigo.reuniaoId||''):'',clienteAntigo:antigo?antigo.cliente:cliente});}
+    catch(e2){console.warn(e2);showToast('Demanda salva, mas o slot n\u00e3o atualizou: '+e2.message);}
     showToast('\u2713 Demanda salva!');
     state.prioridadeModal=false;
     state.prioridadeReunioPopup=false;
@@ -2358,8 +2466,12 @@ async function salvarPrioridade(){
 async function deletarPrioridade(id){
   if(!confirm('Remover esta demanda?'))return;
   showToast('Removendo...');
+  var antigo=(state.prioridades||[]).find(function(p){return p.id===id;});
   var res=await supaDelete('prioridades',{id:id});
-  if(res&&res.ok){showToast('\u2713 Removido!');state.prioridadesCarregadas=false;render();}
+  if(res&&res.ok){
+    if(antigo&&antigo.reuniaoId){try{if(!state.reuniaoCarregada)await carregarReunioes();await slotLiberarVinculo(antigo.reuniaoId,antigo.cliente);}catch(e){console.warn(e);}}
+    showToast('\u2713 Removido!');state.prioridadesCarregadas=false;render();
+  }
   else{showToast('Erro ao remover');}
 }
 
