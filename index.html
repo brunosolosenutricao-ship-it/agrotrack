@@ -3064,6 +3064,79 @@ function semanasDoMes(mesAno){
   return semanas;
 }
 
+// ============================================================
+// GESTÃO DE DEMANDAS: migrar card para o próximo mês (card a card) + aviso de pendências do mês anterior
+// ============================================================
+var _planUndo=null,_planUndoTimer=0;
+function planProxMes(ym){var p=String(ym).split('-'),a=parseInt(p[0],10),m=parseInt(p[1],10)+1;if(m>12){m=1;a++;}return a+'-'+(m<10?'0':'')+m;}
+function planMesAnterior(ym){var p=String(ym).split('-'),a=parseInt(p[0],10),m=parseInt(p[1],10)-1;if(m<1){m=12;a--;}return a+'-'+(m<10?'0':'')+m;}
+function planVerMes(ym){state.mesPlanejamento=ym;state.planejamentoCarregado=false;state.planejamento=[];carregarPlanejamento();}
+
+// cards Abertos/Em andamento do mês anterior (para o aviso). Não bloqueia a tela.
+async function planCarregarPendAnt(m){
+  state.planPendAnt=null;
+  if(!m||m<MES_ATUAL)return;
+  var prev=planMesAnterior(m);
+  try{
+    var res=await supa('planejamento',{select:'id,consultor,status',eq:{mes_ano:prev}});
+    state.planPendAnt={mes:prev,itens:(res||[]).map(function(r){return {id:r.id,consultor:r.consultor,status:r.status};})};
+    if(state.paginaGestor==='planejamento'&&(state.mesPlanejamento||state.mesAtual)===m)render();
+  }catch(e){console.warn('Pend\u00eancias do m\u00eas anterior:',e);}
+}
+function planAvisoPendHTML(m,aba){
+  if(!m||m<MES_ATUAL)return '';
+  var pa=state.planPendAnt,prev=planMesAnterior(m);
+  if(!pa||pa.mes!==prev)return '';
+  var n=pa.itens.filter(function(i){return i.consultor===aba&&i.status!=='feito';}).length;
+  if(!n)return '';
+  return '<div id="plan-aviso-pend" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#fbbf24">'
+    +'<span>\u26a0 '+n+(n===1?' card pendente':' cards pendentes')+' de '+prioMesLabel(prev)+'</span>'
+    +'<button type="button" class="btn-sec" onclick="planVerMes(\''+prev+'\')" style="font-size:12px">Ver '+prioMesLabel(prev)+'</button></div>';
+}
+
+function planMostrarDesfazer(u){
+  planFecharDesfazer();
+  _planUndo=u;
+  var el=document.createElement('div');
+  el.id='plan-undo';el.className='toast show';
+  el.style.pointerEvents='auto';el.style.display='flex';el.style.alignItems='center';el.style.gap='14px';
+  el.innerHTML='<span>Migrado para '+prioMesLabel(u.mesNovo)+'</span>'
+    +'<button type="button" onclick="planDesfazer()" style="background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:4px 10px;font-family:var(--mono);font-size:12px;cursor:pointer">Desfazer</button>';
+  document.body.appendChild(el);
+  _planUndoTimer=setTimeout(planFecharDesfazer,8000);
+}
+function planFecharDesfazer(){clearTimeout(_planUndoTimer);var el=document.getElementById('plan-undo');if(el)el.remove();_planUndo=null;}
+async function planDesfazer(){
+  var u=_planUndo;if(!u)return;
+  planFecharDesfazer();
+  try{
+    await supaUpdate('planejamento',{mes_ano:u.mesOrig,semana:u.semOrig},{id:u.card.id});
+    var visto=state.mesPlanejamento||state.mesAtual;
+    if(visto===u.mesNovo)state.planejamento=state.planejamento.filter(function(p){return p.id!==u.card.id;});
+    if(visto===u.mesOrig&&!state.planejamento.some(function(p){return p.id===u.card.id;}))state.planejamento.push(u.card);
+    setStore('planejamento',state.planejamento);
+    state.planPendAnt=null;render();showToast('Migra\u00e7\u00e3o desfeita');
+  }catch(e){showToast('Erro ao desfazer: '+e.message);}
+}
+// Move o card (muda só o mês e a semana; o resto fica igual). Sai do mês atual e não deixa cópia.
+async function planMigrar(id){
+  var idx=state.planejamento.findIndex(function(p){return p.id===id;});
+  if(idx<0)return;
+  var card=Object.assign({},state.planejamento[idx]);
+  if(card.status==='feito')return;
+  var mesOrig=card.mesAno,semOrig=card.semana||'';
+  var mesNovo=planProxMes(mesOrig),semNova=(semanasDoMes(mesNovo)[0])||'';
+  state.planejamento.splice(idx,1);setStore('planejamento',state.planejamento);
+  state.planPendAnt=null;render();
+  try{
+    await supaUpdate('planejamento',{mes_ano:mesNovo,semana:semNova},{id:id});
+    planMostrarDesfazer({card:card,mesOrig:mesOrig,semOrig:semOrig,mesNovo:mesNovo});
+  }catch(e){
+    state.planejamento.splice(idx,0,card);setStore('planejamento',state.planejamento);render();
+    showToast('Erro ao migrar: '+e.message);
+  }
+}
+
 async function carregarPlanejamento(){
   try{
     var mes=state.mesPlanejamento||state.mesAtual;var res=await supa('planejamento',{select:'*',eq:{mes_ano:mes}});
@@ -3072,6 +3145,7 @@ async function carregarPlanejamento(){
   }catch(e){state.planejamento=getStore('planejamento',[]);}
   state.planejamentoCarregado=true;
   render();
+  planCarregarPendAnt(state.mesPlanejamento||state.mesAtual);
 }
 
 function renderPlanejamentoPage(){
@@ -3097,6 +3171,7 @@ function renderPlanejamentoPage(){
     +'</div>';
 
   var semanaHTML='';
+  var avisoPendHTML=planAvisoPendHTML(m,abaAtual);
 
   // Cards do consultor selecionado na semana
   var cards=state.planejamento.filter(function(p){return p.consultor===abaAtual&&p.mesAno===m;});
@@ -3124,8 +3199,11 @@ function renderPlanejamentoPage(){
             +'<div style="width:18px;height:18px;border-radius:50%;background:'+criadoPorU.corBg+';color:'+criadoPorU.cor+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+criadoPorU.nome[0]+'</div>'
             +'<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+criadoPorU.nome+'</span>'
           +'</div>'
+          +'<div style="display:flex;gap:5px;align-items:center">'
+          +(p.status==='feito'?'':'<button id="plan-mig-'+p.id+'" onclick="event.stopPropagation();planMigrar(\''+p.id+'\')" title="Migrar para '+prioMesLabel(planProxMes(p.mesAno))+'" style="padding:2px 7px;background:transparent;border:1px solid var(--accent);border-radius:5px;font-size:10px;color:var(--accent);cursor:pointer;white-space:nowrap">\u2192 Pr\u00f3ximo m\u00eas</button>')
           +'<button id="plan-edit-'+p.id+'" style="padding:2px 7px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">\u270e</button>'
           +'<button id="plan-del-'+p.id+'" style="padding:2px 7px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:5px;font-size:10px;color:#f87171;cursor:pointer">\u2715</button>'
+          +'</div>'
         +'</div>'
         +'</div>';
     }).join('');
@@ -3177,6 +3255,7 @@ function renderPlanejamentoPage(){
     +'</div>'
     +tabsHTML
     +semanaHTML
+    +avisoPendHTML
     +'<div class="kanban-wrap">'+kanbanHTML+'</div>'
     +'</div>'+modalHTML;
 }
