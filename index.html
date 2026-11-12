@@ -443,6 +443,65 @@ body.rf-arrastando .rf-drop{outline:1px dashed var(--border2)}
 .ag-chip.on .ag-nome{color:var(--text)}
 #ag-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .ag-off{pointer-events:none;opacity:.4}
+/* Férias */
+.fe-leg{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--text3);margin-bottom:10px}
+.fe-leg i{display:inline-block;width:22px;height:10px;border-radius:5px;margin-right:6px;vertical-align:-1px}
+.fe-leg i.ma{background:var(--accent)}.fe-leg i.pr{border:1.5px dashed var(--accent);background:rgba(74,222,128,.15)}
+.fe-leg b{color:#fbbf24}
+.fcal{background:var(--surface2);border:1px solid var(--border2);border-radius:14px;overflow:hidden}
+.fdh{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border2);background:rgba(255,255,255,.03)}
+.fdh div{padding:8px 6px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--text3)}
+.fw{position:relative;--hd:26px;--lh:21px;min-height:max(84px,calc(var(--hd) + var(--n,0)*var(--lh) + 10px));border-bottom:1px solid var(--border2)}
+.fw:last-child{border-bottom:none}
+.fg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr)}
+.fd{border-right:1px solid var(--border2);padding:4px 6px;cursor:pointer;min-width:0}
+.fd:last-child{border-right:none}.fd.fs{background:rgba(255,255,255,.02)}.fd.fo{opacity:.4}
+.fd:hover{background:rgba(74,222,128,.07)}
+.fn{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;font-size:11px;font-family:var(--mono);color:var(--text2)}
+.fd.hj .fn{background:var(--accent);color:#0f1117;font-weight:700}
+.fb{position:absolute;top:calc(var(--hd) + var(--l)*var(--lh));height:18px;display:flex;align-items:center;gap:3px;padding:0 7px;border-radius:9px;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;cursor:pointer;z-index:2;box-sizing:border-box}
+.fb.ma{background:var(--c);color:#0f1117}
+.fb.pr{background:color-mix(in srgb,var(--c) 16%,transparent);border:1.5px dashed var(--c);color:var(--c);padding:0 6px}
+.fb.ci{border-top-left-radius:2px;border-bottom-left-radius:2px}.fb.cf{border-top-right-radius:2px;border-bottom-right-radius:2px}
+.fb .fl{overflow:hidden;text-overflow:ellipsis}.fb .fa{opacity:.8;font-size:12px;line-height:1}
+.fres-box{margin-top:22px}
+.fres-t{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.fres-h{font-size:16px;font-weight:700}.fres-s{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+.fres{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.fc{background:var(--surface2);border:1px solid var(--border2);border-left:4px solid var(--c);border-radius:12px;padding:12px 14px;cursor:pointer}
+.fc:hover{background:var(--surface3,rgba(255,255,255,.05))}
+.fc-h{display:flex;align-items:center;gap:9px}.fc-h b{font-size:14px;flex:1}
+.fav{flex:none;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,var(--c) 24%,transparent);color:var(--c);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+.fst{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.2px;padding:3px 9px;border-radius:6px;white-space:nowrap}
+.fst.ma{background:rgba(74,222,128,.16);color:#4ade80}
+.fst.pr{background:rgba(251,191,36,.12);color:#fbbf24;border:1px dashed rgba(251,191,36,.55)}
+.fc-d{font-family:var(--mono);font-size:12px;color:var(--text2);margin-top:8px}
+.fc-w{margin-top:8px;font-size:11px;color:#fbbf24;background:rgba(251,191,36,.08);border-radius:7px;padding:5px 9px;line-height:1.4}
+.fe-vazio{font-family:var(--mono);font-size:12px;color:var(--text3);padding:14px 4px}
+.fe-total{font-family:var(--mono);font-size:12px;color:var(--accent);margin:-4px 0 12px;min-height:16px}.fe-total.erro{color:#f87171}
+.fe-sts{display:flex;gap:8px}
+.fe-st{flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--mono);font-size:12px;cursor:pointer}
+.fe-st[data-st="previsto"].on{border:1.5px dashed #fbbf24;color:#fbbf24;background:rgba(251,191,36,.1)}
+.fe-st[data-st="marcado"].on{border:1.5px solid #4ade80;color:#4ade80;background:rgba(74,222,128,.12)}
+.fe-del{border-color:rgba(248,113,113,.5)!important;color:#f87171!important;margin-right:auto}
+.fe-dl{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border2)}
+.fe-dli{flex:1;min-width:0}.fe-dli b{display:block;font-size:13.5px}.fe-dli span{font-family:var(--mono);font-size:11px;color:var(--text3)}
+@media(max-width:768px){
+  .fw{--hd:22px;--lh:17px;min-height:max(66px,calc(var(--hd) + var(--n,0)*var(--lh) + 8px))}
+  .fb{height:15px;font-size:9px;padding:0 5px;gap:2px}.fb.pr{padding:0 4px}
+  .fd{padding:2px 3px}.fn{min-width:16px;height:16px;font-size:9.5px}
+  .fdh div{font-size:8.5px;letter-spacing:.5px;padding:6px 2px}
+  .fres{grid-template-columns:1fr}
+  .fe-hd .btn-sec,.fe-hd .btn-save{padding:9px 6px!important;font-size:13px!important;min-height:0!important}
+  .fe-hd select{min-width:0}
+  .fe-hd .fe-seta{flex:0 0 14%!important;order:1}
+  .fe-hd #fe-mes{order:2;flex:1 1 32%}
+  .fe-hd #fe-ano{order:3;flex:1 1 26%}
+  .fe-hd .fe-seta.dir{order:4}
+  .fe-hd .fe-hoje{order:5;flex:1 1 40%!important}
+  .fe-hd .fe-atu{order:6;flex:1 1 40%!important}
+  .fe-add{order:9;flex:1 1 100%!important}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -1126,13 +1185,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['reflexoes','Reflexões'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['dashboard','Dashboard'],['historico','Histórico']];
+    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['dashboard','Dashboard'],['historico','Histórico']];
   }else if(state.role==='lucas'){
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
   }else if(state.role==='jean'){
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
   }else{
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['historico','Histórico'],['clientes','Meus Clientes']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['historico','Histórico'],['clientes','Meus Clientes']];
   }
 
   var nav=pages.map(function(p){
@@ -1201,6 +1260,7 @@ function renderGestor(){
   if(state.paginaGestor==='consultores')return renderConsultoresPage();
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
+  if(state.paginaGestor==='ferias') return renderFeriasPage();
   if(state.paginaGestor==='pendencias') return renderPendenciasPage();
   if(state.paginaGestor==='lucas')      return renderLucasPage();
   if(state.paginaGestor==='jean')       return renderJeanPage();
@@ -2602,6 +2662,247 @@ function abrirAgendaSlot(slotId){
   var u=USUARIOS[r.consultor]||{nome:r.consultor||''};
   abrirAgendaModal({titulo:'Reuni\u00e3o '+(r.cliente||'')+(vinc&&vinc.tipo?' \u2014 '+vinc.tipo:''),inicio:r.dataHora,fim:r.dataFim,
     detalhes:agendaDetalhes(['Cliente: '+(r.cliente||''),vinc&&vinc.tipo?'Demanda: '+vinc.tipo:'','Respons\u00e1vel: '+u.nome,r.obs?'Obs.: '+r.obs:'','','Marcado pelo AgroTrack'])});
+}
+
+// ============================================================
+// FÉRIAS — calendário da equipe (faixas que atravessam dias e meses) + resumo em cards
+// ============================================================
+var FERIAS_SQL="create table if not exists ferias (\n  id text primary key,\n  pessoa text not null,\n  inicio date not null,\n  fim date not null,\n  status text not null default 'previsto',\n  criado_por text,\n  criado_em timestamptz default now(),\n  constraint ferias_periodo check (fim >= inicio)\n);\nalter table ferias enable row level security;\ncreate policy \"ferias acesso total\" on ferias\n  for all to anon, authenticated\n  using (true) with check (true);\ngrant select, insert, update, delete on table public.ferias to anon, authenticated;";
+var FERIAS_GRANT="grant select, insert, update, delete on table public.ferias to anon, authenticated;";
+var FE_DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+var FE_DIAS_LONGOS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+var _feModal=null,_feTs=0;
+
+function fdParse(s){var p=String(s).split('-');return new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10));}
+function fdKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fdAdd(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function fdDias(a,b){return Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);}
+function fdBR(s){var p=String(s).split('-');return p[2]+'/'+p[1];}
+function fdBRA(s){var p=String(s).split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function fdHoje(){return window.__fdHoje?fdParse(window.__fdHoje):new Date();}
+function feMes(){return state.feriasMes||MES_ATUAL;}
+function fePessoas(){
+  var pref=['gestor','diretor','rafael','igor','felipe','paula','ramon','lucas','jean'],ks=Object.keys(USUARIOS||{});
+  var out=pref.filter(function(k){return ks.indexOf(k)>=0;});
+  ks.forEach(function(k){if(out.indexOf(k)<0)out.push(k);});
+  return out;
+}
+function feNome(k){var u=USUARIOS[k];return (u&&u.nome)||k;}
+function feCor(k){return rfCorCons(k);}
+function fePode(f){return rfEditor()||f.pessoa===state.usuario;}
+function feTotal(f){return fdDias(fdParse(f.inicio),fdParse(f.fim))+1;}
+function feSalvarLocal(){setStore('ferias',state.ferias||[]);}
+function feId(){return 'fe'+Date.now()+Math.floor(Math.random()*1000);}
+
+async function carregarFerias(){
+  try{
+    var res=await supa('ferias',{select:'*'});
+    state.ferias=(res||[]).map(function(r){return {id:r.id,pessoa:r.pessoa,inicio:String(r.inicio).slice(0,10),fim:String(r.fim).slice(0,10),status:r.status||'previsto',criadoPor:r.criado_por||''};});
+    state.feriasErro='';feSalvarLocal();
+  }catch(e){state.ferias=getStore('ferias',[]);state.feriasErro=String((e&&e.message)||e);}
+  state.feriasCarregadas=true;render();
+}
+
+// períodos que se sobrepõem a outros (de pessoas diferentes)
+function feConflitos(){
+  var map={},L=state.ferias||[];
+  L.forEach(function(f){L.forEach(function(g){
+    if(g.id===f.id||g.pessoa===f.pessoa)return;
+    if(f.inicio<=g.fim&&g.inicio<=f.fim)(map[f.id]=map[f.id]||[]).push({pessoa:g.pessoa,ini:f.inicio>g.inicio?f.inicio:g.inicio,fim:f.fim<g.fim?f.fim:g.fim});
+  });});
+  return map;
+}
+function feSemanas(ym){
+  var p=ym.split('-'),a=parseInt(p[0],10),m=parseInt(p[1],10)-1;
+  var primeiro=new Date(a,m,1),ultimo=new Date(a,m+1,0),ini=fdAdd(primeiro,-primeiro.getDay()),sem=[];
+  while(ini<=ultimo){var s=[];for(var i=0;i<7;i++)s.push(fdKey(fdAdd(ini,i)));sem.push(s);ini=fdAdd(ini,7);}
+  return sem;
+}
+// faixas de uma semana, já distribuídas em linhas (lanes) para não se sobreporem
+function feBarras(sem){
+  var ini=sem[0],fim=sem[6],segs=[],lanes=[];
+  (state.ferias||[]).forEach(function(f){
+    if(f.inicio<=fim&&f.fim>=ini){
+      var a=f.inicio<ini?ini:f.inicio,b=f.fim>fim?fim:f.fim;
+      segs.push({f:f,c0:sem.indexOf(a),c1:sem.indexOf(b),ci:f.inicio<ini,cf:f.fim>fim});
+    }
+  });
+  segs.sort(function(x,y){return x.c0-y.c0||(y.c1-y.c0)-(x.c1-x.c0)||(x.f.pessoa<y.f.pessoa?-1:1);});
+  segs.forEach(function(s){
+    var L=0;
+    for(;;L++){if(!lanes[L])lanes[L]=[];if(lanes[L].every(function(o){return s.c0>o.c1||s.c1<o.c0;}))break;}
+    lanes[L].push(s);s.lane=L;
+  });
+  return {segs:segs,n:lanes.length};
+}
+function feSemanaHTML(sem,ym,hojeKey,conf){
+  var b=feBarras(sem);
+  var cells=sem.map(function(k,i){
+    var fora=k.slice(0,7)!==ym;
+    return '<div class="fd'+(fora?' fo':'')+(k===hojeKey?' hj':'')+(i===0||i===6?' fs':'')+'" data-d="'+k+'"><span class="fn">'+parseInt(k.slice(8),10)+'</span></div>';
+  }).join('');
+  var bars=b.segs.map(function(s){
+    var f=s.f,esq=s.ci?0:2,dir=s.cf?0:2;
+    return '<div class="fb '+(f.status==='marcado'?'ma':'pr')+(s.ci?' ci':'')+(s.cf?' cf':'')+'" data-id="'+f.id+'" title="'+_attrPrio(feNome(f.pessoa))+' · '+fdBR(f.inicio)+' a '+fdBR(f.fim)+' · '+(f.status==='marcado'?'Marcado':'Previsto')+'" '
+      +'style="--c:'+feCor(f.pessoa)+';--l:'+s.lane+';left:calc('+(s.c0*100/7)+'% + '+esq+'px);width:calc('+((s.c1-s.c0+1)*100/7)+'% - '+(esq+dir)+'px)">'
+      +(s.ci?'<span class="fa">\u2039</span>':'')+'<span class="fl">'+(conf[f.id]?'\u26a0 ':'')+_attrPrio(feNome(f.pessoa))+'</span>'+(s.cf?'<span class="fa">\u203a</span>':'')+'</div>';
+  }).join('');
+  return '<div class="fw" style="--n:'+b.n+'"><div class="fg">'+cells+'</div>'+bars+'</div>';
+}
+function feResumoHTML(conf,hojeKey){
+  var lista=(state.ferias||[]).slice().sort(function(a,b){return a.inicio<b.inicio?-1:a.inicio>b.inicio?1:(a.fim<b.fim?-1:a.fim>b.fim?1:0);});
+  var vis=state.feriasTodas?lista:lista.filter(function(f){return f.fim>=hojeKey;});
+  var cards=vis.map(function(f){
+    var cor=feCor(f.pessoa),cf=conf[f.id]||[];
+    var av=(feNome(f.pessoa)||'?').charAt(0).toUpperCase();
+    var aviso=cf.length?'<div class="fc-w">\u26a0 coincide com '+cf.slice(0,2).map(function(c){return _attrPrio(feNome(c.pessoa))+' ('+fdBR(c.ini)+' a '+fdBR(c.fim)+')';}).join(', ')+(cf.length>2?' +'+(cf.length-2):'')+'</div>':'';
+    return '<div class="fc" data-id="'+f.id+'" style="--c:'+cor+'"><div class="fc-h"><span class="fav">'+av+'</span><b>'+_attrPrio(feNome(f.pessoa))+'</b><span class="fst '+(f.status==='marcado'?'ma':'pr')+'">'+(f.status==='marcado'?'MARCADO':'PREVISTO')+'</span></div>'
+      +'<div class="fc-d">'+fdBRA(f.inicio)+' \u2192 '+fdBRA(f.fim)+' \u00b7 '+feTotal(f)+(feTotal(f)===1?' dia':' dias')+'</div>'+aviso+'</div>';
+  }).join('');
+  return '<div class="fres-t"><div><div class="fres-h">Resumo</div><div class="fres-s">'+(state.feriasTodas?'todas as f\u00e9rias':'em andamento e pr\u00f3ximas')+'</div></div>'
+    +'<button type="button" class="btn-sec" onclick="state.feriasTodas=!state.feriasTodas;render()" style="font-size:12px">'+(state.feriasTodas?'S\u00f3 pr\u00f3ximas':'Ver todas')+'</button></div>'
+    +(cards?'<div class="fres">'+cards+'</div>':'<div class="fe-vazio">Nenhuma f\u00e9rias '+(state.feriasTodas?'cadastrada':'em andamento ou prevista')+'.</div>');
+}
+function renderFeriasPage(){
+  if(!state.feriasCarregadas){
+    carregarFerias();
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando f\u00e9rias...</div></div>';
+  }
+  var ym=feMes(),p=ym.split('-'),ano=parseInt(p[0],10),mes=parseInt(p[1],10)-1;
+  var hojeKey=fdKey(fdHoje()),conf=feConflitos();
+  var sel='padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px';
+  var mesesOpt=RF_MESES.map(function(n,i){return '<option value="'+(i+1)+'"'+(i===mes?' selected':'')+'>'+n+'</option>';}).join('');
+  var a0=fdHoje().getFullYear(),anosOpt='';
+  for(var y=Math.min(a0-1,ano);y<=Math.max(a0+4,ano);y++)anosOpt+='<option value="'+y+'"'+(y===ano?' selected':'')+'>'+y+'</option>';
+  var cab='<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
+    +'<div><div class="page-title">F\u00e9rias</div><div class="page-sub">Calend\u00e1rio da equipe \u00b7 todos veem'+(rfEditor()?' \u00b7 voc\u00ea edita as f\u00e9rias de todos':' \u00b7 voc\u00ea edita as suas')+'</div></div>'
+    +'<div class="fe-hd" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+      +'<button class="btn-sec fe-seta" onclick="feMudar(-1)" aria-label="M\u00eas anterior">\u2039</button>'
+      +'<select id="fe-mes" onchange="feSelMes()" aria-label="M\u00eas" style="'+sel+'">'+mesesOpt+'</select>'
+      +'<select id="fe-ano" onchange="feSelMes()" aria-label="Ano" style="'+sel+'">'+anosOpt+'</select>'
+      +'<button class="btn-sec fe-seta dir" onclick="feMudar(1)" aria-label="Pr\u00f3ximo m\u00eas">\u203a</button>'
+      +'<button class="btn-sec fe-hoje" onclick="feHoje()">Hoje</button>'
+      +'<button class="btn-save fe-add" onclick="feAbrirModal()">+ Adicionar f\u00e9rias</button>'
+      +'<button class="btn-sec fe-atu" onclick="state.feriasCarregadas=false;render()" aria-label="Atualizar">\u27f3</button>'
+    +'</div></div>';
+  var semP=/permission denied/i.test(state.feriasErro||'');
+  var erro=state.feriasErro?'<div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#fbbf24">'
+    +'<div style="margin-bottom:6px">N\u00e3o foi poss\u00edvel carregar as f\u00e9rias: '+_attrPrio(state.feriasErro)+'</div>'
+    +'<div style="color:var(--text2);margin-bottom:6px">'+(semP?'A tabela existe, mas falta liberar o acesso. Rode este SQL no Supabase:':'Se a tabela ainda n\u00e3o existe, rode este SQL no Supabase (SQL Editor):')+'</div>'
+    +'<pre style="margin:0;padding:10px;background:var(--surface);border-radius:8px;font-size:11px;white-space:pre-wrap;color:var(--text)">'+(semP?FERIAS_GRANT:FERIAS_SQL)+'</pre></div>':'';
+  var legenda='<div class="fe-leg"><span><i class="ma"></i>Marcado</span><span><i class="pr"></i>Previsto</span><span><b>\u26a0</b> coincide com outra pessoa</span></div>';
+  var semanas=feSemanas(ym).map(function(s){return feSemanaHTML(s,ym,hojeKey,conf);}).join('');
+  return '<div class="page page-fade">'+cab+erro+legenda
+    +'<div class="fcal" id="fe-cal"><div class="fdh">'+FE_DIAS.map(function(d){return '<div>'+d.toUpperCase()+'</div>';}).join('')+'</div>'+semanas+'</div>'
+    +'<div class="fres-box">'+feResumoHTML(conf,hojeKey)+'</div></div>';
+}
+function feMudar(d){var p=feMes().split('-'),dt=new Date(parseInt(p[0],10),parseInt(p[1],10)-1+d,1);state.feriasMes=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');render();}
+function feSelMes(){state.feriasMes=document.getElementById('fe-ano').value+'-'+String(document.getElementById('fe-mes').value).padStart(2,'0');render();}
+function feHoje(){state.feriasMes=MES_ATUAL;render();}
+function bindFerias(){
+  var cal=document.getElementById('fe-cal');
+  if(cal)cal.onclick=function(e){
+    var b=e.target.closest&&e.target.closest('.fb');
+    if(b){feAbrirModal({id:b.getAttribute('data-id')});return;}
+    var d=e.target.closest&&e.target.closest('.fd');
+    if(d)feAbrirDia(d.getAttribute('data-d'));
+  };
+  document.querySelectorAll('.fc[data-id]').forEach(function(c){c.onclick=function(){feAbrirModal({id:c.getAttribute('data-id')});};});
+}
+
+// ----- janelas (adicionar / editar / ver / lista do dia) -----
+function feFecharModal(){var el=document.getElementById('ferias-overlay');if(el)el.remove();_feModal=null;}
+function feNovoOverlay(){
+  feFecharModal();_feTs=Date.now();
+  var el=document.createElement('div');el.id='ferias-overlay';el.className='modal-overlay';el.style.zIndex='2500';
+  return el;
+}
+function feAtualizarModal(){
+  document.querySelectorAll('#ferias-overlay .fe-st').forEach(function(b){b.classList.toggle('on',_feModal&&b.getAttribute('data-st')===_feModal.status);});
+  feAtualizarTotal();
+}
+function feAtualizarTotal(){
+  var i=document.getElementById('fe-ini'),f=document.getElementById('fe-fim'),t=document.getElementById('fe-total');
+  if(!i||!f||!t)return;
+  if(i.value&&f.value){
+    if(f.value<i.value){t.textContent='\u26a0 O fim \u00e9 antes do in\u00edcio';t.className='fe-total erro';}
+    else{var n=fdDias(fdParse(i.value),fdParse(f.value))+1;t.textContent=n+(n===1?' dia':' dias');t.className='fe-total';}
+  }else{t.textContent='';t.className='fe-total';}
+}
+function feAbrirModal(o){
+  o=o||{};
+  var f=o.id?(state.ferias||[]).find(function(x){return x.id===o.id;}):null;
+  if(o.id&&!f)return;
+  var admin=rfEditor(),pode=f?fePode(f):true,ver=!pode;
+  var d={id:f?f.id:'',pessoa:f?f.pessoa:state.usuario,inicio:f?f.inicio:(o.inicio||''),fim:f?f.fim:(o.inicio||''),status:f?f.status:'previsto'};
+  var el=feNovoOverlay();_feModal=d;
+  var pessoas=fePessoas();if(pessoas.indexOf(d.pessoa)<0)pessoas.push(d.pessoa);
+  var fixa=!admin||ver;
+  el.innerHTML='<div class="modal-box">'
+    +'<div class="modal-title">'+(ver?'F\u00e9rias':(f?'Editar f\u00e9rias':'Adicionar f\u00e9rias'))+'</div>'
+    +'<div class="modal-field"><label>PESSOA</label><select id="fe-pessoa"'+(fixa?' disabled':'')+'>'+pessoas.map(function(k){return '<option value="'+_attrPrio(k)+'"'+(k===d.pessoa?' selected':'')+'>'+_attrPrio(feNome(k))+'</option>';}).join('')+'</select></div>'
+    +'<div class="modal-field"><label>IN\u00cdCIO</label><input type="date" id="fe-ini" value="'+d.inicio+'"'+(ver?' disabled':'')+'></div>'
+    +'<div class="modal-field"><label>FIM</label><input type="date" id="fe-fim" value="'+d.fim+'"'+(ver?' disabled':'')+'></div>'
+    +'<div id="fe-total" class="fe-total"></div>'
+    +'<div class="modal-field"><label>STATUS</label><div class="fe-sts"><button type="button" class="fe-st" data-st="previsto">Previsto</button><button type="button" class="fe-st" data-st="marcado">Marcado</button></div></div>'
+    +'<div class="modal-actions">'+(f&&pode?'<button type="button" class="btn-sec fe-del" onclick="feExcluir(\''+f.id+'\')">Excluir</button>':'')
+    +'<button type="button" class="btn-sec" onclick="feFecharModal()">'+(ver?'Fechar':'Cancelar')+'</button>'+(ver?'':'<button type="button" class="btn-save" onclick="feSalvarModal()">Salvar</button>')+'</div></div>';
+  el.addEventListener('click',function(e){
+    if(Date.now()-_feTs<350)return;
+    if(e.target===el){feFecharModal();return;}
+    var b=e.target.closest&&e.target.closest('.fe-st');
+    if(b&&!ver&&_feModal){_feModal.status=b.getAttribute('data-st');feAtualizarModal();}
+  });
+  el.addEventListener('input',feAtualizarTotal);
+  document.body.appendChild(el);feAtualizarModal();
+}
+function feAbrirDia(key){
+  var el=feNovoOverlay(),dt=fdParse(key);
+  var lista=(state.ferias||[]).filter(function(f){return f.inicio<=key&&f.fim>=key;});
+  var linhas=lista.map(function(f){
+    var cor=feCor(f.pessoa);
+    return '<div class="fe-dl" style="--c:'+cor+'"><span class="fav">'+(feNome(f.pessoa)||'?').charAt(0).toUpperCase()+'</span><div class="fe-dli"><b>'+_attrPrio(feNome(f.pessoa))+'</b><span>'+fdBR(f.inicio)+' \u2192 '+fdBR(f.fim)+' \u00b7 '+feTotal(f)+(feTotal(f)===1?' dia':' dias')+'</span></div>'
+      +'<span class="fst '+(f.status==='marcado'?'ma':'pr')+'">'+(f.status==='marcado'?'MARCADO':'PREVISTO')+'</span>'
+      +'<button type="button" class="btn-sec" style="font-size:11px;padding:4px 10px" onclick="feAbrirModal({id:\''+f.id+'\'})">'+(fePode(f)?'Editar':'Ver')+'</button></div>';
+  }).join('');
+  el.innerHTML='<div class="modal-box"><div class="modal-title">'+FE_DIAS_LONGOS[dt.getDay()]+', '+fdBRA(key)+'</div>'
+    +(linhas||'<div class="fe-vazio">Ningu\u00e9m de f\u00e9rias neste dia.</div>')
+    +'<div class="modal-actions"><button type="button" class="btn-sec" onclick="feFecharModal()">Fechar</button><button type="button" class="btn-save" onclick="feAbrirModal({inicio:\''+key+'\'})">+ Adicionar f\u00e9rias</button></div></div>';
+  el.addEventListener('click',function(e){if(Date.now()-_feTs<350)return;if(e.target===el)feFecharModal();});
+  document.body.appendChild(el);
+}
+async function feSalvarModal(){
+  var m=_feModal;if(!m)return;
+  var admin=rfEditor();
+  var pessoa=admin?(document.getElementById('fe-pessoa').value||m.pessoa):m.pessoa;
+  var ini=document.getElementById('fe-ini').value,fim=document.getElementById('fe-fim').value,status=m.status||'previsto';
+  if(!pessoa){showToast('Escolha a pessoa');return;}
+  if(!ini||!fim){showToast('Informe o in\u00edcio e o fim');return;}
+  if(fim<ini){showToast('O fim n\u00e3o pode ser antes do in\u00edcio');return;}
+  var existe=m.id?(state.ferias||[]).find(function(x){return x.id===m.id;}):null;
+  if(existe&&!fePode(existe))return;
+  if(!admin&&pessoa!==state.usuario){showToast('Voc\u00ea s\u00f3 pode editar as suas f\u00e9rias');return;}
+  feFecharModal();
+  if(existe){
+    var antes=Object.assign({},existe);
+    Object.assign(existe,{pessoa:pessoa,inicio:ini,fim:fim,status:status});feSalvarLocal();render();
+    try{await supaUpdate('ferias',{pessoa:pessoa,inicio:ini,fim:fim,status:status},{id:existe.id});showToast('\u2713 F\u00e9rias atualizadas');}
+    catch(e){Object.assign(existe,antes);feSalvarLocal();render();showToast('Erro ao salvar: '+e.message);}
+  }else{
+    var nova={id:feId(),pessoa:pessoa,inicio:ini,fim:fim,status:status,criadoPor:state.usuario};
+    state.ferias.push(nova);feSalvarLocal();render();
+    try{await supaInsert('ferias',{id:nova.id,pessoa:pessoa,inicio:ini,fim:fim,status:status,criado_por:state.usuario},true);showToast('\u2713 F\u00e9rias adicionadas');}
+    catch(e){state.ferias=state.ferias.filter(function(x){return x.id!==nova.id;});feSalvarLocal();render();showToast('Erro ao salvar: '+e.message);}
+  }
+}
+async function feExcluir(id){
+  var i=(state.ferias||[]).findIndex(function(x){return x.id===id;});if(i<0)return;
+  var f=state.ferias[i];if(!fePode(f))return;
+  if(!confirm('Excluir as f\u00e9rias de '+feNome(f.pessoa)+' ('+fdBR(f.inicio)+' a '+fdBR(f.fim)+')?'))return;
+  feFecharModal();
+  state.ferias.splice(i,1);feSalvarLocal();render();
+  try{await supaDelete('ferias',{id:id});showToast('\u2713 F\u00e9rias exclu\u00eddas');}
+  catch(e){state.ferias.push(f);feSalvarLocal();render();showToast('Erro ao excluir: '+e.message);}
 }
 
 function normPrioridade(r){return Object.assign({},r,{reuniaoId:r.reuniaoId||r.reuniao_id||'',criadoPor:r.criadoPor||r.criado_por||'',mesAno:r.mesAno||r.mes_ano||''});}
@@ -4113,6 +4414,7 @@ function renderPendenciasPage(){
 function renderConsultor(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
+  if(state.paginaGestor==='ferias') return renderFeriasPage();
   if(state.paginaGestor==='progresso')return renderProgressoConsultor();
   if(state.paginaGestor==='lucas')    return renderLucasPage();
   if(state.paginaGestor==='jean')     return renderJeanPage();
@@ -4360,6 +4662,7 @@ function renderLucasPage(){
 function renderLucas(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
+  if(state.paginaGestor==='ferias') return renderFeriasPage();
   if(state.paginaGestor==='jean') return renderJeanPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   if(state.paginaGestor==='cadastros') return renderCadastrosPage();
@@ -4369,6 +4672,7 @@ function renderLucas(){
 function renderJeanShell(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
+  if(state.paginaGestor==='ferias') return renderFeriasPage();
   if(state.paginaGestor==='lucas') return renderLucasPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   if(state.paginaGestor==='cadastros') return renderCadastrosPage();
@@ -5055,6 +5359,7 @@ function bindGestor(){
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
+  if(state.paginaGestor==='ferias')bindFerias();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Bind prioridade filter
   ['todos','alta','media','baixa'].forEach(function(f){
@@ -5128,6 +5433,7 @@ function bindConsultor(){
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
+  if(state.paginaGestor==='ferias')bindFerias();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Filtros de prioridade
   ['todos','alta','media','baixa'].forEach(function(f){
@@ -5202,6 +5508,7 @@ function bindLucas(){
   bindCommon();
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
+  if(state.paginaGestor==='ferias')bindFerias();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Filtros de prioridade
