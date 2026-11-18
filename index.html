@@ -502,6 +502,25 @@ body.rf-arrastando .rf-drop{outline:1px dashed var(--border2)}
   .fe-hd .fe-atu{order:6;flex:1 1 40%!important}
   .fe-add{order:9;flex:1 1 100%!important}
 }
+/* Kanban de Clientes */
+.kc-filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.kc-filtros label{display:flex;align-items:center;gap:8px;font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:1px}
+.kc-filtros select{padding:8px 12px;border:1px solid var(--border2);border-radius:8px;font-size:13px;background:var(--surface2);color:var(--text);min-width:210px;letter-spacing:0}
+.kc-cli{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);padding:2px 9px;border-radius:10px;border:1px solid var(--c);color:var(--c);max-width:100%}
+.kc-cli i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--c)}
+@media(max-width:768px){.kc-filtros label{flex:1 1 100%}.kc-filtros label>span{flex:0 0 86px}.kc-filtros select{flex:1;min-width:0}}
+.kc-blk{margin-bottom:7px}.kc-lab{display:block;font-size:9px;font-family:var(--mono);letter-spacing:1.2px;color:var(--text3);margin-bottom:2px}
+.kc-tx{font-size:11.5px;color:var(--text2);line-height:1.4;white-space:pre-wrap}
+.kc-ul{list-style:none;margin:0;padding:0}.kc-ul li{display:flex;gap:6px;font-size:11.5px;color:var(--text);line-height:1.4;margin-top:2px}
+.kc-ul li::before{content:"\25B8";color:var(--accent);flex:none}
+.kc-grupo{border:1px solid var(--border2);border-radius:10px;padding:10px 12px 4px;margin-bottom:14px}
+.kc-grupo-t{font-size:10px;font-family:var(--mono);letter-spacing:2px;color:var(--accent);margin-bottom:8px}
+.kc-grupo .modal-field{margin-bottom:10px}
+.kc-fz{display:flex;gap:6px;margin-bottom:6px}.kc-fz input{flex:1;min-width:0}
+.kc-fz-x{flex:none;width:34px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:16px;cursor:pointer}
+.kc-fz-x:hover{color:#f87171;border-color:rgba(248,113,113,.5)}
+.kc-add-fz{width:100%;padding:8px;border:1px dashed var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-family:var(--mono);font-size:12px;cursor:pointer;margin-top:2px}
+.kc-add-fz:hover{background:var(--accent-light)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -1185,13 +1204,13 @@ function renderApp(content){
   var u=USUARIOS[state.usuario];
   var pages;
   if(state.role==='gestor'){
-    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['dashboard','Dashboard'],['historico','Histórico']];
+    pages=[['cadastros','Cadastros'],['consultores','Consultores'],['atividades','Atividades'],['reflexoes','Reflexões'],['kclientes','Kanban de Clientes'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['dashboard','Dashboard'],['historico','Histórico']];
   }else if(state.role==='lucas'){
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['kclientes','Kanban de Clientes'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
   }else if(state.role==='jean'){
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['kclientes','Kanban de Clientes'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['lucas','Lucas'],['jean','Jean']];
   }else{
-    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['historico','Histórico'],['clientes','Meus Clientes']];
+    pages=[['cadastros','Cadastros'],['atividades','Atividades'],['reflexoes','Reflexões'],['kclientes','Kanban de Clientes'],['ferias','Férias'],['planejamento','Gestão de Demandas'],['prioridades','Prioridades'],['reunioes','Reuniões'],['historico','Histórico'],['clientes','Meus Clientes']];
   }
 
   var nav=pages.map(function(p){
@@ -1261,6 +1280,7 @@ function renderGestor(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
   if(state.paginaGestor==='ferias') return renderFeriasPage();
+  if(state.paginaGestor==='kclientes') return renderKClientesPage();
   if(state.paginaGestor==='pendencias') return renderPendenciasPage();
   if(state.paginaGestor==='lucas')      return renderLucasPage();
   if(state.paginaGestor==='jean')       return renderJeanPage();
@@ -2905,6 +2925,260 @@ async function feExcluir(id){
   catch(e){state.ferias.push(f);feSalvarLocal();render();showToast('Erro ao excluir: '+e.message);}
 }
 
+// ============================================================
+// KANBAN DE CLIENTES — tarefas por cliente, com filtro de consultor e de cliente
+// ============================================================
+var KC_SQL="create table if not exists kanban_clientes (\n  id text primary key,\n  cliente_id text not null,\n  titulo text not null,\n  descricao text,\n  justificativa text,\n  o_que_fazer jsonb not null default '[]'::jsonb,\n  status text not null default 'aberto',\n  prioridade text not null default 'media',\n  data_entrega date,\n  data_conclusao timestamptz,\n  criado_por text,\n  criado_em timestamptz default now()\n);\nalter table kanban_clientes enable row level security;\ncreate policy \"kanban_clientes acesso total\" on kanban_clientes\n  for all to anon, authenticated\n  using (true) with check (true);\ngrant select, insert, update, delete on table public.kanban_clientes to anon, authenticated;";
+var KC_GRANT="grant select, insert, update, delete on table public.kanban_clientes to anon, authenticated;";
+var KC_COLS=['aberto','em_andamento','feito'];
+
+function kcConsultores(){
+  var pref=['igor','felipe','paula','ramon'],ks=Object.keys(CLIENTES||{});
+  var out=pref.filter(function(k){return ks.indexOf(k)>=0;});
+  ks.forEach(function(k){if(out.indexOf(k)<0)out.push(k);});
+  return out;
+}
+function kcCliente(id){return (TODOS_CLIENTES_FLAT||[]).find(function(c){return c.id===id;})||null;}
+function kcNomeCons(k){var u=USUARIOS[k];return (u&&u.nome)||k;}
+function kcCorCons(k){return rfCorCons(k);}
+function kcPorNome(a,b){return String(a.nome).localeCompare(String(b.nome));}
+function kcFiltroChave(){return 'agro_kc_filtro_'+(state.usuario||'x');}
+function kcSalvarFiltro(){try{localStorage.setItem(kcFiltroChave(),JSON.stringify({c:state.kcConsultor||'',l:state.kcCliente||''}));}catch(e){}}
+// primeira vez nesta sessão: usa o último filtro do usuário; se não houver, o consultor já abre nele mesmo
+function kcIniciarFiltro(){
+  if(state.kcFiltroOk)return;
+  state.kcFiltroOk=true;
+  var salvo=null;try{salvo=JSON.parse(localStorage.getItem(kcFiltroChave())||'null');}catch(e){}
+  if(salvo){state.kcConsultor=salvo.c||'';state.kcCliente=salvo.l||'';}
+  else{state.kcConsultor=(CLIENTES&&CLIENTES[state.usuario])?state.usuario:'';state.kcCliente='';}
+  var cl=state.kcCliente?kcCliente(state.kcCliente):null;
+  if(state.kcCliente&&(!cl||(state.kcConsultor&&cl.consultor!==state.kcConsultor)))state.kcCliente='';
+}
+function kcFiltro(t,v){
+  if(t==='c'){
+    state.kcConsultor=v;
+    var cl=state.kcCliente?kcCliente(state.kcCliente):null;
+    if(state.kcCliente&&(!cl||(v&&cl.consultor!==v)))state.kcCliente='';
+  }else state.kcCliente=v;
+  kcSalvarFiltro();render();
+}
+function kcVisiveis(){
+  return (state.kcTarefas||[]).filter(function(t){
+    var cl=kcCliente(t.clienteId);
+    if(state.kcConsultor&&!(cl&&cl.consultor===state.kcConsultor))return false;
+    if(state.kcCliente&&t.clienteId!==state.kcCliente)return false;
+    return true;
+  });
+}
+function kcRecente(t){return !t.dataConclusao||(Date.now()-new Date(t.dataConclusao).getTime())<=30*86400000;}
+function kcId(){return 'kc'+Date.now()+Math.floor(Math.random()*1000);}
+function kcSalvarLocal(){setStore('kc_tarefas',state.kcTarefas||[]);}
+
+async function carregarKClientes(){
+  try{
+    var res=await supa('kanban_clientes',{select:'*'});
+    state.kcTarefas=(res||[]).map(function(r){return {id:r.id,clienteId:r.cliente_id,titulo:r.titulo,descricao:r.descricao||'',justificativa:r.justificativa||'',oQueFazer:Array.isArray(r.o_que_fazer)?r.o_que_fazer:[],status:r.status||'aberto',prioridade:r.prioridade||'media',dataEntrega:r.data_entrega?String(r.data_entrega).slice(0,10):'',dataConclusao:r.data_conclusao||'',criadoPor:r.criado_por||''};});
+    state.kcErro='';kcSalvarLocal();
+  }catch(e){state.kcTarefas=getStore('kc_tarefas',[]);state.kcErro=String((e&&e.message)||e);}
+  state.kcCarregado=true;render();
+}
+
+function kcOpcoesCliente(sel,agrupar,filtroCons,placeholder){
+  var cons=filtroCons?[filtroCons]:kcConsultores();
+  var html='<option value="">'+placeholder+'</option>';
+  cons.forEach(function(k){
+    var lista=(CLIENTES[k]||[]).slice().sort(kcPorNome);if(!lista.length)return;
+    var opts=lista.map(function(c){return '<option value="'+_attrPrio(c.id)+'"'+(c.id===sel?' selected':'')+'>'+_attrPrio(c.nome)+'</option>';}).join('');
+    html+=agrupar?'<optgroup label="'+_attrPrio(kcNomeCons(k))+'">'+opts+'</optgroup>':opts;
+  });
+  return html;
+}
+// --- Kanban de Clientes: descrição em duas partes (Justificativa + lista "O que fazer") ---
+function kcDetalhesHTML(t){
+  var just=t.justificativa||t.descricao||'',fz=t.oQueFazer||[],h='';
+  if(just)h+='<div class="kc-blk"><span class="kc-lab">JUSTIFICATIVA</span><div class="kc-tx">'+_attrPrio(just)+'</div></div>';
+  if(fz.length)h+='<div class="kc-blk"><span class="kc-lab">O QUE FAZER</span><ul class="kc-ul">'+fz.map(function(x){return '<li>'+_attrPrio(x)+'</li>';}).join('')+'</ul></div>';
+  return h;
+}
+function kcFazerRow(v){
+  return '<div class="kc-fz"><input type="text" class="kc-fazer-in" placeholder="O que fazer..." value="'+_attrPrio(v||'')+'" onkeydown="kcFazerKey(event,this)"><button type="button" class="kc-fz-x" onclick="kcDelFazer(this)" aria-label="Remover">\u00d7</button></div>';
+}
+function kcCamposDescricao(d){
+  var itens=(d.oQueFazer&&d.oQueFazer.length)?d.oQueFazer:[''];
+  return '<div class="kc-grupo"><div class="kc-grupo-t">DESCRI\u00c7\u00c3O</div>'
+    +'<div class="modal-field"><label>JUSTIFICATIVA</label><textarea id="kc-just" rows="3" placeholder="Por que essa tarefa precisa ser feita?">'+_attrPrio(d.justificativa||'')+'</textarea></div>'
+    +'<div class="modal-field"><label>O QUE FAZER</label><div id="kc-fazer-lista">'+itens.map(kcFazerRow).join('')+'</div>'
+    +'<button type="button" class="kc-add-fz" onclick="kcAddFazer()">+ Adicionar outro</button></div></div>';
+}
+// adicionar/remover linhas SEM redesenhar a janela (não apaga o que já foi digitado)
+function kcAddFazer(){
+  var l=document.getElementById('kc-fazer-lista');if(!l)return;
+  l.insertAdjacentHTML('beforeend',kcFazerRow(''));
+  var ins=l.querySelectorAll('.kc-fazer-in');ins[ins.length-1].focus();
+}
+function kcDelFazer(b){
+  var l=document.getElementById('kc-fazer-lista'),r=b.closest('.kc-fz');if(!l||!r)return;
+  if(l.querySelectorAll('.kc-fz').length<=1){r.querySelector('input').value='';return;}
+  r.remove();
+}
+function kcFazerKey(e,inp){if(e.key==='Enter'){e.preventDefault();if(inp.value.trim())kcAddFazer();}}
+
+function kcCardHTML(t){
+  var cl=kcCliente(t.clienteId),cor=cl?kcCorCons(cl.consultor):'#8b90a8';
+  var prioColor=t.prioridade==='alta'?'#f87171':t.prioridade==='media'?'#fbbf24':'#4ade80';
+  var criU=USUARIOS[t.criadoPor]||{nome:t.criadoPor||'?',cor:'#8b90a8',corBg:'rgba(139,144,168,.1)'};
+  var dataBR=t.dataEntrega&&t.dataEntrega.split('-').length===3?t.dataEntrega.split('-').reverse().join('/'):t.dataEntrega;
+  return '<div class="kc-card" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:grab" id="kc-card-'+t.id+'" data-kc-id="'+t.id+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px">'
+      +'<span style="font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:'+(t.prioridade==='alta'?'rgba(248,113,113,.15)':t.prioridade==='media'?'rgba(251,191,36,.12)':'rgba(74,222,128,.12)')+';color:'+prioColor+'">'+prioLabel(t.prioridade)+'</span>'
+      +'<div style="text-align:right">'+prazoHTML(t.dataEntrega,t.status,null)+(t.status==='feito'&&t.dataEntrega?'<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:2px">'+dataBR+'</div>':'')+'</div>'
+    +'</div>'
+    +'<div style="margin-bottom:6px"><span class="kc-cli" style="--c:'+cor+'"><i></i>'+_attrPrio(cl?cl.nome:'(cliente inativo)')+'</span></div>'
+    +'<div style="font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.3">'+_attrPrio(t.titulo)+'</div>'
+    +kcDetalhesHTML(t)
+    +'<div style="display:flex;align-items:center;justify-content:space-between">'
+      +'<div style="display:flex;align-items:center;gap:5px"><div style="width:18px;height:18px;border-radius:50%;background:'+criU.corBg+';color:'+criU.cor+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+_attrPrio(String(criU.nome).charAt(0))+'</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+_attrPrio(criU.nome)+'</span></div>'
+      +'<div style="display:flex;gap:5px;align-items:center">'
+        +'<button id="kc-edit-'+t.id+'" onclick="event.stopPropagation();kcEditar(\''+t.id+'\')" style="padding:2px 7px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-size:10px;color:var(--text2);cursor:pointer">\u270e</button>'
+        +'<button id="kc-del-'+t.id+'" onclick="event.stopPropagation();kcExcluir(\''+t.id+'\')" style="padding:2px 7px;background:transparent;border:1px solid rgba(248,113,113,.3);border-radius:5px;font-size:10px;color:#f87171;cursor:pointer">\u2715</button>'
+      +'</div>'
+    +'</div></div>';
+}
+function renderKClientesPage(){
+  if(!state.kcCarregado){
+    carregarKClientes();
+    return '<div class="page"><div style="text-align:center;padding:60px;color:var(--text3);font-family:var(--mono);font-size:13px">Carregando kanban...</div></div>';
+  }
+  kcIniciarFiltro();
+  var vis=kcVisiveis(),ordem={alta:0,media:1,baixa:2};
+  vis.sort(function(a,b){
+    var pa=ordem[a.prioridade]===undefined?1:ordem[a.prioridade],pb=ordem[b.prioridade]===undefined?1:ordem[b.prioridade];
+    if(pa!==pb)return pa-pb;
+    if(a.dataEntrega&&b.dataEntrega&&a.dataEntrega!==b.dataEntrega)return a.dataEntrega<b.dataEntrega?-1:1;
+    return a.dataEntrega&&!b.dataEntrega?-1:(!a.dataEntrega&&b.dataEntrega?1:0);
+  });
+  var consOpt='<option value="">Todos os consultores</option>'+kcConsultores().map(function(k){return '<option value="'+_attrPrio(k)+'"'+(k===state.kcConsultor?' selected':'')+'>'+_attrPrio(kcNomeCons(k))+'</option>';}).join('');
+  var cliOpt=kcOpcoesCliente(state.kcCliente,!state.kcConsultor,state.kcConsultor,'Todos os clientes');
+  var feitasTodas=vis.filter(function(t){return t.status==='feito';});
+  var feitasOcultas=state.kcFeitoTodos?0:feitasTodas.filter(function(t){return !kcRecente(t);}).length;
+  var kanbanHTML=KC_COLS.map(function(st){
+    var col=vis.filter(function(t){return t.status===st&&(st!=='feito'||state.kcFeitoTodos||kcRecente(t));});
+    var items=col.map(kcCardHTML).join('');
+    var vazio=col.length===0?'<div class="plan-empty" style="text-align:center;padding:16px;color:var(--text3);font-size:12px;font-family:var(--mono)">Nenhuma tarefa</div>':'';
+    var rodape=(st==='feito'&&(feitasOcultas>0||(state.kcFeitoTodos&&feitasTodas.some(function(t){return !kcRecente(t);}))))
+      ?'<div style="padding:4px 10px 12px;text-align:center"><button class="btn-sec" id="kc-ver-feitas" onclick="state.kcFeitoTodos=!state.kcFeitoTodos;render()" style="font-size:11px">'+(state.kcFeitoTodos?'S\u00f3 dos \u00faltimos 30 dias':'Ver todas as conclu\u00eddas (+'+feitasOcultas+')')+'</button></div>':'';
+    return '<div class="kanban-col"><div class="kanban-col-header '+st+'"><span>'+statusLabel(st).toUpperCase()+'</span><span style="font-size:10px;font-family:var(--mono)">'+col.length+'</span></div>'
+      +'<div class="kanban-col-body kc-col-'+st+'" data-kc-status="'+st+'">'+items+vazio+'</div>'+rodape+'</div>';
+  }).join('');
+  var nMostradas=vis.filter(function(t){return t.status!=='feito'||state.kcFeitoTodos||kcRecente(t);}).length;
+  var erro='';
+  if(state.kcErro){
+    var semP=/permission denied/i.test(state.kcErro);
+    erro='<div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#fbbf24">'
+      +'<div style="margin-bottom:6px">N\u00e3o foi poss\u00edvel carregar o kanban: '+_attrPrio(state.kcErro)+'</div>'
+      +'<div style="color:var(--text2);margin-bottom:6px">'+(semP?'A tabela existe, mas falta liberar o acesso. Rode este SQL no Supabase:':'Se a tabela ainda n\u00e3o existe, rode este SQL no Supabase (SQL Editor):')+'</div>'
+      +'<pre style="margin:0;padding:10px;background:var(--surface);border-radius:8px;font-size:11px;white-space:pre-wrap;color:var(--text)">'+(semP?KC_GRANT:KC_SQL)+'</pre></div>';
+  }
+  var modalHTML='';
+  if(state.kcModal){
+    var d=state.kcModalData||{};
+    modalHTML='<div class="modal-overlay" onclick="if(event.target===this){state.kcModal=false;render();}"><div class="modal-box">'
+      +'<div class="modal-title">'+(d.id?'Editar Tarefa':'Nova Tarefa')+'</div>'
+      +'<div class="modal-field"><label>CLIENTE *</label><select id="kc-cliente">'+kcOpcoesCliente(d.clienteId||'',true,'','Escolha o cliente...')+'</select></div>'
+      +'<div class="modal-field"><label>T\u00cdTULO *</label><input type="text" id="kc-titulo" placeholder="Descreva a tarefa..." value="'+_attrPrio(d.titulo||'')+'"></div>'
+      +kcCamposDescricao(d)
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        +'<div class="modal-field"><label>PRIORIDADE</label><select id="kc-prio"><option value="alta"'+(d.prioridade==='alta'?' selected':'')+'>Alta</option><option value="media"'+(!d.prioridade||d.prioridade==='media'?' selected':'')+'>M\u00e9dia</option><option value="baixa"'+(d.prioridade==='baixa'?' selected':'')+'>Baixa</option></select></div>'
+        +'<div class="modal-field"><label>DATA DE ENTREGA</label><input type="date" id="kc-data" value="'+_attrPrio(d.dataEntrega||'')+'"></div>'
+      +'</div>'
+      +'<div class="modal-actions"><button class="btn-sec" onclick="state.kcModal=false;render()">Cancelar</button><button class="btn-save" id="btn-salvar-kc" onclick="kcSalvar()">Salvar</button></div></div></div>';
+  }
+  return '<div class="page page-fade">'
+    +'<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'
+      +'<div><div class="page-title">Kanban de Clientes</div><div class="page-sub">'+nMostradas+(nMostradas===1?' tarefa':' tarefas')+' neste filtro</div></div>'
+      +'<div style="display:flex;gap:8px"><button class="btn-sec" onclick="state.kcCarregado=false;render()">\u27f3 Atualizar</button><button class="btn-save" id="btn-nova-kc" onclick="kcNova()">+ Nova Tarefa</button></div>'
+    +'</div>'
+    +'<div class="kc-filtros"><label><span>CONSULTOR</span><select id="kc-cons" onchange="kcFiltro(\'c\',this.value)">'+consOpt+'</select></label>'
+      +'<label><span>CLIENTE</span><select id="kc-cli" onchange="kcFiltro(\'l\',this.value)">'+cliOpt+'</select></label></div>'
+    +erro+'<div class="kanban-wrap">'+kanbanHTML+'</div></div>'+modalHTML;
+}
+function kcNova(){state.kcModal=true;state.kcModalData={clienteId:state.kcCliente||''};render();}
+function kcEditar(id){
+  var t=(state.kcTarefas||[]).find(function(x){return x.id===id;});if(!t)return;
+  state.kcModal=true;state.kcModalData={id:t.id,clienteId:t.clienteId,titulo:t.titulo,justificativa:t.justificativa||t.descricao||'',oQueFazer:(t.oQueFazer||[]).slice(),prioridade:t.prioridade,dataEntrega:t.dataEntrega};render();
+}
+async function kcSalvar(){
+  if(window._kcSalvando)return;
+  var cli=(document.getElementById('kc-cliente')||{}).value||'';
+  var titulo=((document.getElementById('kc-titulo')||{}).value||'').trim();
+  var just=((document.getElementById('kc-just')||{}).value||'').trim();
+  var fazer=[].slice.call(document.querySelectorAll('.kc-fazer-in')).map(function(i){return i.value.trim();}).filter(Boolean);
+  var prio=(document.getElementById('kc-prio')||{}).value||'media';
+  var data=(document.getElementById('kc-data')||{}).value||'';
+  if(!cli){showToast('Escolha o cliente');return;}
+  if(!titulo){showToast('Informe o t\u00edtulo');return;}
+  window._kcSalvando=true;
+  var d=state.kcModalData||{};
+  state.kcModal=false;
+  try{
+    var visivelAntes=null;
+    if(d.id){
+      var t=(state.kcTarefas||[]).find(function(x){return x.id===d.id;});
+      if(t){
+        var antes=Object.assign({},t);
+        Object.assign(t,{clienteId:cli,titulo:titulo,descricao:'',justificativa:just,oQueFazer:fazer,prioridade:prio,dataEntrega:data});
+        kcSalvarLocal();render();
+        try{await supaUpdate('kanban_clientes',{cliente_id:cli,titulo:titulo,descricao:'',justificativa:just,o_que_fazer:fazer,prioridade:prio,data_entrega:data||null},{id:d.id});showToast('\u2713 Tarefa atualizada!'+(kcVisiveis().indexOf(t)<0?' (fora do filtro atual)':''));}
+        catch(e){Object.assign(t,antes);kcSalvarLocal();render();showToast('Erro ao salvar: '+e.message);}
+      }
+    }else{
+      var nova={id:kcId(),clienteId:cli,titulo:titulo,descricao:'',justificativa:just,oQueFazer:fazer,status:'aberto',prioridade:prio,dataEntrega:data,dataConclusao:'',criadoPor:state.usuario};
+      state.kcTarefas.push(nova);kcSalvarLocal();render();
+      try{await supaInsert('kanban_clientes',{id:nova.id,cliente_id:cli,titulo:titulo,descricao:'',justificativa:just,o_que_fazer:fazer,status:'aberto',prioridade:prio,data_entrega:data||null,data_conclusao:null,criado_por:state.usuario},true);showToast('\u2713 Tarefa criada!'+(kcVisiveis().indexOf(nova)<0?' (fora do filtro atual)':''));}
+      catch(e){state.kcTarefas=state.kcTarefas.filter(function(x){return x.id!==nova.id;});kcSalvarLocal();render();showToast('Erro ao salvar: '+e.message);}
+    }
+  }finally{window._kcSalvando=false;}
+}
+async function kcMover(id,novo){
+  var t=(state.kcTarefas||[]).find(function(x){return x.id===id;});
+  if(!t||t.status===novo)return;
+  var antes={status:t.status,dataConclusao:t.dataConclusao};
+  t.status=novo;t.dataConclusao=novo==='feito'?new Date().toISOString():'';
+  kcSalvarLocal();showToast('\u2713 Status: '+statusLabel(novo));render();
+  try{await supaUpdate('kanban_clientes',{status:novo,data_conclusao:novo==='feito'?t.dataConclusao:null},{id:id});}
+  catch(e){Object.assign(t,antes);kcSalvarLocal();render();showToast('Erro ao mover: '+e.message);}
+}
+async function kcExcluir(id){
+  var i=(state.kcTarefas||[]).findIndex(function(x){return x.id===id;});if(i<0)return;
+  if(!confirm('Remover esta tarefa?'))return;
+  var t=state.kcTarefas[i];
+  state.kcTarefas.splice(i,1);kcSalvarLocal();render();
+  try{await supaDelete('kanban_clientes',{id:id});showToast('\u2713 Removido!');}
+  catch(e){state.kcTarefas.push(t);kcSalvarLocal();render();showToast('Erro ao remover: '+e.message);}
+}
+function kcInitDnd(){
+  if(typeof Sortable==='undefined')return;
+  KC_COLS.forEach(function(st){
+    var el=document.querySelector('.kanban-col-body.kc-col-'+st);
+    if(!el||el._sortable)return;
+    el._sortable=Sortable.create(el,{
+      group:'kclientes',draggable:'.kc-card',animation:150,ghostClass:'sortable-ghost',dragClass:'sortable-drag',
+      onAdd:function(evt){evt.to.classList.remove('sortable-over');},
+      onRemove:function(evt){evt.from.classList.remove('sortable-over');},
+      onMove:function(evt){evt.to.classList.add('sortable-over');evt.from.classList.remove('sortable-over');},
+      onEnd:function(evt){
+        var id=evt.item.dataset.kcId,novo=evt.to.dataset.kcStatus;
+        if(!id||!novo)return;
+        var t=(state.kcTarefas||[]).find(function(x){return x.id===id;});
+        if(!t)return;
+        if(t.status===novo){render();return;}
+        kcMover(id,novo);
+      }
+    });
+  });
+}
+function bindKClientes(){setTimeout(kcInitDnd,50);}
+
 function normPrioridade(r){return Object.assign({},r,{reuniaoId:r.reuniaoId||r.reuniao_id||'',criadoPor:r.criadoPor||r.criado_por||'',mesAno:r.mesAno||r.mes_ano||''});}
 async function carregarPrioridades(){
   var res=null;
@@ -4415,6 +4689,7 @@ function renderConsultor(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
   if(state.paginaGestor==='ferias') return renderFeriasPage();
+  if(state.paginaGestor==='kclientes') return renderKClientesPage();
   if(state.paginaGestor==='progresso')return renderProgressoConsultor();
   if(state.paginaGestor==='lucas')    return renderLucasPage();
   if(state.paginaGestor==='jean')     return renderJeanPage();
@@ -4663,6 +4938,7 @@ function renderLucas(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
   if(state.paginaGestor==='ferias') return renderFeriasPage();
+  if(state.paginaGestor==='kclientes') return renderKClientesPage();
   if(state.paginaGestor==='jean') return renderJeanPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   if(state.paginaGestor==='cadastros') return renderCadastrosPage();
@@ -4673,6 +4949,7 @@ function renderJeanShell(){
   if(state.paginaGestor==='atividades') return renderAtividadesPage();
   if(state.paginaGestor==='reflexoes') return renderReflexoesPage();
   if(state.paginaGestor==='ferias') return renderFeriasPage();
+  if(state.paginaGestor==='kclientes') return renderKClientesPage();
   if(state.paginaGestor==='lucas') return renderLucasPage();
   if(state.paginaGestor==='planejamento') return renderPlanejamentoPage();
   if(state.paginaGestor==='cadastros') return renderCadastrosPage();
@@ -5360,6 +5637,7 @@ function bindGestor(){
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
   if(state.paginaGestor==='ferias')bindFerias();
+  if(state.paginaGestor==='kclientes')bindKClientes();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Bind prioridade filter
   ['todos','alta','media','baixa'].forEach(function(f){
@@ -5434,6 +5712,7 @@ function bindConsultor(){
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
   if(state.paginaGestor==='ferias')bindFerias();
+  if(state.paginaGestor==='kclientes')bindKClientes();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Filtros de prioridade
   ['todos','alta','media','baixa'].forEach(function(f){
@@ -5509,6 +5788,7 @@ function bindLucas(){
   if(state.paginaGestor==='atividades')bindAtividades();
   if(state.paginaGestor==='reflexoes')bindReflexoes();
   if(state.paginaGestor==='ferias')bindFerias();
+  if(state.paginaGestor==='kclientes')bindKClientes();
   if(state.paginaGestor==='planejamento')bindPlanejamento();
   if(state.paginaGestor==='cadastros')bindCadastros();
   // Filtros de prioridade
